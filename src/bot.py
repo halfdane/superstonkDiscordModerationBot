@@ -1,0 +1,115 @@
+import asyncio
+import json
+import logging
+import os
+from typing import List, Union
+
+import asyncpraw
+import disnake
+from disnake import Message
+from disnake.ext import commands
+from disnake.ext.commands import Bot
+
+import discordReaction
+import reddit_helper
+from cogs.user_cog import UserCog
+from redditItemHandler import Handler
+from redditItemHandler.comments_handler import Comments
+from redditItemHandler.modmail_handler import ModMail
+from redditItemHandler.reports_handler import Reports
+from redditItemHandler.submissions_handler import Submissions
+
+logger = logging.getLogger("SuperstonkModerationBot")
+
+CHANNEL_IDS = [953241687814197278, 954779897123966997]
+# CHANNEL_IDS = [953241687814197278]
+
+reddit = asyncpraw.Reddit(username=os.environ["reddit_username"],
+                      password=os.environ["reddit_password"],
+                      client_id=os.environ["reddit_client_id"],
+                      client_secret=os.environ["reddit_client_secret"],
+                      user_agent="desktop:com.halfdane.superstonk_moderation_bot:v0.0.2 (by u/half_dane)")
+
+
+class SuperstonkModerationBot(Bot):
+    def __init__(self, **options):
+        super().__init__(command_prefix='>',
+                         description="Moderation bot for Superstonk.",
+                         test_guilds=[952157731614249040, 828370452132921344],
+                         sync_commands_debug=True,
+                         **options)
+        self.reddit = options.get("reddit")
+        self._subreddit = None
+        self.handlers = None
+
+    async def on_ready(self):
+        self._subreddit = await reddit.subreddit(os.environ['target_subreddit'])
+        self.handlers: List[Handler] = [
+            # Submissions(),
+            # Comments(),
+            # ModMail(),
+            Reports()
+        ]
+        for handler in self.handlers:
+            self.loop.create_task(self.single_handler(handler))
+        print(str(bot.user) + ' is running.')
+
+    async def on_command_error(self, ctx: commands.Context, error):
+        print(error)
+
+    async def single_handler(self, handler):
+        while True:
+            logger.info(f"Starting to stream from {handler.__class__.__name__}")
+            try:
+                async for item in handler.stream_reddit_items(self._subreddit):
+                    try:
+                        if handler.should_handle(item):
+                            embed = await handler.create_embed(item)
+                            for channel in CHANNEL_IDS:
+                                msg: Message = await self.get_channel(channel).send(embed=embed)
+                                await discordReaction.add_reactions(msg)
+                    except Exception:
+                        logger.exception(f"Error in handler {handler} with {item}")
+            except Exception:
+                logger.exception(f"Error fetching items with handler {handler}")
+            await asyncio.sleep(10)
+            logger.info("AAAnd another run")
+
+    async def get_item(self, c: Union[str, disnake.Embed]):
+        s = str(c) if not isinstance(c, disnake.Embed) else json.dumps(c.to_dict())
+        return await reddit_helper.get_item(reddit, self._subreddit, s)
+
+    async def get_reaction_information(self, p: disnake.RawReactionActionEvent):
+        channel = self.get_channel(p.channel_id)
+        if not isinstance(channel, disnake.TextChannel):
+            return
+        member = p.member
+        if getattr(member, "bot", False):
+            return
+
+        message: Message = await channel.fetch_message(p.message_id)
+        emoji = p.emoji.name if not p.emoji.is_custom_emoji() else "<:{}:{}>".format(p.emoji.name, p.emoji.id)
+
+        item = await self.get_item(message.content) if not message.embeds else await self.get_item(message.embeds[0])
+
+        return message, item, emoji, member, channel, self
+
+    async def on_raw_reaction_remove(self, p: disnake.RawReactionActionEvent):
+        reaction_information = await self.get_reaction_information(p)
+        if reaction_information:
+            await discordReaction.unhandle(*reaction_information)
+
+    async def on_raw_reaction_add(self, p: disnake.RawReactionActionEvent):
+        reaction_information = await self.get_reaction_information(p)
+        if reaction_information:
+            await discordReaction.handle(*reaction_information)
+
+
+bot = SuperstonkModerationBot(reddit=reddit)
+
+bot.add_cog(UserCog(bot, reddit))
+
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s %(threadName)s %(message)s')
+    bot.run(os.environ["discord_bot_token"])
+
