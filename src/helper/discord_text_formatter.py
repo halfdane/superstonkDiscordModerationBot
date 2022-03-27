@@ -96,7 +96,7 @@ def link(url, text=None, maxlength=None):
 
 
 def unlink(text):
-    match = re.match(r'\[(.*)\]\((.*)\)', text)
+    match = re.search('\[(.*)\]\((.*)\)', text)
     return match[1], match[2]
 
 

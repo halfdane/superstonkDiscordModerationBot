@@ -2,8 +2,12 @@ SHELL := /bin/bash
 
 .PHONY: run
 run: venv
+	CHANNEL_IDS='953241687814197278'  ./venv/bin/python src/bot.py
+
+.PHONY: deploy_run
+deploy_run: venv
 	rsync -av --force --delete src/ ./build
-	./venv/bin/python build/bot.py
+	CHANNEL_IDS='954779897123966997' ./venv/bin/python build/bot.py
 
 venv: venv/bin/activate
 

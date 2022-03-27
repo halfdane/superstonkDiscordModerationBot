@@ -6,4 +6,4 @@ venv/
 banhammer/
 build
 out
-tests.py
+src/tests.py

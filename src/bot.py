@@ -2,6 +2,8 @@ import asyncio
 import json
 import logging
 import os
+import sys
+
 from typing import List, Union
 
 import asyncpraw
@@ -21,14 +23,13 @@ from redditItemHandler.submissions_handler import Submissions
 
 logger = logging.getLogger("SuperstonkModerationBot")
 
-CHANNEL_IDS = [953241687814197278, 954779897123966997]
-# CHANNEL_IDS = [953241687814197278]
-
-reddit = asyncpraw.Reddit(username=os.environ["reddit_username"],
-                      password=os.environ["reddit_password"],
-                      client_id=os.environ["reddit_client_id"],
-                      client_secret=os.environ["reddit_client_secret"],
-                      user_agent="desktop:com.halfdane.superstonk_moderation_bot:v0.0.2 (by u/half_dane)")
+REDDIT_CLIENT_SECRET = os.environ["reddit_client_secret"]
+REDDIT_CLIENT_ID = os.environ["reddit_client_id"]
+REDDIT_PASSWORD = os.environ["reddit_password"]
+REDDIT_USERNAME = os.environ["reddit_username"]
+TARGET_SUBREDDIT = os.environ['target_subreddit']
+DISCORD_BOT_TOKEN = os.environ["discord_bot_token"]
+CHANNEL_IDS = [int(channel) for channel in str(os.environ["CHANNEL_IDS"]).split()]
 
 
 class SuperstonkModerationBot(Bot):
@@ -43,7 +44,7 @@ class SuperstonkModerationBot(Bot):
         self.handlers = None
 
     async def on_ready(self):
-        self._subreddit = await reddit.subreddit(os.environ['target_subreddit'])
+        self._subreddit = await self.reddit.subreddit(TARGET_SUBREDDIT)
         self.handlers: List[Handler] = [
             # Submissions(),
             # Comments(),
@@ -77,7 +78,7 @@ class SuperstonkModerationBot(Bot):
 
     async def get_item(self, c: Union[str, disnake.Embed]):
         s = str(c) if not isinstance(c, disnake.Embed) else json.dumps(c.to_dict())
-        return await reddit_helper.get_item(reddit, self._subreddit, s)
+        return await reddit_helper.get_item(self.reddit, self._subreddit, s)
 
     async def get_reaction_information(self, p: disnake.RawReactionActionEvent):
         channel = self.get_channel(p.channel_id)
@@ -105,11 +106,14 @@ class SuperstonkModerationBot(Bot):
             await discordReaction.handle(*reaction_information)
 
 
-bot = SuperstonkModerationBot(reddit=reddit)
-
-bot.add_cog(UserCog(bot, reddit))
+bot = SuperstonkModerationBot(
+    reddit=asyncpraw.Reddit(username=REDDIT_USERNAME,
+                            password=REDDIT_PASSWORD,
+                            client_id=REDDIT_CLIENT_ID,
+                            client_secret=REDDIT_CLIENT_SECRET,
+                            user_agent="com.halfdane.superstonk_moderation_bot:v0.0.2 (by u/half_dane)"))
+bot.add_cog(UserCog(bot))
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format='%(asctime)s %(threadName)s %(message)s')
-    bot.run(os.environ["discord_bot_token"])
-
+    bot.run(DISCORD_BOT_TOKEN)

@@ -1,4 +1,3 @@
-import disnake
 from disnake import Message
 
 from bot import SuperstonkModerationBot
