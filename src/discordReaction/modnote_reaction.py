@@ -5,8 +5,8 @@ from disnake import Message
 
 from bot import SuperstonkModerationBot
 from discordReaction.abstract_reaction import Reaction
-from helper.discord_text_formatter import unlink
 from helper.mod_notes import get_mod_notes
+from helper.redditor_extractor import extract_redditor
 
 logger = logging.getLogger("ModNoteReaction")
 
@@ -15,9 +15,7 @@ class ModNoteReaction(Reaction):
     emoji = '🗒️'
 
     async def handle(self, message: Message, item, emoji, user, channel, bot: SuperstonkModerationBot):
-        redditor = next(filter(lambda f: "Redditor" in f['name'], message.embeds[0]._fields))['value']
-        print(f"got {redditor}")
-        redditor, _ = unlink(redditor)
+        redditor = extract_redditor(message)
         try:
             for embed in await get_mod_notes(bot.reddit, redditor):
                 await user.send(embed=embed)

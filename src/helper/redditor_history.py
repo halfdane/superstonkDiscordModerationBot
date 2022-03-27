@@ -24,9 +24,19 @@ class Activities(BagOfStuff):
 
 
 async def redditor_history(redditor: Redditor):
+    try:
+        return await __unsafe_redditor_history(redditor)
+    except Exception as e:
+        return {
+            "Redditor": f"[{redditor.name}](https://www.reddit.com/u/{redditor.name})",
+            "ERROR": f"Couldn't fetch the history: {e}\n"
+                     f"You'll have to check it yourself."
+        }
+
+
+async def __unsafe_redditor_history(redditor):
     submissions = await history_of(redditor.submissions.new())
     comments = await history_of(redditor.comments.new())
-
     return {
         "Redditor": f"[{redditor.name}](https://www.reddit.com/u/{redditor.name})",
         f"Additional Links":

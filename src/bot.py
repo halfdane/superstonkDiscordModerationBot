@@ -2,6 +2,7 @@ import asyncio
 import json
 import logging
 import os
+import re
 import sys
 
 from typing import List, Union
@@ -15,6 +16,7 @@ from disnake.ext.commands import Bot
 import discordReaction
 import reddit_helper
 from cogs.user_cog import UserCog
+from helper.redditor_extractor import extract_redditor
 from redditItemHandler import Handler
 from redditItemHandler.comments_handler import Comments
 from redditItemHandler.modmail_handler import ModMail
@@ -30,6 +32,7 @@ REDDIT_USERNAME = os.environ["reddit_username"]
 TARGET_SUBREDDIT = os.environ['target_subreddit']
 DISCORD_BOT_TOKEN = os.environ["discord_bot_token"]
 CHANNEL_IDS = [int(channel) for channel in str(os.environ["CHANNEL_IDS"]).split()]
+USER_INVESTIGATION_CHANNELS = [int(channel) for channel in str(os.environ["USER_INVESTIGATION_CHANNELS"]).split()]
 
 
 class SuperstonkModerationBot(Bot):
@@ -54,6 +57,12 @@ class SuperstonkModerationBot(Bot):
         for handler in self.handlers:
             self.loop.create_task(self.single_handler(handler))
         print(str(bot.user) + ' is running.')
+
+    async def on_message(self, msg: Message):
+        if msg.author.bot or msg.channel.id not in USER_INVESTIGATION_CHANNELS:
+            return
+        if extract_redditor(msg):
+            await discordReaction.add_reactions(msg, discordReaction.USER_REACTIONS)
 
     async def on_command_error(self, ctx: commands.Context, error):
         print(error)

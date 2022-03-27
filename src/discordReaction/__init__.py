@@ -4,22 +4,25 @@ from discordReaction.modnote_reaction import ModNoteReaction
 from discordReaction.user_history_reaction import UserHistoryReaction
 from discordReaction.wip_reaction import WipReaction
 import disnake
+from bot import SuperstonkModerationBot
+
 
 GENERIC_REACTIONS = (WipReaction(), DeleteReaction(), ModNoteReaction(), UserHistoryReaction(), HelpReaction())
+USER_REACTIONS = (ModNoteReaction(), UserHistoryReaction())
 
 
-async def add_reactions(msg: disnake.Message):
-    for r in GENERIC_REACTIONS:
+async def add_reactions(msg: disnake.Message, reactions=GENERIC_REACTIONS):
+    for r in reactions:
         await msg.add_reaction(r.emoji)
 
 
-async def handle(message, item, emoji, user, channel, bot: disnake.Client):
+async def handle(message, item, emoji, user, channel, bot: SuperstonkModerationBot):
     for reaction in GENERIC_REACTIONS:
         if reaction.is_reaction(message, item, emoji, user, channel, bot):
             await reaction.handle(message, item, emoji, user, channel, bot)
 
 
-async def unhandle(message, item, emoji, user, channel, bot: disnake.Client):
+async def unhandle(message, item, emoji, user, channel, bot: SuperstonkModerationBot):
     for reaction in GENERIC_REACTIONS:
         if reaction.is_reaction(message, item, emoji, user, channel, bot):
             await reaction.unhandle(message, item, emoji, user, channel, bot)
