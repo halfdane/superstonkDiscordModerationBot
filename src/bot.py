@@ -15,7 +15,8 @@ from disnake.ext.commands import Bot
 
 import discordReaction
 import reddit_helper
-from cogs.user_cog import UserCog
+import cogs
+
 from helper.redditor_extractor import extract_redditor
 from redditItemHandler import Handler
 from redditItemHandler.comments_handler import Comments
@@ -42,8 +43,8 @@ class SuperstonkModerationBot(Bot):
                          test_guilds=[952157731614249040, 828370452132921344],
                          sync_commands_debug=True,
                          **options)
-        self.reddit = options.get("reddit")
-        self._subreddit = None
+        self.reddit: asyncpraw.Reddit = options.get("reddit")
+        self._subreddit: asyncpraw.reddit.Subreddit = None
         self.handlers = None
 
     async def on_ready(self):
@@ -121,7 +122,12 @@ bot = SuperstonkModerationBot(
                             client_id=REDDIT_CLIENT_ID,
                             client_secret=REDDIT_CLIENT_SECRET,
                             user_agent="com.halfdane.superstonk_moderation_bot:v0.0.2 (by u/half_dane)"))
+
+
+from cogs.user_cog import UserCog
+from cogs.modqueue_cog import ModQueueCog
 bot.add_cog(UserCog(bot))
+bot.add_cog(ModQueueCog(bot))
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format='%(asctime)s %(threadName)s %(message)s')
