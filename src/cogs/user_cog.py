@@ -1,25 +1,15 @@
 import re
 
-import asyncpraw
 import disnake
 from disnake.ext import commands
 
 import discordReaction
-from helper.discord_text_formatter import link
-from helper.mod_notes import get_mod_notes
 from helper.redditor_history import redditor_history
-from redditItemHandler import Handler
 
 
 class UserCog(commands.Cog):
     def __init__(self, bot):
         self._bot = bot
-
-    @commands.Cog.listener()
-    async def on_member_join(self, member):
-        channel = member.guild.system_channel
-        if channel is not None:
-            await channel.send(f'Welcome {member.mention}.')
 
     @commands.slash_command(
         description="Display some helpful links for the given redditor.",
@@ -47,4 +37,3 @@ class UserCog(commands.Cog):
 
         msg = await ctx.original_message()
         await discordReaction.add_reactions(msg)
-
