@@ -3,8 +3,6 @@ from datetime import datetime as dt
 import disnake
 
 from helper.discord_text_formatter import cut
-from disnake.utils import escape_markdown
-import itertools
 
 
 def __transform_mod_note(n):
@@ -20,7 +18,7 @@ def __transform_mod_note(n):
     return note
 
 
-async def fetch_all_notes(reddit, redditor_param, before=None):
+async def __fetch_notes(reddit, redditor_param, before=None):
     params = {"subreddit": "Superstonk", "user": redditor_param, "limit": 100}
     if before:
         params["before"] = before
@@ -30,49 +28,26 @@ async def fetch_all_notes(reddit, redditor_param, before=None):
 
     if response['has_next_page']:
         end_cursor = response['end_cursor']
-        notes = await fetch_all_notes(reddit, redditor_param, end_cursor) + notes
+        notes = await __fetch_notes(reddit, redditor_param, end_cursor) + notes
+
+    return notes
+
+
+async def fetch_modnotes(reddit, redditor_param, before=None):
+    notes = await __fetch_notes(reddit, redditor_param, before)
 
     infos = reddit.info([note["fullname"] for note in notes])
     infos = {info.fullname: info async for info in infos}
 
-    def __update(dict_, info):
-        dict_.update(info)
-        return dict_
-
-    notes = [__update(note, {'object': infos.get(note['fullname'])}) for note in notes]
-
-    def __as_link(object):
-        if object:
-            title = getattr(object, 'title', getattr(object, 'body', "")).replace("\n", "<br>")[:75]
+    for n in notes:
+        link = ""
+        if reddit_item := infos.get(n['fullname']):
+            title = getattr(reddit_item, 'title', getattr(reddit_item, 'body', "")).replace("\n", "<br>")[:75]
             title = disnake.utils.escape_markdown(title)
-            return f"\n[{title}](https://www.reddit.com{object.permalink})"
-        else:
-            return ""
+            link = f"\n[{title}](https://www.reddit.com{reddit_item.permalink})"
 
-    strings = {f"**{n['created_at']}**":
+        yield (f"**{n['created_at']}**",
                f"{n['mod']} {n['action']} "
                f"{n['details']} {cut(n['description'], 100)} "
-               f"{__as_link(n['object'])}"
-               for n in notes}
-    return strings
+               f"{link}")
 
-
-async def get_mod_notes(reddit, redditor_param):
-    embeds = []
-    notes = await fetch_all_notes(reddit, redditor_param)
-
-    def chunked(it, size):
-        it = iter(it)
-        while True:
-            p = tuple(itertools.islice(it, size))
-            if not p:
-                break
-            yield p
-
-    for note_chunk in chunked(notes.items(), 20):
-        embed = disnake.Embed(colour=disnake.Colour(0).from_rgb(207, 206, 255))
-        for k, v in note_chunk:
-            embed.add_field(k, v, inline=False)
-        embeds.append(embed)
-    embeds[0].description = f"**ModNotes for {escape_markdown(redditor_param)}**\n"
-    return embeds
