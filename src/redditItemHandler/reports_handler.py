@@ -1,7 +1,13 @@
+import datetime
+import re
+
 import disnake
 
-from helper.discord_text_formatter import link, cut
+from helper.discord_text_formatter import link
+from helper.mod_notes import fetch_modnotes
 from redditItemHandler import Handler
+
+RULE_1 = re.compile(r"rule\s+1", re.IGNORECASE)
 
 
 class Reports(Handler):
@@ -10,8 +16,15 @@ class Reports(Handler):
 
     def should_handle(self, item):
         user_report_count = sum([r[1] for r in item.user_reports])
-        mod_report_count = len(list(filter(lambda r: r[1] != "AutoModerator", item.mod_reports)))
+        mod_report_count = len([r[1] for r in item.mod_reports if r[1] != "AutoModerator"])
         return user_report_count >= 5 or mod_report_count > 0
+
+    async def handle(self, item, channels):
+        mods_reporting_rule_1 = [r[1] for r in item.mod_reports if RULE_1.match(r[0])]
+        if len(mods_reporting_rule_1) > 0:
+            await self.__send_ban_list(mods_reporting_rule_1, item)
+        else:
+            await super().handle(item, channels)
 
     async def create_embed(self, item):
         url = f"https://www.reddit.com{item.permalink}"
@@ -31,3 +44,17 @@ class Reports(Handler):
         if mod_reports:
             e.add_field("Mod Reports", mod_reports, inline=False)
         return e
+
+    async def __send_ban_list(self, mods_reporting_rule_1, item):
+        modnotes = fetch_modnotes(reddit=self._reddit, redditor_param=item.author, only='banuser')
+        bans = f"All bans of {item.author}"
+        async for k, v in modnotes:
+            bans += f"- **{k}**: {v}\n"
+        bans += "\n\nThat's all"
+        utc_datetime = datetime.datetime.utcnow()
+        formatted_string = utc_datetime.strftime("%Y-%m-%d-%H%MZ")
+        for reporting_mod in mods_reporting_rule_1:
+            mod = await self._reddit.redditor(reporting_mod)
+
+            await mod.message(f"Bans of {item.author} at {formatted_string}", bans)
+

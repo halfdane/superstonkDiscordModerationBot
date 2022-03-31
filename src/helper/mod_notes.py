@@ -18,7 +18,7 @@ def __transform_mod_note(n):
     return note
 
 
-async def __fetch_notes(reddit, redditor_param, before=None):
+async def __fetch_notes(reddit, redditor_param, before=None, only=None):
     params = {"subreddit": "Superstonk", "user": redditor_param, "limit": 100}
     if before:
         params["before"] = before
@@ -33,8 +33,11 @@ async def __fetch_notes(reddit, redditor_param, before=None):
     return notes
 
 
-async def fetch_modnotes(reddit, redditor_param, before=None):
-    notes = await __fetch_notes(reddit, redditor_param, before)
+async def fetch_modnotes(reddit, redditor_param, only=None):
+    notes = await __fetch_notes(reddit, redditor_param)
+
+    if only:
+        notes = [note for note in notes if note["action"] == only]
 
     infos = reddit.info([note["fullname"] for note in notes])
     infos = {info.fullname: info async for info in infos}

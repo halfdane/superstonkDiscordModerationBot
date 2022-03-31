@@ -46,6 +46,7 @@ class SuperstonkModerationBot(Bot):
         self.reddit: asyncpraw.Reddit = options.get("reddit")
         self._subreddit: asyncpraw.reddit.Subreddit = None
         self.handlers = None
+        self.report_channels = []
 
     async def on_ready(self):
         self._subreddit = await self.reddit.subreddit(TARGET_SUBREDDIT)
@@ -53,8 +54,11 @@ class SuperstonkModerationBot(Bot):
             # Submissions(),
             # Comments(),
             # ModMail(),
-            Reports()
+            Reports(self.reddit, self._subreddit)
         ]
+        for channel in CHANNEL_IDS:
+            self.report_channels.append(self.get_channel(channel))
+
         for handler in self.handlers:
             self.loop.create_task(self.single_handler(handler))
         print(str(bot.user) + ' is running.')
@@ -72,13 +76,10 @@ class SuperstonkModerationBot(Bot):
         while True:
             logger.info(f"Starting to stream from {handler.__class__.__name__}")
             try:
-                async for item in handler.stream_reddit_items(self._subreddit):
+                async for item in handler.stream_reddit_items():
                     try:
                         if handler.should_handle(item):
-                            embed = await handler.create_embed(item)
-                            for channel in CHANNEL_IDS:
-                                msg: Message = await self.get_channel(channel).send(embed=embed)
-                                await discordReaction.add_reactions(msg)
+                            await handler.handle(item, self.report_channels)
                     except Exception:
                         logger.exception(f"Error in handler {handler} with {item}")
             except Exception:
