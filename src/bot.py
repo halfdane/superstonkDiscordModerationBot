@@ -60,7 +60,7 @@ class SuperstonkModerationBot(Bot):
             self.report_channels.append(self.get_channel(channel))
 
         for handler in self.handlers:
-            self.loop.create_task(self.single_handler(handler))
+            self.loop.create_task(handler.start(self.report_channels))
         print(str(bot.user) + ' is running.')
 
     async def on_message(self, msg: Message):
@@ -71,21 +71,6 @@ class SuperstonkModerationBot(Bot):
 
     async def on_command_error(self, ctx: commands.Context, error):
         print(error)
-
-    async def single_handler(self, handler):
-        while True:
-            logger.info(f"Starting to stream from {handler.__class__.__name__}")
-            try:
-                async for item in handler.stream_reddit_items():
-                    try:
-                        if handler.should_handle(item):
-                            await handler.handle(item, self.report_channels)
-                    except Exception:
-                        logger.exception(f"Error in handler {handler} with {item}")
-            except Exception:
-                logger.exception(f"Error fetching items with handler {handler}")
-            await asyncio.sleep(10)
-            logger.info("AAAnd another run")
 
     async def get_item(self, c: Union[str, disnake.Embed]):
         s = str(c) if not isinstance(c, disnake.Embed) else json.dumps(c.to_dict())

@@ -14,17 +14,17 @@ class Reports(Handler):
     def _get_reddit_stream_function(self, subreddit):
         return subreddit.mod.stream.reports
 
-    def should_handle(self, item):
+    async def handle(self, item, channels):
         user_report_count = sum([r[1] for r in item.user_reports])
         mod_report_count = len([r[1] for r in item.mod_reports if r[1] != "AutoModerator"])
-        return user_report_count >= 5 or mod_report_count > 0
-
-    async def handle(self, item, channels):
         mods_reporting_rule_1 = [r[1] for r in item.mod_reports if RULE_1.match(r[0])]
+
         if len(mods_reporting_rule_1) > 0:
             await self.__send_ban_list(mods_reporting_rule_1, item)
-        else:
+        elif user_report_count >= 5 or mod_report_count > 0:
             await super().handle(item, channels)
+        else:
+            self._logger.info(f"ignoring https://www.reddit.com{item.permalink}")
 
     async def create_embed(self, item):
         url = f"https://www.reddit.com{item.permalink}"

@@ -6,9 +6,6 @@ from redditItemHandler import Handler
 
 
 class Comments(Handler):
-    def should_handle(self, item):
-        return True
-
     def _get_reddit_stream_function(self, subreddit: asyncpraw.reddit.Subreddit):
         return subreddit.comments
 

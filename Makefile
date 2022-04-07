@@ -2,12 +2,18 @@ SHELL := /bin/bash
 
 .PHONY: run
 run: venv
-	CHANNEL_IDS='953241687814197278' USER_INVESTIGATION_CHANNELS='953241687814197278' ./venv/bin/python src/bot.py
+	./venv/bin/python src/bot.py
 
-.PHONY: deploy_run
-deploy_run: venv
+.PHONY: run_deployed
+run_deployed: venv
+	/venv/bin/python build/bot.py
+
+
+.PHONY: deploy
+deploy: venv
 	rsync -av --force --delete src/ ./build
-	CHANNEL_IDS='954779897123966997' USER_INVESTIGATION_CHANNELS='847155652702765067' ./venv/bin/python build/bot.py
+	cp .live_envrc ./build/.envrc
+	cd ./build && direnv allow
 
 venv: venv/bin/activate
 

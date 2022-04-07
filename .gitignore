@@ -7,3 +7,4 @@ banhammer/
 build
 out
 src/tests.py
+.live_envrc
