@@ -1,3 +1,4 @@
+import asyncio
 from typing import Callable, AsyncIterable
 from disnake import Message
 
@@ -15,10 +16,17 @@ class Handler:
         self._subreddit = _subreddit
 
     async def start(self, report_channels):
-        self._logger.info(f"Starting to fetch items for {self.__class__.__name__}")
         reddit_function: Callable[[], AsyncIterable] = self._get_reddit_stream_function(self._subreddit)
-        async for item in reddit_function():
-            await self.handle(item, report_channels)
+        while True:
+            self._logger.info(f"Starting to fetch items for {self.__class__.__name__}")
+            try:
+                async for item in reddit_function():
+                    await self.handle(item, report_channels)
+            except Exception:
+                self._logger.exception(f"Ignoring exception - sleeping instead:")
+                await asyncio.sleep(10)
+
+
 
     def _get_reddit_stream_function(self, subreddit) -> Callable[[], AsyncIterable]:
         pass

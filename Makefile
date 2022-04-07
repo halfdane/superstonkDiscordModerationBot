@@ -6,7 +6,7 @@ run: venv
 
 .PHONY: run_deployed
 run_deployed: venv
-	/venv/bin/python build/bot.py
+	./venv/bin/python build/bot.py
 
 
 .PHONY: deploy
