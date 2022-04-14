@@ -1,4 +1,3 @@
-import re
 from disnake import Message
 
 from discordReaction.abstract_reaction import Reaction

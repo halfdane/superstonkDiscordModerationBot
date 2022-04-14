@@ -1,22 +1,31 @@
-import asyncpraw
 import disnake
 
+import discordReaction
 from helper.discord_text_formatter import link
 from redditItemHandler import Handler
+from disnake.utils import escape_markdown
 
 
 class Comments(Handler):
-    def _get_reddit_stream_function(self, subreddit: asyncpraw.reddit.Subreddit):
-        return subreddit.comments
+    def __init__(self, bot):
+        self.bot = bot
+        super().__init__(self.bot.reddit, self.bot.subreddit)
+        self._flairy_detection = "!flairy!"
 
-    async def create_embed(self, item: asyncpraw.reddit.Comment):
-        url = f"https://www.reddit.com{item.permalink}"
-        e = disnake.Embed(
-            url=url,
-            colour=disnake.Colour(0).from_rgb(207, 206, 255))
+    async def handle(self, channels):
+        async for comment in self._subreddit.stream.comments():
+            body = comment.body
 
-        title = getattr(item, 'title', getattr(item, 'body', ""))[:75]
-        e.description = f"[Reported {item.__class__.__name__}: {title}]({url})"
-        e.add_field("Redditor", link(f"https://www.reddit.com/u/{item.author}", item.author), inline=False)
+            if self._flairy_detection.lower() in body.lower() and comment.author not in self.bot.moderators:
+                url = f"https://www.reddit.com{comment.permalink}"
+                e = disnake.Embed(
+                    url=url,
+                    colour=disnake.Colour(0).from_rgb(207, 206, 255))
 
-        return e
+                e.description = f"[Flair Request: {escape_markdown(body)}]({url})"
+                e.add_field("Redditor", link(f"https://www.reddit.com/u/{comment.author}", comment.author), inline=False)
+
+                for channel in self.bot.flairy_channels:
+                    msg = await channel.send(embed=e)
+                    reactions = discordReaction.FLAIR_REACTIONS + discordReaction.GENERIC_REACTIONS + discordReaction.USER_REACTIONS
+                    await discordReaction.add_reactions(msg, reactions=reactions)

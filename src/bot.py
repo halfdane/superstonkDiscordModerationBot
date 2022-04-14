@@ -1,10 +1,7 @@
-import asyncio
 import json
 import logging
 import os
-import re
-import sys
-
+import random
 from typing import List, Union
 
 import asyncpraw
@@ -15,14 +12,10 @@ from disnake.ext.commands import Bot
 
 import discordReaction
 import reddit_helper
-import cogs
-
 from helper.redditor_extractor import extract_redditor
 from redditItemHandler import Handler
 from redditItemHandler.comments_handler import Comments
-from redditItemHandler.modmail_handler import ModMail
 from redditItemHandler.reports_handler import Reports
-from redditItemHandler.submissions_handler import Submissions
 
 logger = logging.getLogger("SuperstonkModerationBot")
 
@@ -33,6 +26,7 @@ REDDIT_USERNAME = os.environ["reddit_username"]
 TARGET_SUBREDDIT = os.environ['target_subreddit']
 DISCORD_BOT_TOKEN = os.environ["discord_bot_token"]
 CHANNEL_IDS = [int(channel) for channel in str(os.environ["CHANNEL_IDS"]).split()]
+FLAIRY_CHANNELS = [int(channel) for channel in str(os.environ["FLAIRY_CHANNELS"]).split()]
 USER_INVESTIGATION_CHANNELS = [int(channel) for channel in str(os.environ["USER_INVESTIGATION_CHANNELS"]).split()]
 
 
@@ -44,24 +38,36 @@ class SuperstonkModerationBot(Bot):
                          sync_commands_debug=True,
                          **options)
         self.reddit: asyncpraw.Reddit = options.get("reddit")
-        self._subreddit: asyncpraw.reddit.Subreddit = None
+        self.flairy_reddit: asyncpraw.Reddit = options.get("flairy_reddit")
+        self.subreddit: asyncpraw.reddit.Subreddit = None
         self.handlers = None
         self.report_channels = []
+        self.flairy_channels = []
+        self.moderators = None
 
     async def on_ready(self):
-        self._subreddit = await self.reddit.subreddit(TARGET_SUBREDDIT)
+        self.subreddit = await self.reddit.subreddit(TARGET_SUBREDDIT)
         self.handlers: List[Handler] = [
-            # Submissions(),
-            # Comments(),
-            # ModMail(),
-            Reports(self.reddit, self._subreddit)
+            Comments(self),
+            Reports(self.reddit, self.subreddit)
         ]
+        self.moderators = [moderator async for moderator in self.subreddit.moderator]
         for channel in CHANNEL_IDS:
             self.report_channels.append(self.get_channel(channel))
 
+        for channel in FLAIRY_CHANNELS:
+            self.flairy_channels.append(self.get_channel(channel))
+
         for handler in self.handlers:
-            self.loop.create_task(handler.start(self.report_channels))
-        print(str(bot.user) + ' is running.')
+            self.loop.create_task(handler.start(self.report_channels),
+                                  name=f"{handler.__class__.__name__}_{random.randint(0, 100)}")
+
+        print(f"{str(bot.user)} is listening to {USER_INVESTIGATION_CHANNELS}.")
+        print(f"{str(bot.user)} is reporting to {CHANNEL_IDS}.")
+        print(f"Flair requests are reported to {FLAIRY_CHANNELS}.")
+        print(f"{str(await self.reddit.user.me())} is listening on reddit.")
+        print(f"handling flair requests as {await self.flairy_reddit.user.me()}")
+        print(f"Mods: {self.moderators}")
 
     async def on_message(self, msg: Message):
         if msg.author.bot or msg.channel.id not in USER_INVESTIGATION_CHANNELS:
@@ -74,7 +80,7 @@ class SuperstonkModerationBot(Bot):
 
     async def get_item(self, c: Union[str, disnake.Embed]):
         s = str(c) if not isinstance(c, disnake.Embed) else json.dumps(c.to_dict())
-        return await reddit_helper.get_item(self.reddit, self._subreddit, s)
+        return await reddit_helper.get_item(self.reddit, self.subreddit, s)
 
     async def get_reaction_information(self, p: disnake.RawReactionActionEvent):
         channel = self.get_channel(p.channel_id)
@@ -103,15 +109,23 @@ class SuperstonkModerationBot(Bot):
 
 
 bot = SuperstonkModerationBot(
-    reddit=asyncpraw.Reddit(username=REDDIT_USERNAME,
-                            password=REDDIT_PASSWORD,
-                            client_id=REDDIT_CLIENT_ID,
-                            client_secret=REDDIT_CLIENT_SECRET,
-                            user_agent="com.halfdane.superstonk_moderation_bot:v0.0.2 (by u/half_dane)"))
-
+    reddit=asyncpraw.Reddit(
+        username=REDDIT_USERNAME,
+        password=REDDIT_PASSWORD,
+        client_id=REDDIT_CLIENT_ID,
+        client_secret=REDDIT_CLIENT_SECRET,
+        user_agent="com.halfdane.superstonk_moderation_bot:v0.0.2 (by u/half_dane)"),
+    flairy_reddit=asyncpraw.Reddit(
+        username=os.environ["flairy_username"],
+        password=os.environ["flairy_password"],
+        client_id=os.environ["flairy_client_id"],
+        client_secret=os.environ["flairy_client_secret"],
+        user_agent="desktop:com.halfdane.superstonk_flairy:v0.1.0 (by u/half_dane)")
+)
 
 from cogs.user_cog import UserCog
 from cogs.modqueue_cog import ModQueueCog
+
 bot.add_cog(UserCog(bot))
 bot.add_cog(ModQueueCog(bot))
 

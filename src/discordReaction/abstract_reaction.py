@@ -1,9 +1,9 @@
-import disnake
-
+import logging
 from bot import SuperstonkModerationBot
 
 
 class Reaction:
+    _logger = logging.getLogger(__name__)
     emoji = None
 
     async def handle(self, message, item, emoji, user, channel, bot: SuperstonkModerationBot):

@@ -1,8 +1,10 @@
+import asyncio
 import datetime
 import re
 
 import disnake
 
+import discordReaction
 from helper.discord_text_formatter import link
 from helper.mod_notes import fetch_modnotes
 from redditItemHandler import Handler
@@ -11,22 +13,24 @@ RULE_1 = re.compile(r"rule\s+1", re.IGNORECASE)
 
 
 class Reports(Handler):
-    def _get_reddit_stream_function(self, subreddit):
-        return subreddit.mod.stream.reports
+    async def handle(self, channels):
+        async for item in self._subreddit.mod.stream.reports():
+            user_report_count = sum([r[1] for r in item.user_reports])
+            mod_report_count = len([r[1] for r in item.mod_reports if r[1] != "AutoModerator"])
+            mods_reporting_rule_1 = [r[1] for r in item.mod_reports if RULE_1.match(r[0])]
 
-    async def handle(self, item, channels):
-        user_report_count = sum([r[1] for r in item.user_reports])
-        mod_report_count = len([r[1] for r in item.mod_reports if r[1] != "AutoModerator"])
-        mods_reporting_rule_1 = [r[1] for r in item.mod_reports if RULE_1.match(r[0])]
+            if len(mods_reporting_rule_1) > 0:
+                await self.__send_ban_list(mods_reporting_rule_1, item)
+            elif user_report_count >= 5 or mod_report_count > 0:
+                embed = await self.__create_embed(item)
+                if embed:
+                    for channel in channels:
+                        msg = await channel.send(embed=embed)
+                        await discordReaction.add_reactions(msg)
+            else:
+                current_task = asyncio.current_task()
 
-        if len(mods_reporting_rule_1) > 0:
-            await self.__send_ban_list(mods_reporting_rule_1, item)
-        elif user_report_count >= 5 or mod_report_count > 0:
-            await super().handle(item, channels)
-        else:
-            self._logger.info(f"ignoring https://www.reddit.com{item.permalink}")
-
-    async def create_embed(self, item):
+    async def __create_embed(self, item):
         url = f"https://www.reddit.com{item.permalink}"
         e = disnake.Embed(
             url=url,

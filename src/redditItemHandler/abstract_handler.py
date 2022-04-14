@@ -1,11 +1,6 @@
 import asyncio
-from typing import Callable, AsyncIterable
-from disnake import Message
-
-import disnake
 import logging
-
-import discordReaction
+from asyncpraw.exceptions import AsyncPRAWException
 
 
 class Handler:
@@ -16,29 +11,18 @@ class Handler:
         self._subreddit = _subreddit
 
     async def start(self, report_channels):
-        reddit_function: Callable[[], AsyncIterable] = self._get_reddit_stream_function(self._subreddit)
         while True:
-            self._logger.info(f"Starting to fetch items for {self.__class__.__name__}")
+            current_task = asyncio.current_task()
+            self._logger.info(f"[{current_task.get_name()}] Starting to fetch items for {self.__class__.__name__}")
             try:
-                async for item in reddit_function():
-                    await self.handle(item, report_channels)
-            except Exception:
-                self._logger.exception(f"Ignoring exception - sleeping instead:")
-                await asyncio.sleep(10)
+                await self.handle(report_channels)
+            except AsyncPRAWException:
+                self._logger.exception(f"[{current_task.get_name()}] Ignoring exception - sleeping instead:")
 
+            await asyncio.sleep(300)
 
-
-    def _get_reddit_stream_function(self, subreddit) -> Callable[[], AsyncIterable]:
+    async def handle(item, channels):
         pass
-
-    async def create_embed(self, item) -> disnake.Embed:
-        pass
-
-    async def handle(self, item, channels):
-        embed = await self.create_embed(item)
-        for channel in channels:
-            msg: Message = await channel.send(embed=embed)
-            await discordReaction.add_reactions(msg)
 
     def __repr__(self):
         return f"<{self.__class__.__name__}>"

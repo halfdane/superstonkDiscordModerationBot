@@ -16,7 +16,7 @@ class ModQueueCog(commands.Cog):
     async def fetch_modqueue(self, type):
         modqueue = []
         weights = []
-        async for item in self._bot._subreddit.mod.modqueue(limit=None, only=type):
+        async for item in self._bot.subreddit.mod.modqueue(limit=None, only=type):
             if item.num_reports < 3 or \
                     getattr(item, 'approved', False) or \
                     getattr(item, 'removed_by_category', None) is not None:

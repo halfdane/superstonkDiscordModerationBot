@@ -5,14 +5,15 @@ run: venv
 	./venv/bin/python src/bot.py
 
 .PHONY: run_deployed
-run_deployed: venv
-	./venv/bin/python build/bot.py
+run_deployed: ../venv
+	../venv/bin/python bot.py
 
 
 .PHONY: deploy
 deploy: venv
 	rsync -av --force --delete src/ ./build
 	cp .live_envrc ./build/.envrc
+	cp Makefile ./build/
 	cd ./build && direnv allow
 
 venv: venv/bin/activate
