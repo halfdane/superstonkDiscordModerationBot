@@ -9,26 +9,35 @@ from helper.discord_text_formatter import link
 from helper.mod_notes import fetch_modnotes
 from redditItemHandler import Handler
 
+from functools import lru_cache
+
 RULE_1 = re.compile(r"rule\s+1", re.IGNORECASE)
 
 
 class Reports(Handler):
+    _channels = []
+
     async def handle(self, channels):
+        self._logger.info(f"[{self._current_task.get_name()}] Cached: {self.send_response.cache_info()}")
+        self._channels = channels
         async for item in self._subreddit.mod.stream.reports():
             user_report_count = sum([r[1] for r in item.user_reports])
             mod_report_count = len([r[1] for r in item.mod_reports if r[1] != "AutoModerator"])
             mods_reporting_rule_1 = [r[1] for r in item.mod_reports if RULE_1.match(r[0])]
-
             if len(mods_reporting_rule_1) > 0:
                 await self.__send_ban_list(mods_reporting_rule_1, item)
             elif user_report_count >= 5 or mod_report_count > 0:
-                embed = await self.__create_embed(item)
-                if embed:
-                    for channel in channels:
-                        msg = await channel.send(embed=embed)
-                        await discordReaction.add_reactions(msg)
-            else:
-                current_task = asyncio.current_task()
+                await self.send_response(item)
+
+    @lru_cache(maxsize=5)
+    async def send_response(self, item):
+        self._logger.info(f"[{self._current_task.get_name()}] Sending reported item {item}")
+        embed = await self.__create_embed(item)
+        if embed:
+            for channel in self._channels:
+                msg = await channel.send(embed=embed)
+                await discordReaction.add_reactions(msg)
+        return item
 
     async def __create_embed(self, item):
         url = f"https://www.reddit.com{item.permalink}"

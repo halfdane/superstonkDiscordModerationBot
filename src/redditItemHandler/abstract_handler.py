@@ -12,14 +12,18 @@ class Handler:
 
     async def start(self, report_channels):
         while True:
-            current_task = asyncio.current_task()
-            self._logger.info(f"[{current_task.get_name()}] Starting to fetch items for {self.__class__.__name__}")
+            self._current_task = asyncio.current_task()
+            self._logger.info(f"[{self._current_task.get_name()}] Starting to fetch items for {self.__class__.__name__}")
             try:
-                await self.handle(report_channels)
+                await asyncio.wait_for(self.handle(report_channels), timeout=60*60)
             except AsyncPRAWException:
-                self._logger.exception(f"[{current_task.get_name()}] Ignoring exception - sleeping instead:")
+                self._logger.exception(f"[{self._current_task.get_name()}] Ignoring exception - sleeping instead:")
+            except asyncio.TimeoutError:
+                self._logger.info(f"Aborting [{self._current_task.get_name()}]")
 
-            await asyncio.sleep(300)
+            self._logger.info(f"[{self._current_task.get_name()}] sleeping")
+            await asyncio.sleep(10)
+            self._logger.info(f"[{self._current_task.get_name()}] running again")
 
     async def handle(item, channels):
         pass
