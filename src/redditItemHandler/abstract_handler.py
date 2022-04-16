@@ -20,6 +20,8 @@ class Handler:
                 self._logger.exception(f"[{self._current_task.get_name()}] Ignoring exception - sleeping instead:")
             except asyncio.TimeoutError:
                 self._logger.info(f"Aborting [{self._current_task.get_name()}]")
+            except Exception:
+                self._logger.exception(f"[{self._current_task.get_name()}] ignoring")
 
             self._logger.info(f"[{self._current_task.get_name()}] sleeping")
             await asyncio.sleep(10)
