@@ -33,7 +33,6 @@ class Handler:
     async def is_new_item(self, channel, item):
         for message in await channel.history(limit=10).flatten():
             existing_item = await self.bot.get_item(message)
-            self._logger.info(f"[{self._current_task.get_name()}] is {item.id} == {existing_item.id}?")
             if existing_item and item.id == existing_item.id:
                 return False
 
