@@ -25,8 +25,8 @@ REDDIT_PASSWORD = os.environ["reddit_password"]
 REDDIT_USERNAME = os.environ["reddit_username"]
 TARGET_SUBREDDIT = os.environ['target_subreddit']
 DISCORD_BOT_TOKEN = os.environ["discord_bot_token"]
-CHANNEL_IDS = [int(channel) for channel in str(os.environ["CHANNEL_IDS"]).split()]
-FLAIRY_CHANNELS = [int(channel) for channel in str(os.environ["FLAIRY_CHANNELS"]).split()]
+REPORTING_CHANNEL = int(os.environ["REPORTING_CHANNEL"])
+FLAIRY_CHANNEL = int(os.environ["FLAIRY_CHANNEL"])
 USER_INVESTIGATION_CHANNELS = [int(channel) for channel in str(os.environ["USER_INVESTIGATION_CHANNELS"]).split()]
 
 
@@ -41,30 +41,26 @@ class SuperstonkModerationBot(Bot):
         self.flairy_reddit: asyncpraw.Reddit = options.get("flairy_reddit")
         self.subreddit: asyncpraw.reddit.Subreddit = None
         self.handlers = None
-        self.report_channels = []
-        self.flairy_channels = []
+        self.report_channel = 0
+        self.flairy_channel = 0
         self.moderators = None
 
     async def on_ready(self):
         self.subreddit = await self.reddit.subreddit(TARGET_SUBREDDIT)
         self.handlers: List[Handler] = [
             Comments(self),
-            Reports(self.reddit, self.subreddit)
+            Reports(self)
         ]
         self.moderators = [moderator async for moderator in self.subreddit.moderator]
-        for channel in CHANNEL_IDS:
-            self.report_channels.append(self.get_channel(channel))
-
-        for channel in FLAIRY_CHANNELS:
-            self.flairy_channels.append(self.get_channel(channel))
+        self.report_channel = self.get_channel(REPORTING_CHANNEL)
+        self.flairy_channel = self.get_channel(FLAIRY_CHANNEL)
 
         for handler in self.handlers:
-            self.loop.create_task(handler.start(self.report_channels),
-                                  name=f"{handler.__class__.__name__}_{random.randint(0, 100)}")
+            self.loop.create_task(handler.start(), name=f"{handler.__class__.__name__}_{random.randint(0, 100)}")
 
         print(f"{str(bot.user)} is listening to {USER_INVESTIGATION_CHANNELS}.")
-        print(f"{str(bot.user)} is reporting to {CHANNEL_IDS}.")
-        print(f"Flair requests are reported to {FLAIRY_CHANNELS}.")
+        print(f"{str(bot.user)} is reporting to {REPORTING_CHANNEL}.")
+        print(f"Flair requests are reported to {FLAIRY_CHANNEL}.")
         print(f"{str(await self.reddit.user.me())} is listening on reddit.")
         print(f"handling flair requests as {await self.flairy_reddit.user.me()}")
         print(f"Mods: {self.moderators}")
@@ -78,7 +74,8 @@ class SuperstonkModerationBot(Bot):
     async def on_command_error(self, ctx: commands.Context, error):
         print(error)
 
-    async def get_item(self, c: Union[str, disnake.Embed]):
+    async def get_item(self, m: Message):
+        c = m.content if not m.embeds else m.embeds[0]
         s = str(c) if not isinstance(c, disnake.Embed) else json.dumps(c.to_dict())
         return await reddit_helper.get_item(self.reddit, self.subreddit, s)
 
@@ -92,9 +89,7 @@ class SuperstonkModerationBot(Bot):
 
         message: Message = await channel.fetch_message(p.message_id)
         emoji = p.emoji.name if not p.emoji.is_custom_emoji() else "<:{}:{}>".format(p.emoji.name, p.emoji.id)
-
-        item = await self.get_item(message.content) if not message.embeds else await self.get_item(message.embeds[0])
-
+        item = await self.get_item(message)
         return message, item, emoji, member, channel, self
 
     async def on_raw_reaction_remove(self, p: disnake.RawReactionActionEvent):

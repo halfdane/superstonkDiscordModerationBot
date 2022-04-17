@@ -58,7 +58,8 @@ class ModQueueCog(commands.Cog):
         items = await self.fetch_top_modqueue()
 
         embed = disnake.Embed(colour=disnake.Colour(0).from_rgb(207, 206, 255))
-        embed.description = "\n".join(items)
+        embed.description = "Top items of the modqueue"
+        embed.description += "\n".join(items)
         await ctx.edit_original_message(embed=embed)
         msg = await ctx.original_message()
         await discordReaction.add_reactions(msg, discordReaction.GENERIC_REACTIONS)

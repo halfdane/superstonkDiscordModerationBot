@@ -9,34 +9,32 @@ from helper.discord_text_formatter import link
 from helper.mod_notes import fetch_modnotes
 from redditItemHandler import Handler
 
-from functools import lru_cache
 
 RULE_1 = re.compile(r"rule\s+1", re.IGNORECASE)
 
 
 class Reports(Handler):
-    _channels = []
 
-    async def handle(self, channels):
-        self._logger.info(f"[{self._current_task.get_name()}] Cached: {self.send_response.cache_info()}")
-        self._channels = channels
-        async for item in self._subreddit.mod.stream.reports():
+    async def handle(self):
+        async for item in self.bot.subreddit.mod.stream.reports():
             user_report_count = sum([r[1] for r in item.user_reports])
             mod_report_count = len([r[1] for r in item.mod_reports if r[1] != "AutoModerator"])
             mods_reporting_rule_1 = [r[1] for r in item.mod_reports if RULE_1.match(r[0])]
             if len(mods_reporting_rule_1) > 0:
                 await self.__send_ban_list(mods_reporting_rule_1, item)
             elif user_report_count >= 5 or mod_report_count > 0:
-                await self.send_response(item)
+                if await self.is_new_item(self.bot.report_channel, item):
+                    await self.send_response(item)
+                else:
+                    self._logger.info(f"[{self._current_task.get_name()}] Skipping over already existing report")
+                    continue
 
-    @lru_cache(maxsize=5)
     async def send_response(self, item):
         self._logger.info(f"[{self._current_task.get_name()}] Sending reported item {item}")
         embed = await self.__create_embed(item)
         if embed:
-            for channel in self._channels:
-                msg = await channel.send(embed=embed)
-                await discordReaction.add_reactions(msg)
+            msg = await self.bot.report_channel.send(embed=embed)
+            await discordReaction.add_reactions(msg)
         return item
 
     async def __create_embed(self, item):
@@ -59,7 +57,7 @@ class Reports(Handler):
         return e
 
     async def __send_ban_list(self, mods_reporting_rule_1, item):
-        modnotes = fetch_modnotes(reddit=self._reddit, redditor_param=item.author, only='banuser')
+        modnotes = fetch_modnotes(reddit=self.bot.reddit, redditor_param=item.author, only='banuser')
         bans = f"All bans of {item.author}"
         async for k, v in modnotes:
             bans += f"- **{k}**: {v}\n"
@@ -67,7 +65,7 @@ class Reports(Handler):
         utc_datetime = datetime.datetime.utcnow()
         formatted_string = utc_datetime.strftime("%Y-%m-%d-%H%MZ")
         for reporting_mod in mods_reporting_rule_1:
-            mod = await self._reddit.redditor(reporting_mod)
+            mod = await self.bot.reddit.redditor(reporting_mod)
 
             await mod.message(f"Bans of {item.author} at {formatted_string}", bans)
 
