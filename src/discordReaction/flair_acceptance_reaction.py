@@ -54,10 +54,10 @@ class FlairAcceptanceReaction(Reaction):
             log_message = f"[{previous_flair}] => [{flair_text}] with template {template} for the color {color}"
             await subreddit.flair.set(redditor=user_to_be_flaired, text=flair_text, flair_template_id=template)
             message = rf"(✿\^‿\^)━☆ﾟ.*･｡ﾟ `{flair_text}`"
-        await comment.upvote()
         self._logger.info(log_message)
-        comment = await flairy_reddit.comment(comment.id, fetch=False)
-        await comment.reply(message)
+        comment_from_flairies_view = await flairy_reddit.comment(comment.id, fetch=False)
+        await comment_from_flairies_view.upvote()
+        await comment_from_flairies_view.reply(message)
 
     def description(self):
         return "Accept the flair request. The flairy will take care of the rest."
