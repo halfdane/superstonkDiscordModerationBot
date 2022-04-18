@@ -24,13 +24,13 @@ class Reports(Handler):
                 await self.__send_ban_list(mods_reporting_rule_1, item)
             elif user_report_count >= 5 or mod_report_count > 0:
                 if await self.is_new_item(self.bot.report_channel, item):
+                    self._logger.info(f"Sending reported item {item}")
                     await self.send_response(item)
                 else:
-                    self._logger.info(f"[{self._current_task.get_name()}] Skipping over already existing report")
+                    self._logger.info(f"Skipping over already existing report {item}")
                     continue
 
     async def send_response(self, item):
-        self._logger.info(f"[{self._current_task.get_name()}] Sending reported item {item}")
         embed = await self.__create_embed(item)
         if embed:
             msg = await self.bot.report_channel.send(embed=embed)

@@ -3,8 +3,10 @@ from bot import SuperstonkModerationBot
 
 
 class Reaction:
-    _logger = logging.getLogger(__name__)
     emoji = None
+
+    def __init__(self):
+        self._logger = logging.getLogger(self.__class__.__name__)
 
     async def handle(self, message, item, emoji, user, channel, bot: SuperstonkModerationBot):
         pass

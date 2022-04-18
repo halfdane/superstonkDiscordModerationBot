@@ -15,13 +15,13 @@ class Comments(Handler):
         async for comment in self.bot.subreddit.stream.comments():
             if self._flairy_detection.lower() in comment.body.lower() and comment.author not in self.bot.moderators:
                 if await self.is_new_item(self.bot.report_channel, comment):
+                    self._logger.info(f"Sending flair request {comment}")
                     await self.send_flairy_request(comment)
                 else:
-                    self._logger.info(f"[{self._current_task.get_name()}] Skipping over already existing request")
+                    self._logger.info(f"Skipping over already existing request {comment}")
                     continue
 
     async def send_flairy_request(self, comment):
-        self._logger.info(f"[{self._current_task.get_name()}] Sending flair request {comment}")
         url = f"https://www.reddit.com{comment.permalink}"
         e = disnake.Embed(
             url=url,

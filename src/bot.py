@@ -1,8 +1,9 @@
+import asyncio
+import json
 import json
 import logging
 import os
-import random
-from typing import List, Union
+from typing import List, Optional
 
 import asyncpraw
 import disnake
@@ -12,12 +13,12 @@ from disnake.ext.commands import Bot
 
 import discordReaction
 import reddit_helper
+from cogs.modqueue_cog import ModQueueCog
+from cogs.user_cog import UserCog
 from helper.redditor_extractor import extract_redditor
 from redditItemHandler import Handler
 from redditItemHandler.comments_handler import Comments
 from redditItemHandler.reports_handler import Reports
-
-logger = logging.getLogger("SuperstonkModerationBot")
 
 REDDIT_CLIENT_SECRET = os.environ["reddit_client_secret"]
 REDDIT_CLIENT_ID = os.environ["reddit_client_id"]
@@ -39,11 +40,15 @@ class SuperstonkModerationBot(Bot):
                          **options)
         self.reddit: asyncpraw.Reddit = options.get("reddit")
         self.flairy_reddit: asyncpraw.Reddit = options.get("flairy_reddit")
-        self.subreddit: asyncpraw.reddit.Subreddit = None
+        self.subreddit: Optional[asyncpraw.reddit.Subreddit] = None
         self.handlers = None
         self.report_channel = 0
         self.flairy_channel = 0
         self.moderators = None
+        self.logger = logging.getLogger(self.__class__.__name__)
+
+        super().add_cog(UserCog(self))
+        super().add_cog(ModQueueCog(self))
 
     async def on_ready(self):
         self.subreddit = await self.reddit.subreddit(TARGET_SUBREDDIT)
@@ -55,15 +60,14 @@ class SuperstonkModerationBot(Bot):
         self.report_channel = self.get_channel(REPORTING_CHANNEL)
         self.flairy_channel = self.get_channel(FLAIRY_CHANNEL)
 
-        for handler in self.handlers:
-            self.loop.create_task(handler.start(), name=f"{handler.__class__.__name__}_{random.randint(0, 100)}")
+        self.logger.info(f"{str(bot.user)} is listening to {USER_INVESTIGATION_CHANNELS}.")
+        self.logger.info(f"{str(bot.user)} is reporting to {REPORTING_CHANNEL}.")
+        self.logger.info(f"Flair requests are reported to {FLAIRY_CHANNEL}.")
+        self.logger.info(f"{await self.reddit.user.me()} is listening on reddit.")
+        self.logger.info(f"{await self.flairy_reddit.user.me()} is handling flair requests")
 
-        print(f"{str(bot.user)} is listening to {USER_INVESTIGATION_CHANNELS}.")
-        print(f"{str(bot.user)} is reporting to {REPORTING_CHANNEL}.")
-        print(f"Flair requests are reported to {FLAIRY_CHANNEL}.")
-        print(f"{str(await self.reddit.user.me())} is listening on reddit.")
-        print(f"handling flair requests as {await self.flairy_reddit.user.me()}")
-        print(f"Mods: {self.moderators}")
+        for handler in self.handlers:
+            self.loop.create_task(handler.start())
 
     async def on_message(self, msg: Message):
         if msg.author.bot or msg.channel.id not in USER_INVESTIGATION_CHANNELS:
@@ -72,7 +76,7 @@ class SuperstonkModerationBot(Bot):
             await discordReaction.add_reactions(msg, discordReaction.USER_REACTIONS)
 
     async def on_command_error(self, ctx: commands.Context, error):
-        print(error)
+        self.logger.exception(error)
 
     async def get_item(self, m: Message):
         c = m.content if not m.embeds else m.embeds[0]
@@ -118,12 +122,6 @@ bot = SuperstonkModerationBot(
         user_agent="desktop:com.halfdane.superstonk_flairy:v0.1.0 (by u/half_dane)")
 )
 
-from cogs.user_cog import UserCog
-from cogs.modqueue_cog import ModQueueCog
-
-bot.add_cog(UserCog(bot))
-bot.add_cog(ModQueueCog(bot))
-
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s %(threadName)s %(message)s')
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(name)s]: %(message)s')
     bot.run(DISCORD_BOT_TOKEN)

@@ -2,15 +2,14 @@ import asyncio
 from bisect import bisect_left
 from datetime import datetime
 
-from disnake.ext import commands
 import disnake
+from disnake.ext import commands
 
-import bot
 import discordReaction
 
 
 class ModQueueCog(commands.Cog):
-    def __init__(self, discord_bot: bot.SuperstonkModerationBot):
+    def __init__(self, discord_bot):
         self._bot = discord_bot
 
     async def fetch_modqueue(self, type):

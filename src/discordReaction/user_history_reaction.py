@@ -1,7 +1,7 @@
 import disnake
 from disnake import Message
 
-from bot import SuperstonkModerationBot, logger
+from bot import SuperstonkModerationBot
 from discordReaction.abstract_reaction import Reaction
 from helper.redditor_extractor import extract_redditor
 from helper.redditor_history import redditor_history
@@ -19,7 +19,7 @@ class UserHistoryReaction(Reaction):
                 embed .add_field(k, v, inline=False)
             await user.send(embed=embed)
         except disnake.errors.HTTPException as e:
-            logger.exception(f"Something went wrong: {e.response}")
+            self._logger.exception(f"Something went wrong: {e.response}")
 
     def description(self):
         return "Fetch some statistics from the user's history"

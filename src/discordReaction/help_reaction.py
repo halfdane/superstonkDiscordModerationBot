@@ -21,7 +21,5 @@ class HelpReaction(Reaction):
 
         await user.send("\n".join(explanations))
 
-
-
     def description(self):
         return "Provide some friendly help texts"

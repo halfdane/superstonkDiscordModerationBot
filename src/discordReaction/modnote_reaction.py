@@ -9,8 +9,6 @@ from helper.mod_notes import fetch_modnotes
 from helper.redditor_extractor import extract_redditor
 from disnake.utils import escape_markdown
 
-logger = logging.getLogger("ModNoteReaction")
-
 
 class ModNoteReaction(Reaction):
     emoji = '🗒️'
@@ -31,7 +29,7 @@ class ModNoteReaction(Reaction):
 
             await user.send(embed=embed)
         except disnake.errors.HTTPException as e:
-            logger.exception(f"Something went wrong: {e.response}")
+            self._logger.exception(f"Something went wrong: {e.response}")
 
     def description(self):
         return "Send the modnotes of the user in the 'Redditor' field via DM"
