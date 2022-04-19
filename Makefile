@@ -9,6 +9,12 @@ deploy:
 	git pull --rebase
 	./venv/bin/python src/superstonkDiscordModerationBot.py &
 
+install:
+	cp superstonkModerationBot.service /etc/systemd/system/
+	systemctl daemon-reload
+	systemctl enable superstonkModerationBot.service
+	systemctl start superstonkModerationBot.service
+
 venv: venv/bin/activate
 
 venv/bin/activate: src/requirements.txt
