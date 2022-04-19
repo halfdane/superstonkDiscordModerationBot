@@ -16,4 +16,22 @@ jobs:
           cd superstonkDiscordModerationBot
           git pull --rebase
           export reddit_client_secret="${{ secrets.REDDIT_CLIENT_SECRET }}"
+          
+          export discord_bot_token="${{ secrets.REDDIT_CLIENT_SECRET }}"
+          export target_subreddit="${{ secrets.REDDIT_CLIENT_SECRET }}"
+          
+          export reddit_client_id="${{ secrets.REDDIT_CLIENT_SECRET }}"
+          export reddit_client_secret="${{ secrets.REDDIT_CLIENT_SECRET }}"
+          export reddit_username="${{ secrets.REDDIT_CLIENT_SECRET }}"
+          export reddit_password="${{ secrets.REDDIT_CLIENT_SECRET }}"
+    
+          export flairy_client_id="${{ secrets.REDDIT_CLIENT_SECRET }}"
+          export flairy_client_secret="${{ secrets.REDDIT_CLIENT_SECRET }}"
+          export flairy_username="${{ secrets.REDDIT_CLIENT_SECRET }}"
+          export flairy_password="${{ secrets.REDDIT_CLIENT_SECRET }}"
+          
+          export REPORTING_CHANNEL="${{ secrets.REDDIT_CLIENT_SECRET }}"
+          export FLAIRY_CHANNEL="${{ secrets.REDDIT_CLIENT_SECRET }}"
+          export USER_INVESTIGATION_CHANNELS="${{ secrets.REDDIT_CLIENT_SECRET }}"
+          
           make
