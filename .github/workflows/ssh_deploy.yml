@@ -1,10 +1,10 @@
 name: remote ssh command
 on: [push]
 jobs:
-
   build:
-    name: Build
+    name: deploy
     runs-on: ubuntu-latest
+    environment: live
     steps:
     - name: executing remote ssh commands using ssh key
       uses: appleboy/ssh-action@master
