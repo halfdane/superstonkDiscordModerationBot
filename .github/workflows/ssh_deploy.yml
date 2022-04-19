@@ -1,5 +1,5 @@
 name: remote ssh command
-on: [push]
+on: [push, workflow_dispatch]
 jobs:
   build:
     name: deploy
