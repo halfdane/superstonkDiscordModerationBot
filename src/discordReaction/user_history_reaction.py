@@ -1,7 +1,7 @@
 import disnake
 from disnake import Message
 
-from bot import SuperstonkModerationBot
+from superstonkDiscordModerationBot import SuperstonkModerationBot
 from discordReaction.abstract_reaction import Reaction
 from helper.redditor_extractor import extract_redditor
 from helper.redditor_history import redditor_history

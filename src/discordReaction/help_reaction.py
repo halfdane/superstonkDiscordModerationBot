@@ -1,6 +1,6 @@
 from disnake import Message
 
-from bot import SuperstonkModerationBot
+from superstonkDiscordModerationBot import SuperstonkModerationBot
 from discordReaction.abstract_reaction import Reaction
 
 

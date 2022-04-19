@@ -14,5 +14,4 @@ jobs:
         key: ${{ secrets.KEY }}
         script: |
           cd superstonkDiscordModerationBot
-          git status
-          echo ${{ secrets.USERNAME }} >> test.out
+          make

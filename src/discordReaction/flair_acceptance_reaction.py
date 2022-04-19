@@ -1,7 +1,7 @@
 import re
 
 import discordReaction
-from bot import SuperstonkModerationBot
+from superstonkDiscordModerationBot import SuperstonkModerationBot
 from discordReaction.abstract_reaction import Reaction
 
 

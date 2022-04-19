@@ -2,19 +2,12 @@ SHELL := /bin/bash
 
 .PHONY: run
 run: venv
-	./venv/bin/python src/bot.py
+	./venv/bin/python src/superstonkDiscordModerationBot.py
 
-.PHONY: run_deployed
-run_deployed: ../venv
-	../venv/bin/python bot.py
-
-
-.PHONY: deploy
-deploy: venv
-	rsync -av --force --delete src/ ./build
-	cp .live_envrc ./build/.envrc
-	cp Makefile ./build/
-	cd ./build && direnv allow
+deploy:
+	-/usr/bin/pkill -f superstonkDiscordModerationBot
+	git pull --rebase
+	./venv/bin/python src/superstonkDiscordModerationBot.py &
 
 venv: venv/bin/activate
 
@@ -25,6 +18,6 @@ venv/bin/activate: src/requirements.txt
 	./venv/bin/pip install -r "src/requirements.txt"
 
 clean:
-	rm -rf venv build __pycache__
+	rm -rf venv __pycache__
 	find -iname "*.pyc" -delete
 	find -iname "__pycache__" -delete

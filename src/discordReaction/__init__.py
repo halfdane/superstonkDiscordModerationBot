@@ -5,7 +5,7 @@ from discordReaction.modnote_reaction import ModNoteReaction
 from discordReaction.user_history_reaction import UserHistoryReaction
 from discordReaction.wip_reaction import WipReaction
 import disnake
-from bot import SuperstonkModerationBot
+from superstonkDiscordModerationBot import SuperstonkModerationBot
 
 
 GENERIC_REACTIONS = (HelpReaction(), WipReaction(), DeleteReaction())

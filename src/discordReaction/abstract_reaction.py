@@ -1,5 +1,5 @@
 import logging
-from bot import SuperstonkModerationBot
+from superstonkDiscordModerationBot import SuperstonkModerationBot
 
 
 class Reaction:

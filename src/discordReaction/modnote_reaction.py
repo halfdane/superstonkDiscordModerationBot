@@ -3,7 +3,7 @@ import logging
 import disnake
 from disnake import Message
 
-from bot import SuperstonkModerationBot
+from superstonkDiscordModerationBot import SuperstonkModerationBot
 from discordReaction.abstract_reaction import Reaction
 from helper.mod_notes import fetch_modnotes
 from helper.redditor_extractor import extract_redditor
