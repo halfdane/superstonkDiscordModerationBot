@@ -8,10 +8,14 @@ jobs:
     steps:
     - name: executing remote ssh commands using ssh key
       uses: appleboy/ssh-action@master
+      env:
+        discord_bot_token: ${{ secrets.discord_bot_token }}
+        reddit_client_secret: ${{ secrets.reddit_client_secret }}
       with:
         host: ${{ secrets.HOST }}
         username: ${{ secrets.USERNAME }}
         key: ${{ secrets.KEY }}
+        envs: discord_bot_token, reddit_client_secret
         script: |
           cd superstonkDiscordModerationBot
           make
