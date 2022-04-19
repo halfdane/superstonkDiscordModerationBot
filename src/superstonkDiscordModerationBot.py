@@ -20,7 +20,7 @@ from redditItemHandler import Handler
 from redditItemHandler.comments_handler import Comments
 from redditItemHandler.reports_handler import Reports
 
-REDDIT_CLIENT_SECRET = os.environ["REDDIT_CLIENT_SECRET"]
+REDDIT_CLIENT_SECRET = os.environ["reddit_client_secret"]
 REDDIT_CLIENT_ID = os.environ["reddit_client_id"]
 REDDIT_PASSWORD = os.environ["reddit_password"]
 REDDIT_USERNAME = os.environ["reddit_username"]
