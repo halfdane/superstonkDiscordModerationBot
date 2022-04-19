@@ -123,5 +123,13 @@ bot = SuperstonkModerationBot(
 )
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(name)s]: %(message)s')
+
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(name)s] %(message)s",
+        handlers=[
+            logging.FileHandler("debug.log"),
+            logging.StreamHandler()
+        ]
+    )
     bot.run(DISCORD_BOT_TOKEN)

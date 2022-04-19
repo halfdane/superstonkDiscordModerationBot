@@ -8,3 +8,4 @@ build
 out
 src/tests.py
 .live_envrc
+debug.log
