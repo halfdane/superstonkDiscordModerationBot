@@ -15,3 +15,4 @@ jobs:
         script: |
           cd superstonkDiscordModerationBot
           git status
+          echo ${{ secrets.USERNAME }} >> test.out
