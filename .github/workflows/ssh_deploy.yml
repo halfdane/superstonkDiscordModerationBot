@@ -15,23 +15,21 @@ jobs:
         script: |
           cd superstonkDiscordModerationBot
           git pull --rebase
-          export reddit_client_secret="${{ secrets.REDDIT_CLIENT_SECRET }}"
-          
-          export discord_bot_token="${{ secrets.REDDIT_CLIENT_SECRET }}"
+          export discord_bot_token="${{ secrets.DISCORD_BOT_TOKEN }}"
           export target_subreddit="${{ secrets.REDDIT_CLIENT_SECRET }}"
           
-          export reddit_client_id="${{ secrets.REDDIT_CLIENT_SECRET }}"
+          export reddit_client_id="${{ secrets.REDDIT_CLIENT_ID }}"
           export reddit_client_secret="${{ secrets.REDDIT_CLIENT_SECRET }}"
-          export reddit_username="${{ secrets.REDDIT_CLIENT_SECRET }}"
-          export reddit_password="${{ secrets.REDDIT_CLIENT_SECRET }}"
+          export reddit_username="${{ secrets.REDDIT_USERNAME }}"
+          export reddit_password="${{ secrets.REDDIT_PASSWORD }}"
     
-          export flairy_client_id="${{ secrets.REDDIT_CLIENT_SECRET }}"
-          export flairy_client_secret="${{ secrets.REDDIT_CLIENT_SECRET }}"
-          export flairy_username="${{ secrets.REDDIT_CLIENT_SECRET }}"
-          export flairy_password="${{ secrets.REDDIT_CLIENT_SECRET }}"
+          export flairy_client_id="${{ secrets.FLAIRY_CLIENT_ID }}"
+          export flairy_client_secret="${{ secrets.FLAIRY_CLIENT_SECRET }}"
+          export flairy_username="${{ secrets.FLAIRY_USERNAME }}"
+          export flairy_password="${{ secrets.FLAIRY_PASSWORD }}"
           
-          export REPORTING_CHANNEL="${{ secrets.REDDIT_CLIENT_SECRET }}"
-          export FLAIRY_CHANNEL="${{ secrets.REDDIT_CLIENT_SECRET }}"
-          export USER_INVESTIGATION_CHANNELS="${{ secrets.REDDIT_CLIENT_SECRET }}"
+          export REPORTING_CHANNEL="${{ secrets.REPORTING_CHANNEL }}"
+          export FLAIRY_CHANNEL="${{ secrets.FLAIRY_CHANNEL }}"
+          export USER_INVESTIGATION_CHANNELS="${{ secrets.USER_INVESTIGATION_CHANNELS }}"
           
-          make
+          make deploy
