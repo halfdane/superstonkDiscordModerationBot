@@ -6,14 +6,9 @@ run: venv
 
 deploy:
 	-/usr/bin/pkill -f superstonkDiscordModerationBot
+	cd superstonkDiscordModerationBot
 	git pull --rebase
-	./venv/bin/python src/superstonkDiscordModerationBot.py &
-
-install:
-	cp superstonkModerationBot.service /etc/systemd/system/
-	systemctl daemon-reload
-	systemctl enable superstonkModerationBot.service
-	systemctl start superstonkModerationBot.service
+	nohup ./venv/bin/python src/superstonkDiscordModerationBot.py > std.out.log 2> std.err.log &
 
 venv: venv/bin/activate
 
