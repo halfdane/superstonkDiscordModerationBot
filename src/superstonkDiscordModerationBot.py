@@ -20,15 +20,17 @@ from redditItemHandler import Handler
 from redditItemHandler.comments_handler import Comments
 from redditItemHandler.reports_handler import Reports
 
-REDDIT_CLIENT_SECRET = os.environ["reddit_client_secret"]
-REDDIT_CLIENT_ID = os.environ["reddit_client_id"]
-REDDIT_PASSWORD = os.environ["reddit_password"]
-REDDIT_USERNAME = os.environ["reddit_username"]
+from decouple import config
+
+REDDIT_CLIENT_SECRET = config("reddit_client_secret")
+REDDIT_CLIENT_ID = config("reddit_client_id")
+REDDIT_PASSWORD = config("reddit_password")
+REDDIT_USERNAME = config("reddit_username")
 TARGET_SUBREDDIT = os.environ['target_subreddit']
-DISCORD_BOT_TOKEN = os.environ["discord_bot_token"]
-REPORTING_CHANNEL = int(os.environ["REPORTING_CHANNEL"])
-FLAIRY_CHANNEL = int(os.environ["FLAIRY_CHANNEL"])
-USER_INVESTIGATION_CHANNELS = [int(channel) for channel in str(os.environ["USER_INVESTIGATION_CHANNELS"]).split()]
+DISCORD_BOT_TOKEN = config("discord_bot_token")
+REPORTING_CHANNEL = int(config("REPORTING_CHANNEL"))
+FLAIRY_CHANNEL = int(config("FLAIRY_CHANNEL"))
+USER_INVESTIGATION_CHANNELS = [int(channel) for channel in str(config("USER_INVESTIGATION_CHANNELS")).split()]
 
 
 class SuperstonkModerationBot(Bot):
@@ -125,10 +127,10 @@ if __name__ == "__main__":
             client_secret=REDDIT_CLIENT_SECRET,
             user_agent="com.halfdane.superstonk_moderation_bot:v0.0.2 (by u/half_dane)"),
         flairy_reddit=asyncpraw.Reddit(
-            username=os.environ["flairy_username"],
-            password=os.environ["flairy_password"],
-            client_id=os.environ["flairy_client_id"],
-            client_secret=os.environ["flairy_client_secret"],
+            username=config("flairy_username"),
+            password=config("flairy_password"),
+            client_id=config("flairy_client_id"),
+            client_secret=config("flairy_client_secret"),
             user_agent="desktop:com.halfdane.superstonk_flairy:v0.1.0 (by u/half_dane)")
     )
 
