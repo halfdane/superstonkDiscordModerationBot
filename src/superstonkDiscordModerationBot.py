@@ -107,29 +107,29 @@ class SuperstonkModerationBot(Bot):
             await discordReaction.handle(*reaction_information)
 
 
-bot = SuperstonkModerationBot(
-    reddit=asyncpraw.Reddit(
-        username=REDDIT_USERNAME,
-        password=REDDIT_PASSWORD,
-        client_id=REDDIT_CLIENT_ID,
-        client_secret=REDDIT_CLIENT_SECRET,
-        user_agent="com.halfdane.superstonk_moderation_bot:v0.0.2 (by u/half_dane)"),
-    flairy_reddit=asyncpraw.Reddit(
-        username=os.environ["flairy_username"],
-        password=os.environ["flairy_password"],
-        client_id=os.environ["flairy_client_id"],
-        client_secret=os.environ["flairy_client_secret"],
-        user_agent="desktop:com.halfdane.superstonk_flairy:v0.1.0 (by u/half_dane)")
-)
-
 if __name__ == "__main__":
-
     logging.basicConfig(
         level=logging.INFO,
-        format="%(asctime)s [%(name)s] %(message)s",
+        format="%(asctime)s [%(levelname)s] %(message)s",
         handlers=[
             logging.FileHandler("debug.log"),
             logging.StreamHandler()
         ]
     )
+
+    bot = SuperstonkModerationBot(
+        reddit=asyncpraw.Reddit(
+            username=REDDIT_USERNAME,
+            password=REDDIT_PASSWORD,
+            client_id=REDDIT_CLIENT_ID,
+            client_secret=REDDIT_CLIENT_SECRET,
+            user_agent="com.halfdane.superstonk_moderation_bot:v0.0.2 (by u/half_dane)"),
+        flairy_reddit=asyncpraw.Reddit(
+            username=os.environ["flairy_username"],
+            password=os.environ["flairy_password"],
+            client_id=os.environ["flairy_client_id"],
+            client_secret=os.environ["flairy_client_secret"],
+            user_agent="desktop:com.halfdane.superstonk_flairy:v0.1.0 (by u/half_dane)")
+    )
+
     bot.run(DISCORD_BOT_TOKEN)
