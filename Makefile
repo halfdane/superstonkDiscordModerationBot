@@ -6,7 +6,6 @@ run: venv
 
 deploy:
 	-/usr/bin/pkill -f superstonkDiscordModerationBot
-	cd superstonkDiscordModerationBot
 	git pull --rebase
 	nohup ./venv/bin/python src/superstonkDiscordModerationBot.py > std.out.log 2> std.err.log &
 
