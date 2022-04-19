@@ -2,6 +2,7 @@ __pycache__/
 venv/
 *.pyc
 .envrc
+.env
 .idea
 banhammer/
 build
