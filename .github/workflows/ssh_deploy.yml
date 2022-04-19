@@ -32,4 +32,4 @@ jobs:
           export FLAIRY_CHANNEL="${{ secrets.FLAIRY_CHANNEL }}"
           export USER_INVESTIGATION_CHANNELS="${{ secrets.USER_INVESTIGATION_CHANNELS }}"
           
-          make deploy
+          nohup make deploy > foo.out 2> foo.err < /dev/null &
