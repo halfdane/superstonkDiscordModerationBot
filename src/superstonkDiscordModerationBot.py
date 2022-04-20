@@ -64,7 +64,7 @@ class SuperstonkModerationBot(Bot):
             self.loop.create_task(handler.start())
 
     async def on_message(self, msg: Message):
-        if msg.author.bot or msg.channel.id not in USER_INVESTIGATION_CHANNELS:
+        if msg.author.bot or msg.channel.id != USER_INVESTIGATION_CHANNELS:
             return
         if extract_redditor(msg):
             await discordReaction.add_reactions(msg, discordReaction.USER_REACTIONS)
