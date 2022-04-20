@@ -1,8 +1,11 @@
 SHELL := /bin/bash
+args = $(foreach a,$($(subst -,_,$1)_args),$(if $(value $a),$($a)))
+
+run_args = config
 
 .PHONY: run
 run: venv
-	./venv/bin/python src/superstonkDiscordModerationBot.py
+	./venv/bin/python src/superstonkDiscordModerationBot.py $(call args,$@)
 
 deploy:
 	systemctl stop superstonkModerationBot.service

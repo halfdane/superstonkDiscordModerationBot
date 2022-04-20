@@ -6,8 +6,9 @@ After=multi-user.target
 Type=simple
 DynamicUser=yes
 Restart=always
+LoadCredential=superstonkModerationBot.conf:/etc/superstonkModerationBot.conf
 WorkingDirectory=/opt/superstonkDiscordModerationBot
-ExecStart=/usr/bin/make
+ExecStart=/usr/bin/make run config=${CREDENTIALS_DIRECTORY}/superstonkModerationBot.conf
 
 [Install]
 WantedBy=multi-user.target

@@ -3,6 +3,7 @@ import json
 import json
 import logging
 import os
+import sys
 from typing import List, Optional
 
 import asyncpraw
@@ -20,17 +21,7 @@ from redditItemHandler import Handler
 from redditItemHandler.comments_handler import Comments
 from redditItemHandler.reports_handler import Reports
 
-from decouple import config
-
-REDDIT_CLIENT_SECRET = config("reddit_client_secret")
-REDDIT_CLIENT_ID = config("reddit_client_id")
-REDDIT_PASSWORD = config("reddit_password")
-REDDIT_USERNAME = config("reddit_username")
-TARGET_SUBREDDIT = config("target_subreddit")
-DISCORD_BOT_TOKEN = config("discord_bot_token")
-REPORTING_CHANNEL = int(config("REPORTING_CHANNEL"))
-FLAIRY_CHANNEL = int(config("FLAIRY_CHANNEL"))
-USER_INVESTIGATION_CHANNELS = [int(channel) for channel in str(config("USER_INVESTIGATION_CHANNELS")).split()]
+import configparser
 
 
 class SuperstonkModerationBot(Bot):
@@ -53,7 +44,7 @@ class SuperstonkModerationBot(Bot):
         super().add_cog(ModQueueCog(self))
 
     async def on_ready(self):
-        self.subreddit = await self.reddit.subreddit(TARGET_SUBREDDIT)
+        self.subreddit = await self.reddit.subreddit("Superstonk")
         self.handlers: List[Handler] = [
             Comments(self),
             Reports(self)
@@ -62,11 +53,12 @@ class SuperstonkModerationBot(Bot):
         self.report_channel = self.get_channel(REPORTING_CHANNEL)
         self.flairy_channel = self.get_channel(FLAIRY_CHANNEL)
 
-        self.logger.info(f"{str(bot.user)} is listening to {USER_INVESTIGATION_CHANNELS}.")
-        self.logger.info(f"{str(bot.user)} is reporting to {REPORTING_CHANNEL}.")
-        self.logger.info(f"Flair requests are reported to {FLAIRY_CHANNEL}.")
-        self.logger.info(f"{await self.reddit.user.me()} is listening on reddit.")
-        self.logger.info(f"{await self.flairy_reddit.user.me()} is handling flair requests")
+        self.logger.info(f"{str(bot.user)} is the discord user")
+        self.logger.info(f"{USER_INVESTIGATION_CHANNELS}: discord channel to listen for users")
+        self.logger.info(f"{REPORTING_CHANNEL}: discord channel for reports")
+        self.logger.info(f"{FLAIRY_CHANNEL}: discord channel for flairy")
+        self.logger.info(f"{await self.reddit.user.me()}: listening for reports on reddit")
+        self.logger.info(f"{await self.flairy_reddit.user.me()}: handling flair requests on reddit")
 
         for handler in self.handlers:
             self.loop.create_task(handler.start())
@@ -110,27 +102,36 @@ class SuperstonkModerationBot(Bot):
 
 
 if __name__ == "__main__":
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s [%(levelname)s] %(message)s",
-        handlers=[
-            logging.StreamHandler()
-        ]
-    )
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(name)s]: %(message)s')
+
+    if len(sys.argv) > 1:
+        config_file = sys.argv[1]
+    else:
+        config_file = "config.ini"
+
+    logging.root.warning(f"Reading config from {config_file}")
+
+    config = configparser.ConfigParser()
+    config.read(config_file)
+
+    DISCORD_BOT_TOKEN = config["DISCORD"]["discord_bot_token"]
+    REPORTING_CHANNEL = int(config["DISCORD"]["REPORTING_CHANNEL"])
+    FLAIRY_CHANNEL = int(config["DISCORD"]["FLAIRY_CHANNEL"])
+    USER_INVESTIGATION_CHANNELS = int(config["DISCORD"]["USER_INVESTIGATION_CHANNELS"])
 
     bot = SuperstonkModerationBot(
         reddit=asyncpraw.Reddit(
-            username=REDDIT_USERNAME,
-            password=REDDIT_PASSWORD,
-            client_id=REDDIT_CLIENT_ID,
-            client_secret=REDDIT_CLIENT_SECRET,
+            username=config["REDDIT_CREDENTIALS"]["reddit_username"],
+            password=config["REDDIT_CREDENTIALS"]["reddit_password"],
+            client_id=config["REDDIT_CREDENTIALS"]["reddit_client_id"],
+            client_secret=config["REDDIT_CREDENTIALS"]["reddit_client_secret"],
             user_agent="com.halfdane.superstonk_moderation_bot:v0.0.2 (by u/half_dane)"),
         flairy_reddit=asyncpraw.Reddit(
-            username=config("flairy_username"),
-            password=config("flairy_password"),
-            client_id=config("flairy_client_id"),
-            client_secret=config("flairy_client_secret"),
-            user_agent="desktop:com.halfdane.superstonk_flairy:v0.1.0 (by u/half_dane)")
+            username=config["FLAIRY_CREDENTIALS"]["flairy_username"],
+            password=config["FLAIRY_CREDENTIALS"]["flairy_password"],
+            client_id=config["FLAIRY_CREDENTIALS"]["flairy_client_id"],
+            client_secret=config["FLAIRY_CREDENTIALS"]["flairy_client_secret"],
+            user_agent="desktop:com.halfdane.superstonk_flairy:v0.1.1 (by u/half_dane)")
     )
 
     bot.run(DISCORD_BOT_TOKEN)
