@@ -4,8 +4,9 @@ After=multi-user.target
 
 [Service]
 Type=simple
+DynamicUser=yes
 Restart=always
-WorkingDirectory=/root/superstonkDiscordModerationBot
+WorkingDirectory=/opt/superstonkDiscordModerationBot
 ExecStart=/usr/bin/make
 
 [Install]

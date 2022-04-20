@@ -13,7 +13,7 @@ jobs:
         username: ${{ secrets.USERNAME }}
         key: ${{ secrets.KEY }}
         script: |
-          cd superstonkDiscordModerationBot
+          cd /opt/superstonkDiscordModerationBot
           git pull --rebase
           export discord_bot_token="${{ secrets.DISCORD_BOT_TOKEN }}"
           export target_subreddit="${{ secrets.REDDIT_CLIENT_SECRET }}"
