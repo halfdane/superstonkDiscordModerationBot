@@ -14,7 +14,7 @@ class Comments(Handler):
     async def handle(self):
         async for comment in self.bot.subreddit.stream.comments():
             if self._flairy_detection.lower() in comment.body.lower() and comment.author not in self.bot.moderators:
-                if await self.is_new_item(self.bot.report_channel, comment):
+                if await self.is_new_item(self.bot.flairy_channel, comment):
                     self._logger.info(f"Sending flair request {comment}")
                     await self.send_flairy_request(comment)
                 else:

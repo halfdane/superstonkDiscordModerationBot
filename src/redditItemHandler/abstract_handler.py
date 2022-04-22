@@ -29,7 +29,7 @@ class Handler:
         pass
 
     async def is_new_item(self, channel, item):
-        for message in await channel.history(limit=50).flatten():
+        for message in await channel.history(limit=10).flatten():
             existing_item = await self.bot.get_item(message)
             existing_item_id = existing_item.id if existing_item is not None else None
             self._logger.debug(f"is {item.id} == {existing_item_id}? {item.id == existing_item_id}")
