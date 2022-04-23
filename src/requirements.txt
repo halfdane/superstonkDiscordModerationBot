@@ -1,3 +1,5 @@
 disnake
 asyncpraw
 python-decouple
+pyyaml
+chevron

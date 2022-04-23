@@ -1,11 +1,13 @@
 import configparser
 import json
 import logging
+import re
 import sys
 from typing import List, Optional
 
 import asyncpraw
 import disnake
+import yaml
 from disnake import Message
 from disnake.ext import commands
 from disnake.ext.commands import Bot
@@ -39,6 +41,7 @@ class SuperstonkModerationBot(Bot):
         self.flairy_channel = 0
         self.moderators = None
         self.logger = logging.getLogger(self.__class__.__name__)
+        self.automod_rules = []
 
         self.GENERIC_REACTIONS = None
         self.USER_REACTIONS = None
@@ -75,6 +78,16 @@ class SuperstonkModerationBot(Bot):
         report_streamer = Streamer(name="Reports", _stream_items=self.subreddit.mod.stream.reports).add_handler(
             ImportantReports(self))
         self.loop.create_task(report_streamer.start())
+
+        automod_config = await self.subreddit.wiki.get_page("config/automoderator")
+        for rule in automod_config.content_md.split("---"):
+            y = yaml.safe_load(rule)
+            if y and y.get('action', "") == 'remove':
+                self.automod_rules += [re.compile(r) for k, v in y.items() if "regex" in k for r in v]
+        self.logger.info(f"Read {len(self.automod_rules)} removal rules from automod rules")
+
+    def is_forbidden_comment_message(self, comment_message):
+        return any(rule.search(comment_message) for rule in self.automod_rules)
 
     async def on_message(self, msg: Message):
         if msg.author.bot or msg.channel.id != USER_INVESTIGATION_CHANNELS:

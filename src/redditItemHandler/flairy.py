@@ -49,6 +49,10 @@ class Flairy(Handler, Reaction):
                 await comment_from_flairies_view.reply(message)
                 return
 
+            if self.bot.is_forbidden_comment_message(flair_text):
+                self._logger.info(f"Silently refusing to grant flair with restricted content: {flair_text}")
+                return
+
             last_word = self._flairy_detect_last_word.match(body).group(2)
             if last_word.lower() in ["orange", "grey", "gray", "purple", "white"]:
                 comment_from_flairies_view = await self.bot.flairy_reddit.comment(comment.id, fetch=False)
