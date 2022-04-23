@@ -1,5 +1,6 @@
 import asyncio
 import logging
+
 from asyncpraw.exceptions import AsyncPRAWException
 
 
@@ -27,7 +28,7 @@ class Streamer:
             self._logger.info(f"running again")
 
     async def _stream(self):
-        async for item in self._stream_items():
+        async for item in self._stream_items(skip_existing=True):
             for handler in self.handlers:
                 await handler.take(item)
 

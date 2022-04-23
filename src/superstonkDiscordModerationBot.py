@@ -22,7 +22,7 @@ from helper.redditor_extractor import extract_redditor
 
 from redditItemHandler.flairy import Flairy
 from redditItemHandler.important_reports import ImportantReports
-from streamer.abstract_streamer import Streamer
+from streamer.streamer import Streamer
 
 
 class SuperstonkModerationBot(Bot):

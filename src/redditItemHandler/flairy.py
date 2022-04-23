@@ -39,8 +39,7 @@ class Flairy(Handler, Reaction):
         body = getattr(comment, 'body', "")
         if (flairy := self._flairy_detect_user_flair_change.match(body)) \
                 and comment.author not in self.bot.moderators \
-                and comment.author.name not in ["Roid_Rage_Smurf"] \
-                and await self.is_new_item(self.bot.flairy_channel, comment):
+                and comment.author.name not in ["Roid_Rage_Smurf"]:
 
             flair_text = flairy.group(1)
             if len(flair_text) > 63:

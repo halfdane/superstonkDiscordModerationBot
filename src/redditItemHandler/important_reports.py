@@ -20,12 +20,11 @@ class ImportantReports(Handler):
         if len(mods_reporting_rule_1) > 0:
             await self.__send_ban_list(mods_reporting_rule_1, item)
         elif user_report_count >= 5 or mod_report_count > 0:
-            if await self.is_new_item(self.bot.report_channel, item):
-                self._logger.info(f"Sending reported item {item}")
-                embed = await self.__create_embed(item)
-                if embed:
-                    msg = await self.bot.report_channel.send(embed=embed)
-                    await self.bot.add_reactions(msg)
+            self._logger.info(f"Sending reported item {item}")
+            embed = await self.__create_embed(item)
+            if embed:
+                msg = await self.bot.report_channel.send(embed=embed)
+                await self.bot.add_reactions(msg)
 
     async def __create_embed(self, item):
         url = f"https://www.reddit.com{item.permalink}"
