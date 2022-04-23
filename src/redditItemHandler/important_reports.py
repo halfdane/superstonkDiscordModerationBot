@@ -1,41 +1,31 @@
-import asyncio
+import datetime
 import datetime
 import re
 
 import disnake
 
-import discordReaction
 from helper.discord_text_formatter import link
 from helper.mod_notes import fetch_modnotes
 from redditItemHandler import Handler
 
-
 RULE_1 = re.compile(r"rule\s+1", re.IGNORECASE)
 
 
-class Reports(Handler):
+class ImportantReports(Handler):
 
-    async def handle(self):
-        async for item in self.bot.subreddit.mod.stream.reports():
-            user_report_count = sum([r[1] for r in item.user_reports])
-            mod_report_count = len([r[1] for r in item.mod_reports if r[1] != "AutoModerator"])
-            mods_reporting_rule_1 = [r[1] for r in item.mod_reports if RULE_1.match(r[0])]
-            if len(mods_reporting_rule_1) > 0:
-                await self.__send_ban_list(mods_reporting_rule_1, item)
-            elif user_report_count >= 5 or mod_report_count > 0:
-                if await self.is_new_item(self.bot.report_channel, item):
-                    self._logger.info(f"Sending reported item {item}")
-                    await self.send_response(item)
-                else:
-                    self._logger.info(f"Skipping over already existing report {item}")
-                    continue
-
-    async def send_response(self, item):
-        embed = await self.__create_embed(item)
-        if embed:
-            msg = await self.bot.report_channel.send(embed=embed)
-            await self.bot.add_reactions(msg)
-        return item
+    async def take(self, item):
+        user_report_count = sum([r[1] for r in item.user_reports])
+        mod_report_count = len([r[1] for r in item.mod_reports if r[1] != "AutoModerator"])
+        mods_reporting_rule_1 = [r[1] for r in item.mod_reports if RULE_1.match(r[0])]
+        if len(mods_reporting_rule_1) > 0:
+            await self.__send_ban_list(mods_reporting_rule_1, item)
+        elif user_report_count >= 5 or mod_report_count > 0:
+            if await self.is_new_item(self.bot.report_channel, item):
+                self._logger.info(f"Sending reported item {item}")
+                embed = await self.__create_embed(item)
+                if embed:
+                    msg = await self.bot.report_channel.send(embed=embed)
+                    await self.bot.add_reactions(msg)
 
     async def __create_embed(self, item):
         url = f"https://www.reddit.com{item.permalink}"

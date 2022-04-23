@@ -10,13 +10,13 @@ from helper.redditor_extractor import extract_redditor
 class ModNoteReaction(Reaction):
     emoji = '🗒️'
 
-    async def handle(self, message: Message, item, emoji, user, channel, bot):
+    async def handle_reaction(self, message: Message, emoji, user, channel):
         redditor = extract_redditor(message)
         try:
             count = 0
             embed = disnake.Embed(colour=disnake.Colour(0).from_rgb(207, 206, 255))
             embed.description = f"**ModNotes for {escape_markdown(redditor)}**\n"
-            async for k, v in fetch_modnotes(bot.reddit, redditor):
+            async for k, v in fetch_modnotes(self.bot.reddit, redditor):
                 count += 1
                 embed.add_field(k, v, inline=False)
 

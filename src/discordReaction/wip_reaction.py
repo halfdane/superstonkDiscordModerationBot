@@ -7,7 +7,7 @@ from helper.discord_text_formatter import strikethrough, un_strikethrough
 class WipReaction(Reaction):
     emoji = '✅'
 
-    async def handle(self, message: Message, item, emoji, user, channel, bot):
+    async def handle_reaction(self, message: Message, emoji, user, channel):
         for embed in message.embeds:
             lines = embed.description.split("\n")
             embed.description = "\n".join([strikethrough(line) for line in lines])
@@ -19,7 +19,7 @@ class WipReaction(Reaction):
 
         await message.edit(embeds=message.embeds)
 
-    async def unhandle(self, message, item, emoji, user, channel, bot):
+    async def unhandle_reaction(self, message, emoji, user, channel):
         for embed in message.embeds:
             lines = embed.description.split("\n")
             embed.description = "\n".join([un_strikethrough(line) for line in lines])

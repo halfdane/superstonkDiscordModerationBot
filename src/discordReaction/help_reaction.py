@@ -5,7 +5,7 @@ from discordReaction.abstract_reaction import Reaction
 class HelpReaction(Reaction):
     emoji = '❓'
 
-    async def handle(self, message: Message, item, emoji, user, channel, bot):
+    async def handle_reaction(self, message: Message, emoji, user, channel):
         explanations = ["**Generic Reactions**"]
         for reaction in Reaction.__subclasses__():
             r = reaction()
@@ -13,7 +13,7 @@ class HelpReaction(Reaction):
 
         explanations.append("")
         explanations.append("**Discord Commands:**")
-        for cog in bot.cogs.values():
+        for cog in self.bot.cogs.values():
             for command in cog.get_slash_commands():
                 explanations.append(f"/{command.name}: {command.description}")
 

@@ -1,14 +1,18 @@
 import re
+
+import disnake
+
 from discordReaction.abstract_reaction import Reaction
+from helper.discord_text_formatter import link
+from redditItemHandler import Handler
+from disnake.utils import escape_markdown
 
 
-class FlairAcceptanceReaction(Reaction):
+class Flairy(Handler, Reaction):
     emoji = '🧚'
 
-    _flairy_detection = "!flairy!"
-
     _flairy_detect_user_flair_change = \
-        re.compile(r".*!\s*FLAIRY\s*!(.*?)(?:(red|blue|pink|yellow|green|black))?\s*$",
+        re.compile(r".*!\s*FL?AIRY\s*!\s*(.*?)(?:\s+(red|blue|pink|yellow|green|black))?\s*$",
                    re.IGNORECASE | re.MULTILINE | re.DOTALL)
 
     _templates = {"red": "0446bc04-91c0-11ec-8118-ce042afdde96",
@@ -20,21 +24,41 @@ class FlairAcceptanceReaction(Reaction):
 
     _default_color = "black"
 
-    async def handle(self, message, comment, emoji, user, channel, bot):
+    def __init__(self, bot):
+        Handler.__init__(self, bot)
+        Reaction.__init__(self, bot)
+
+    async def take(self, comment):
+        if self._flairy_detect_user_flair_change.match(comment.body) \
+                and comment.author not in self.bot.moderators \
+                and comment.author.name not in ["Roid_Rage_Smurf"] \
+                and await self.is_new_item(self.bot.flairy_channel, comment):
+            self._logger.info(f"Sending flair request {comment}")
+            url = f"https://www.reddit.com{comment.permalink}"
+            e = disnake.Embed(
+                url=url,
+                colour=disnake.Colour(0).from_rgb(207, 206, 255))
+            e.description = f"[Flair Request: {escape_markdown(comment.body)}]({url})"
+            e.add_field("Redditor", link(f"https://www.reddit.com/u/{comment.author}", comment.author), inline=False)
+            msg = await self.bot.flairy_channel.send(embed=e)
+            await msg.add_reaction(self.emoji)
+            await self.bot.add_reactions(msg)
+
+    async def handle_reaction(self, message, emoji, user, channel):
+        comment = await self.bot.get_item(message)
         body = getattr(comment, 'body', "")
-        subreddit = bot.subreddit
-        flairy_reddit = bot.flairy_reddit
-        mods = bot.moderators
+        subreddit = self.bot.subreddit
+        flairy_reddit = self.bot.flairy_reddit
+        mods = self.bot.moderators
 
         user_to_be_flaired = comment.author
         flairy_user = await flairy_reddit.user.me()
-        if self._flairy_detection.lower() in body.lower() \
-                and user_to_be_flaired not in mods \
-                and user_to_be_flaired != flairy_user:
-            flairy = self._flairy_detect_user_flair_change.match(comment.body)
-            if flairy:
-                await self.flair_user(subreddit, comment, flairy_reddit, user_to_be_flaired, flairy.group(1), flairy.group(2))
-                await bot.handle(message, comment, "✅", user, channel)
+        if (flairy := self._flairy_detect_user_flair_change.match(body)) \
+                     and user_to_be_flaired not in mods \
+                     and user_to_be_flaired != flairy_user:
+            await self.flair_user(subreddit, comment, flairy_reddit, user_to_be_flaired, flairy.group(1),
+                                  flairy.group(2))
+            await self.bot.handle_reaction(message, "✅", user, channel)
 
     async def flair_user(self, subreddit, comment, flairy_reddit, user_to_be_flaired, flair_match, color_match):
         flair_text = flair_match.strip()

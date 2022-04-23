@@ -9,10 +9,10 @@ from helper.redditor_history import redditor_history
 class UserHistoryReaction(Reaction):
     emoji = '📜'
 
-    async def handle(self, message: Message, item, emoji, user, channel, bot):
+    async def handle_reaction(self, message: Message, emoji, user, channel):
         redditor = extract_redditor(message)
         try:
-            history = await redditor_history(await bot.reddit.redditor(redditor))
+            history = await redditor_history(await self.bot.reddit.redditor(redditor))
             embed = disnake.Embed(colour=disnake.Colour(0).from_rgb(207, 206, 255))
             for k, v in history.items():
                 embed .add_field(k, v, inline=False)

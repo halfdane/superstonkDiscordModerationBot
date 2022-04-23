@@ -14,15 +14,15 @@ import reddit_helper
 from cogs.modqueue_cog import ModQueueCog
 from cogs.user_cog import UserCog
 from discordReaction.delete_reaction import DeleteReaction
-from discordReaction.flair_acceptance_reaction import FlairAcceptanceReaction
 from discordReaction.help_reaction import HelpReaction
 from discordReaction.modnote_reaction import ModNoteReaction
 from discordReaction.user_history_reaction import UserHistoryReaction
 from discordReaction.wip_reaction import WipReaction
 from helper.redditor_extractor import extract_redditor
-from redditItemHandler import Handler
-from redditItemHandler.comments_handler import Comments
-from redditItemHandler.reports_handler import Reports
+
+from redditItemHandler.flairy import Flairy
+from redditItemHandler.important_reports import ImportantReports
+from streamer.abstract_streamer import Streamer
 
 
 class SuperstonkModerationBot(Bot):
@@ -35,27 +35,21 @@ class SuperstonkModerationBot(Bot):
         self.reddit: asyncpraw.Reddit = options.get("reddit")
         self.flairy_reddit: asyncpraw.Reddit = options.get("flairy_reddit")
         self.subreddit: Optional[asyncpraw.reddit.Subreddit] = None
-        self.handlers = None
         self.report_channel = 0
         self.flairy_channel = 0
         self.moderators = None
         self.logger = logging.getLogger(self.__class__.__name__)
 
-        self.GENERIC_REACTIONS = (HelpReaction(), WipReaction(), DeleteReaction())
-        self.USER_REACTIONS = (ModNoteReaction(), UserHistoryReaction())
-        self.FLAIR_REACTIONS = (FlairAcceptanceReaction(),)
-
-        self.ALL_REACTIONS = self.GENERIC_REACTIONS + self.USER_REACTIONS + self.FLAIR_REACTIONS
+        self.GENERIC_REACTIONS = None
+        self.USER_REACTIONS = None
+        self.FLAIR_REACTIONS = None
+        self.ALL_REACTIONS = None
 
         super().add_cog(UserCog(self))
         super().add_cog(ModQueueCog(self))
 
     async def on_ready(self):
         self.subreddit = await self.reddit.subreddit("Superstonk")
-        self.handlers: List[Handler] = [
-            Comments(self),
-            Reports(self)
-        ]
         self.moderators = [moderator async for moderator in self.subreddit.moderator]
         self.report_channel = self.get_channel(REPORTING_CHANNEL)
         self.flairy_channel = self.get_channel(FLAIRY_CHANNEL)
@@ -67,8 +61,20 @@ class SuperstonkModerationBot(Bot):
         self.logger.info(f"{await self.reddit.user.me()}: listening for reports on reddit")
         self.logger.info(f"{await self.flairy_reddit.user.me()}: handling flair requests on reddit")
 
-        for handler in self.handlers:
-            self.loop.create_task(handler.start())
+        flairy = Flairy(self)
+
+        self.GENERIC_REACTIONS = (HelpReaction(self), WipReaction(self), DeleteReaction(self))
+        self.USER_REACTIONS = (ModNoteReaction(self), UserHistoryReaction(self))
+        self.FLAIR_REACTIONS = (flairy,)
+
+        self.ALL_REACTIONS = self.GENERIC_REACTIONS + self.USER_REACTIONS + self.FLAIR_REACTIONS
+
+        comment_streamer = Streamer(name="Comments", _stream_items=self.subreddit.stream.comments).add_handler(flairy)
+        self.loop.create_task(comment_streamer.start())
+
+        report_streamer = Streamer(name="Reports", _stream_items=self.subreddit.mod.stream.reports).add_handler(
+            ImportantReports(self))
+        self.loop.create_task(report_streamer.start())
 
     async def on_message(self, msg: Message):
         if msg.author.bot or msg.channel.id != USER_INVESTIGATION_CHANNELS:
@@ -94,18 +100,17 @@ class SuperstonkModerationBot(Bot):
 
         message: Message = await channel.fetch_message(p.message_id)
         emoji = p.emoji.name if not p.emoji.is_custom_emoji() else "<:{}:{}>".format(p.emoji.name, p.emoji.id)
-        item = await self.get_item(message)
-        return message, item, emoji, member, channel
+        return message, emoji, member, channel
 
     async def on_raw_reaction_remove(self, p: disnake.RawReactionActionEvent):
         reaction_information = await self.get_reaction_information(p)
         if reaction_information:
-            await self.unhandle(*reaction_information)
+            await self.unhandle_reaction(*reaction_information)
 
     async def on_raw_reaction_add(self, p: disnake.RawReactionActionEvent):
         reaction_information = await self.get_reaction_information(p)
         if reaction_information:
-            await self.handle(*reaction_information)
+            await self.handle_reaction(*reaction_information)
 
     async def add_reactions(self, msg: disnake.Message, reactions=None):
         if reactions is None:
@@ -113,15 +118,15 @@ class SuperstonkModerationBot(Bot):
         for r in reactions:
             await msg.add_reaction(r.emoji)
 
-    async def handle(self, message, item, emoji, user, channel):
+    async def handle_reaction(self, message, emoji, user, channel):
         for reaction in self.ALL_REACTIONS:
-            if reaction.is_reaction(message, item, emoji, user, channel, self):
-                await reaction.handle(message, item, emoji, user, channel, self)
+            if reaction.emoji == emoji:
+                await reaction.handle_reaction(message, emoji, user, channel)
 
-    async def unhandle(self, message, item, emoji, user, channel):
+    async def unhandle_reaction(self, message, emoji, user, channel):
         for reaction in self.ALL_REACTIONS:
-            if reaction.is_reaction(message, item, emoji, user, channel, self):
-                await reaction.unhandle(message, item, emoji, user, channel, self)
+            if reaction.emoji == emoji:
+                await reaction.unhandle_reaction(message, emoji, user, channel)
 
 
 if __name__ == "__main__":

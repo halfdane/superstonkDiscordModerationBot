@@ -3,17 +3,15 @@ import logging
 class Reaction:
     emoji = None
 
-    def __init__(self):
+    def __init__(self, bot):
+        self.bot = bot
         self._logger = logging.getLogger(self.__class__.__name__)
 
-    async def handle(self, message, item, emoji, user, channel, bot):
+    async def handle_reaction(self, message, emoji, user, channel):
         pass
 
-    async def unhandle(self, message, item, emoji, user, channel, bot):
+    async def unhandle_reaction(self, message, emoji, user, channel):
         pass
-
-    def is_reaction(self, message, item, e, user, channel, bot):
-        return e == self.emoji
 
     def description(self):
         pass
