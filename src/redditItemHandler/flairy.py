@@ -73,12 +73,15 @@ class Flairy(Handler, Reaction):
     async def handle_reaction(self, message, emoji, user, channel):
         if channel != self.bot.flairy_channel:
             return
-
         comment = await self.bot.get_item(message)
         body = getattr(comment, 'body', "")
         flairy = self._flairy_detect_user_flair_change.match(body)
-        await self.flair_user(comment, flairy.group(1), flairy.group(2))
-        await self.bot.handle_reaction(message, "✅", user, channel)
+        if flairy is not None:
+            await self.flair_user(comment, flairy.group(1), flairy.group(2))
+            await self.bot.handle_reaction(message, "✅", user, channel)
+        else:
+            await self.bot.handle_reaction(message, "✅", user, channel)
+            await message.edit(content="Flair request was removed in the meantime")
 
     async def flair_user(self, comment, flair_match, color_match):
         flair_text = flair_match.strip()
