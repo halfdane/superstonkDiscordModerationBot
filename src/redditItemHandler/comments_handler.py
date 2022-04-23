@@ -31,5 +31,5 @@ class Comments(Handler):
         e.description = f"[Flair Request: {escape_markdown(comment.body)}]({url})"
         e.add_field("Redditor", link(f"https://www.reddit.com/u/{comment.author}", comment.author), inline=False)
         msg = await self.bot.flairy_channel.send(embed=e)
-        reactions = discordReaction.FLAIR_REACTIONS + discordReaction.GENERIC_REACTIONS + discordReaction.USER_REACTIONS
-        await discordReaction.add_reactions(msg, reactions=reactions)
+        reactions = self.bot.FLAIR_REACTIONS + self.bot.GENERIC_REACTIONS + self.bot.USER_REACTIONS
+        await self.bot.add_reactions(msg, reactions=reactions)

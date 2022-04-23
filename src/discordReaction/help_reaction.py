@@ -1,13 +1,11 @@
 from disnake import Message
-
-from superstonkDiscordModerationBot import SuperstonkModerationBot
 from discordReaction.abstract_reaction import Reaction
 
 
 class HelpReaction(Reaction):
     emoji = '❓'
 
-    async def handle(self, message: Message, item, emoji, user, channel, bot: SuperstonkModerationBot):
+    async def handle(self, message: Message, item, emoji, user, channel, bot):
         explanations = ["**Generic Reactions**"]
         for reaction in Reaction.__subclasses__():
             r = reaction()

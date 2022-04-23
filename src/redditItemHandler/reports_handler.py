@@ -34,7 +34,7 @@ class Reports(Handler):
         embed = await self.__create_embed(item)
         if embed:
             msg = await self.bot.report_channel.send(embed=embed)
-            await discordReaction.add_reactions(msg)
+            await self.bot.add_reactions(msg)
         return item
 
     async def __create_embed(self, item):

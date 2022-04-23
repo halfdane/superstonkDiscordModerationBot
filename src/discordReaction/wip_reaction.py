@@ -1,15 +1,13 @@
 from disnake import Message
 
 from discordReaction.abstract_reaction import Reaction
-import disnake
-
 from helper.discord_text_formatter import strikethrough, un_strikethrough
 
 
 class WipReaction(Reaction):
     emoji = '✅'
 
-    async def handle(self, message: Message, item, emoji, user, channel, bot: disnake.Client):
+    async def handle(self, message: Message, item, emoji, user, channel, bot):
         for embed in message.embeds:
             lines = embed.description.split("\n")
             embed.description = "\n".join([strikethrough(line) for line in lines])
@@ -21,7 +19,7 @@ class WipReaction(Reaction):
 
         await message.edit(embeds=message.embeds)
 
-    async def unhandle(self, message, item, emoji, user, channel, bot: disnake.Client):
+    async def unhandle(self, message, item, emoji, user, channel, bot):
         for embed in message.embeds:
             lines = embed.description.split("\n")
             embed.description = "\n".join([un_strikethrough(line) for line in lines])

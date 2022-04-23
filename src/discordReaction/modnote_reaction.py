@@ -1,19 +1,16 @@
-import logging
-
 import disnake
 from disnake import Message
+from disnake.utils import escape_markdown
 
-from superstonkDiscordModerationBot import SuperstonkModerationBot
 from discordReaction.abstract_reaction import Reaction
 from helper.mod_notes import fetch_modnotes
 from helper.redditor_extractor import extract_redditor
-from disnake.utils import escape_markdown
 
 
 class ModNoteReaction(Reaction):
     emoji = '🗒️'
 
-    async def handle(self, message: Message, item, emoji, user, channel, bot: SuperstonkModerationBot):
+    async def handle(self, message: Message, item, emoji, user, channel, bot):
         redditor = extract_redditor(message)
         try:
             count = 0

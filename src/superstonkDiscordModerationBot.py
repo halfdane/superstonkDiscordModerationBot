@@ -1,8 +1,6 @@
-import asyncio
-import json
+import configparser
 import json
 import logging
-import os
 import sys
 from typing import List, Optional
 
@@ -12,16 +10,19 @@ from disnake import Message
 from disnake.ext import commands
 from disnake.ext.commands import Bot
 
-import discordReaction
 import reddit_helper
 from cogs.modqueue_cog import ModQueueCog
 from cogs.user_cog import UserCog
+from discordReaction.delete_reaction import DeleteReaction
+from discordReaction.flair_acceptance_reaction import FlairAcceptanceReaction
+from discordReaction.help_reaction import HelpReaction
+from discordReaction.modnote_reaction import ModNoteReaction
+from discordReaction.user_history_reaction import UserHistoryReaction
+from discordReaction.wip_reaction import WipReaction
 from helper.redditor_extractor import extract_redditor
 from redditItemHandler import Handler
 from redditItemHandler.comments_handler import Comments
 from redditItemHandler.reports_handler import Reports
-
-import configparser
 
 
 class SuperstonkModerationBot(Bot):
@@ -39,6 +40,12 @@ class SuperstonkModerationBot(Bot):
         self.flairy_channel = 0
         self.moderators = None
         self.logger = logging.getLogger(self.__class__.__name__)
+
+        self.GENERIC_REACTIONS = (HelpReaction(), WipReaction(), DeleteReaction())
+        self.USER_REACTIONS = (ModNoteReaction(), UserHistoryReaction())
+        self.FLAIR_REACTIONS = (FlairAcceptanceReaction(),)
+
+        self.ALL_REACTIONS = self.GENERIC_REACTIONS + self.USER_REACTIONS + self.FLAIR_REACTIONS
 
         super().add_cog(UserCog(self))
         super().add_cog(ModQueueCog(self))
@@ -67,7 +74,7 @@ class SuperstonkModerationBot(Bot):
         if msg.author.bot or msg.channel.id != USER_INVESTIGATION_CHANNELS:
             return
         if extract_redditor(msg):
-            await discordReaction.add_reactions(msg, discordReaction.USER_REACTIONS)
+            await self.add_reactions(msg, self.USER_REACTIONS)
 
     async def on_command_error(self, ctx: commands.Context, error):
         self.logger.exception(error)
@@ -88,17 +95,33 @@ class SuperstonkModerationBot(Bot):
         message: Message = await channel.fetch_message(p.message_id)
         emoji = p.emoji.name if not p.emoji.is_custom_emoji() else "<:{}:{}>".format(p.emoji.name, p.emoji.id)
         item = await self.get_item(message)
-        return message, item, emoji, member, channel, self
+        return message, item, emoji, member, channel
 
     async def on_raw_reaction_remove(self, p: disnake.RawReactionActionEvent):
         reaction_information = await self.get_reaction_information(p)
         if reaction_information:
-            await discordReaction.unhandle(*reaction_information)
+            await self.unhandle(*reaction_information)
 
     async def on_raw_reaction_add(self, p: disnake.RawReactionActionEvent):
         reaction_information = await self.get_reaction_information(p)
         if reaction_information:
-            await discordReaction.handle(*reaction_information)
+            await self.handle(*reaction_information)
+
+    async def add_reactions(self, msg: disnake.Message, reactions=None):
+        if reactions is None:
+            reactions = self.GENERIC_REACTIONS + self.USER_REACTIONS
+        for r in reactions:
+            await msg.add_reaction(r.emoji)
+
+    async def handle(self, message, item, emoji, user, channel):
+        for reaction in self.ALL_REACTIONS:
+            if reaction.is_reaction(message, item, emoji, user, channel, self):
+                await reaction.handle(message, item, emoji, user, channel, self)
+
+    async def unhandle(self, message, item, emoji, user, channel):
+        for reaction in self.ALL_REACTIONS:
+            if reaction.is_reaction(message, item, emoji, user, channel, self):
+                await reaction.unhandle(message, item, emoji, user, channel, self)
 
 
 if __name__ == "__main__":

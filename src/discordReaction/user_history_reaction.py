@@ -1,7 +1,6 @@
 import disnake
 from disnake import Message
 
-from superstonkDiscordModerationBot import SuperstonkModerationBot
 from discordReaction.abstract_reaction import Reaction
 from helper.redditor_extractor import extract_redditor
 from helper.redditor_history import redditor_history
@@ -10,7 +9,7 @@ from helper.redditor_history import redditor_history
 class UserHistoryReaction(Reaction):
     emoji = '📜'
 
-    async def handle(self, message: Message, item, emoji, user, channel, bot: SuperstonkModerationBot):
+    async def handle(self, message: Message, item, emoji, user, channel, bot):
         redditor = extract_redditor(message)
         try:
             history = await redditor_history(await bot.reddit.redditor(redditor))

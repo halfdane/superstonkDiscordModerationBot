@@ -1,7 +1,4 @@
 import re
-
-import discordReaction
-from superstonkDiscordModerationBot import SuperstonkModerationBot
 from discordReaction.abstract_reaction import Reaction
 
 
@@ -23,7 +20,7 @@ class FlairAcceptanceReaction(Reaction):
 
     _default_color = "black"
 
-    async def handle(self, message, comment, emoji, user, channel, bot: SuperstonkModerationBot):
+    async def handle(self, message, comment, emoji, user, channel, bot):
         body = getattr(comment, 'body', "")
         subreddit = bot.subreddit
         flairy_reddit = bot.flairy_reddit
@@ -37,7 +34,7 @@ class FlairAcceptanceReaction(Reaction):
             flairy = self._flairy_detect_user_flair_change.match(comment.body)
             if flairy:
                 await self.flair_user(subreddit, comment, flairy_reddit, user_to_be_flaired, flairy.group(1), flairy.group(2))
-                await discordReaction.handle(message, comment, "✅", user, channel, bot)
+                await bot.handle(message, comment, "✅", user, channel)
 
     async def flair_user(self, subreddit, comment, flairy_reddit, user_to_be_flaired, flair_match, color_match):
         flair_text = flair_match.strip()
