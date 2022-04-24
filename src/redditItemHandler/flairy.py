@@ -3,7 +3,6 @@ import re
 import disnake
 
 from discordReaction.abstract_reaction import Reaction
-from helper.discord_text_formatter import link
 from redditItemHandler import Handler
 from disnake.utils import escape_markdown
 
@@ -69,7 +68,7 @@ class Flairy(Handler, Reaction):
                 url=url,
                 colour=disnake.Colour(0).from_rgb(207, 206, 255))
             e.description = f"[Flair Request: {escape_markdown(comment.body)}]({url})"
-            e.add_field("Redditor", link(f"https://www.reddit.com/u/{comment.author}", comment.author), inline=False)
+            e.add_field("Redditor", f"[https://www.reddit.com/u/{comment.author}]({comment.author})", inline=False)
             msg = await self.bot.flairy_channel.send(embed=e)
             await msg.add_reaction(self.emoji)
             await self.bot.add_reactions(msg)

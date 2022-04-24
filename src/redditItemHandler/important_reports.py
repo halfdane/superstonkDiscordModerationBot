@@ -4,7 +4,6 @@ import re
 
 import disnake
 
-from helper.discord_text_formatter import link
 from helper.mod_notes import fetch_modnotes
 from redditItemHandler import Handler
 
@@ -34,7 +33,7 @@ class ImportantReports(Handler):
 
         title = getattr(item, 'title', getattr(item, 'body', ""))[:75]
         e.description = f"[Reported {item.__class__.__name__}: {title}]({url})"
-        e.add_field("Redditor", link(f"https://www.reddit.com/u/{item.author}", item.author), inline=False)
+        e.add_field("Redditor", f"[https://www.reddit.com/u/{item.author}]({item.author})", inline=False)
 
         user_reports = "\n".join(f"{r[1]} {r[0]}" for r in item.user_reports)
         if user_reports:
