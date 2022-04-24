@@ -2,10 +2,7 @@ import re
 
 import disnake
 
-USER_PAGE_MATCHER = re.compile('https://(?:www|old).reddit.com/(?:u|user)/([\w-]*)',
-                               re.IGNORECASE | re.MULTILINE | re.DOTALL)
-
-USER_REFERENCE_MATCHER = re.compile(r'u/([\w-]*)',
+USER_REFERENCE_MATCHER = re.compile(r'u(?:ser)?/([\w-]*)',
                                     re.IGNORECASE | re.MULTILINE | re.DOTALL)
 
 
@@ -27,8 +24,6 @@ def __find_redditor_in_embeds(msg):
 
 
 def __find_redditor(string):
-    if m := USER_PAGE_MATCHER.search(string):
-        return m.group(1)
     if m := USER_REFERENCE_MATCHER.search(string):
         return m.group(1)
 
