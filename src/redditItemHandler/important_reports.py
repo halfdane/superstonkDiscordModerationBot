@@ -7,7 +7,7 @@ import disnake
 from helper.mod_notes import fetch_modnotes
 from redditItemHandler import Handler
 
-RULE_1 = re.compile(r"rule\s+1", re.IGNORECASE)
+RULE_1 = re.compile(r"rule\s*1", re.IGNORECASE)
 
 
 class ImportantReports(Handler):
@@ -52,9 +52,9 @@ class ImportantReports(Handler):
 
     async def __send_ban_list(self, mods_reporting_rule_1, item):
         modnotes = fetch_modnotes(reddit=self.bot.reddit, redditor_param=item.author, only='banuser')
-        bans = f"All bans of {item.author}"
+        bans = f"All bans of {item.author}   "
         async for k, v in modnotes:
-            bans += f"- **{k}**: {v}\n"
+            bans += f"- **{k}**: {v}   \n"
         bans += "\n\nThat's all"
         utc_datetime = datetime.datetime.utcnow()
         formatted_string = utc_datetime.strftime("%Y-%m-%d-%H%MZ")
