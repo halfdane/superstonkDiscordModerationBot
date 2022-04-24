@@ -43,6 +43,12 @@ class ImportantReports(Handler):
         mod_reports = "\n".join(f"{r[1]} {r[0]}" for r in item.mod_reports)
         if mod_reports:
             e.add_field("Mod Reports", mod_reports, inline=False)
+        score = getattr(item, 'score', None)
+        if score:
+            e.add_field("Score:", str(score))
+        comments = getattr(item, 'comments', None)
+        if comments and comments[0].author.name == "Superstonk_QV":
+            e.add_field("QV Score:", str(comments[0].score))
         return e
 
     async def __send_ban_list(self, mods_reporting_rule_1, item):
