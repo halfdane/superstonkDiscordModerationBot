@@ -26,6 +26,8 @@ from redditItemHandler.flairy import Flairy
 from redditItemHandler.important_reports import ImportantReports
 from streamer.streamer import Streamer
 
+from decouple import config
+
 
 class SuperstonkModerationBot(Bot):
     def __init__(self, **options):
@@ -145,34 +147,24 @@ class SuperstonkModerationBot(Bot):
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(name)s]: %(message)s')
 
-    if len(sys.argv) > 1:
-        config_file = sys.argv[1]
-    else:
-        config_file = "config.ini"
-
-    logging.root.warning(f"Reading config from {config_file}")
-
-    config = configparser.ConfigParser()
-    config.read(config_file)
-
-    DISCORD_BOT_TOKEN = config["DISCORD"]["discord_bot_token"]
-    REPORTING_CHANNEL = int(config["DISCORD"]["REPORTING_CHANNEL"])
-    FLAIRY_CHANNEL = int(config["DISCORD"]["FLAIRY_CHANNEL"])
-    USER_INVESTIGATION_CHANNELS = int(config["DISCORD"]["USER_INVESTIGATION_CHANNELS"])
+    DISCORD_BOT_TOKEN = config("discord_bot_token")
+    REPORTING_CHANNEL = int(config("REPORTING_CHANNEL"))
+    FLAIRY_CHANNEL = int(config("FLAIRY_CHANNEL"))
+    USER_INVESTIGATION_CHANNELS = [int(channel) for channel in str(config("USER_INVESTIGATION_CHANNELS")).split()]
 
     bot = SuperstonkModerationBot(
-        reddit=asyncpraw.Reddit(
-            username=config["REDDIT_CREDENTIALS"]["reddit_username"],
-            password=config["REDDIT_CREDENTIALS"]["reddit_password"],
-            client_id=config["REDDIT_CREDENTIALS"]["reddit_client_id"],
-            client_secret=config["REDDIT_CREDENTIALS"]["reddit_client_secret"],
-            user_agent="com.halfdane.superstonk_moderation_bot:v0.0.2 (by u/half_dane)"),
-        flairy_reddit=asyncpraw.Reddit(
-            username=config["FLAIRY_CREDENTIALS"]["flairy_username"],
-            password=config["FLAIRY_CREDENTIALS"]["flairy_password"],
-            client_id=config["FLAIRY_CREDENTIALS"]["flairy_client_id"],
-            client_secret=config["FLAIRY_CREDENTIALS"]["flairy_client_secret"],
-            user_agent="desktop:com.halfdane.superstonk_flairy:v0.1.1 (by u/half_dane)")
-    )
+    reddit=asyncpraw.Reddit(
+        username=(config("reddit_username")),
+        password=(config("reddit_password")),
+        client_id=(config("reddit_client_id")),
+        client_secret=(config("reddit_client_secret")),
+        user_agent="com.halfdane.superstonk_moderation_bot:v0.0.2 (by u/half_dane)"),
+    flairy_reddit=asyncpraw.Reddit(
+        username=config("flairy_username"),
+        password=config("flairy_password"),
+        client_id=config("flairy_client_id"),
+        client_secret=config("flairy_client_secret"),
+        user_agent="desktop:com.halfdane.superstonk_flairy:v0.1.0 (by u/half_dane)")
+)
 
     bot.run(DISCORD_BOT_TOKEN)
