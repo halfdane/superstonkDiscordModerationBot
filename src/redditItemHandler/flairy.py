@@ -6,6 +6,7 @@ from discordReaction.abstract_reaction import Reaction
 from redditItemHandler import Handler
 from disnake.utils import escape_markdown
 
+import random
 
 class Flairy(Handler, Reaction):
     emoji = '🧚'
@@ -15,8 +16,8 @@ class Flairy(Handler, Reaction):
     _valid_colors = "(?:\s+(red|blue|pink|yellow|green|black))?\s*"
     _last_word = "(\w*)"
 
-    _flairy_detect_user_flair_change = \
-        re.compile(rf"{_flairy_command}{_flairy_text}{_valid_colors}$", re.IGNORECASE | re.MULTILINE | re.DOTALL)
+    _flairy_detect_user_flair_change = re.compile(rf"{_flairy_command}{_flairy_text}{_valid_colors}$",
+                                                  re.IGNORECASE | re.MULTILINE | re.DOTALL)
 
     _flairy_detect_last_word = \
         re.compile(rf"{_flairy_command}{_flairy_text}{_last_word}$", re.IGNORECASE | re.MULTILINE | re.DOTALL)
@@ -50,6 +51,17 @@ class Flairy(Handler, Reaction):
 
             if self.bot.is_forbidden_comment_message(flair_text):
                 self._logger.info(f"Silently refusing to grant flair with restricted content: {flair_text}")
+                return
+
+            if len(flair_text) == 0:
+                emojis = random.sample(self._emojis, 2)
+                flair_text = f"{emojis[0]} {random.sample(self._flairs, 1)[0]} {emojis[1]}"
+                color = random.sample(list(self._templates.keys()), 1)[0]
+                message = "(ノಠ益ಠ)ノ彡┻━┻ YOU DIDN'T ASK FOR A FLAIR!\n\n " \
+                          "Let me show you how to do it:  \n\n"\
+                          f"     !FLAIRY!{flair_text}{color}\n\n...\n\n...\n\n"
+                self._logger.info(f"Randomly assigning: https://www.reddit.com{comment.permalink}")
+                await self.flair_user(comment, flair_text, color, message)
                 return
 
             last_word = self._flairy_detect_last_word.match(body).group(2)
@@ -86,7 +98,7 @@ class Flairy(Handler, Reaction):
             await self.bot.handle_reaction(message, "✅", user, channel)
             await message.edit(content="Flair request was removed in the meantime")
 
-    async def flair_user(self, comment, flair_match, color_match):
+    async def flair_user(self, comment, flair_match, color_match, message=""):
         flair_text = flair_match.strip()
         color = (color_match or self._default_color).lower().strip()
         template = self._templates[color]
@@ -97,7 +109,7 @@ class Flairy(Handler, Reaction):
             redditor=comment.author,
             text=flair_text,
             flair_template_id=template)
-        message = rf"(✿\^‿\^)━☆ﾟ.*･｡ﾟ `{flair_text}`"
+        message += rf'(✿\^‿\^)━☆ﾟ.*･｡ﾟ "{flair_text}"'
         self._logger.info(log_message)
         comment_from_flairies_view = await self.bot.flairy_reddit.comment(comment.id, fetch=False)
         await comment_from_flairies_view.upvote()
@@ -105,3 +117,21 @@ class Flairy(Handler, Reaction):
 
     def description(self):
         return "Accept the flair request. The flairy will take care of the rest."
+
+    _emojis = ['🏴‍☠', '💪', '💎', '🎊', '🌕',
+               '🦍🚀', '🦍', '💎🙌🏻', '🎮🛑',
+               '♾️', '🐵', '💙', '🍦💩🪑'
+               ]
+
+    _flairs = ["TOMORROW!", "Hola", "I'm here for the memes", "es mucho", "We're in the endgame now", "Gamecock",
+               "FUCK YOU PAY ME", "Locked and loaded ", "Power to the Players", "Nothin But Time", "GME to the Moon! ",
+               "Infinite Risk ", "Hang in There! ", "Power to the Players ", "Power to the Creators ",
+               "Probably nothing", "Gimme me my money ", "GME ", "Apes together strong", "before the split",
+               "Gamestop 4U", "Casual lurker until MOASS", "GMERICA ", "GME ", "Superstonk Ape", "GME to the Moon!",
+               "Pepperidge Farm remembers", "LOVE GME ", "SuperApe ", "What’s an exit strategy", "C.R.E.A.M",
+               "ZEN APE ", "No Cell No Sell", "GameStop", "Power to the Players ", "Crayon Sniffer ", "Mods are sus",
+               "DEEP FUCKING VALUE ", "Fuck no I’m not selling my GME!", "Fuck Citadel", "I just love the stock ",
+               "FUD is the Mind-Killer", "No target, just up!", "We are in a completely fraudulent system ",
+               "Get rich or die buyin’", "GME go Brrrr ", "Apes together strong ", "wen moon", "I SAID WE GREEN TODAY",
+               "Buy now, ask questions later ", "I am not a cat", "I like the stock. ", "Just Like the Stonk",
+               "Bullish"]

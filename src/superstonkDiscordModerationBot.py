@@ -150,7 +150,7 @@ if __name__ == "__main__":
     DISCORD_BOT_TOKEN = config("discord_bot_token")
     REPORTING_CHANNEL = int(config("REPORTING_CHANNEL"))
     FLAIRY_CHANNEL = int(config("FLAIRY_CHANNEL"))
-    USER_INVESTIGATION_CHANNELS = [int(channel) for channel in str(config("USER_INVESTIGATION_CHANNELS")).split()]
+    USER_INVESTIGATION_CHANNELS = int(config("USER_INVESTIGATION_CHANNELS"))
 
     bot = SuperstonkModerationBot(
     reddit=asyncpraw.Reddit(
@@ -158,7 +158,7 @@ if __name__ == "__main__":
         password=(config("reddit_password")),
         client_id=(config("reddit_client_id")),
         client_secret=(config("reddit_client_secret")),
-        user_agent="com.halfdane.superstonk_moderation_bot:v0.0.2 (by u/half_dane)"),
+        user_agent="com.halfdane.superstonk_moderation_bot:v0.1.1 (by u/half_dane)"),
     flairy_reddit=asyncpraw.Reddit(
         username=config("flairy_username"),
         password=config("flairy_password"),
