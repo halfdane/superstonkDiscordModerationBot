@@ -5,12 +5,8 @@ run_args = config
 
 .PHONY: run
 run: venv
+	-/usr/bin/pkill -f superstonkDiscordModerationBot
 	./venv/bin/python src/superstonkDiscordModerationBot.py $(call args,$@)
-
-deploy:
-	systemctl stop superstonkModerationBot.service
-	git pull --rebase
-	systemctl start superstonkModerationBot.service
 
 install:
 	cp superstonkModerationBot.service /etc/systemd/system/
