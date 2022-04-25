@@ -1,0 +1,35 @@
+name: remote ssh command
+on: [push, workflow_dispatch]
+jobs:
+  build:
+    name: deploy
+    runs-on: ubuntu-latest
+    environment: live
+    steps:
+    - name: executing remote ssh commands using ssh key
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        key: ${{ secrets.KEY }}
+        script: |
+          export discord_bot_token="${{ secrets.DISCORD_BOT_TOKEN }}"
+          export target_subreddit="${{ secrets.REDDIT_CLIENT_SECRET }}"
+          
+          export reddit_client_id="${{ secrets.REDDIT_CLIENT_ID }}"
+          export reddit_client_secret="${{ secrets.REDDIT_CLIENT_SECRET }}"
+          export reddit_username="${{ secrets.REDDIT_USERNAME }}"
+          export reddit_password="${{ secrets.REDDIT_PASSWORD }}"
+    
+          export flairy_client_id="${{ secrets.FLAIRY_CLIENT_ID }}"
+          export flairy_client_secret="${{ secrets.FLAIRY_CLIENT_SECRET }}"
+          export flairy_username="${{ secrets.FLAIRY_USERNAME }}"
+          export flairy_password="${{ secrets.FLAIRY_PASSWORD }}"
+          
+          export REPORTING_CHANNEL="${{ secrets.REPORTING_CHANNEL }}"
+          export FLAIRY_CHANNEL="${{ secrets.FLAIRY_CHANNEL }}"
+          export USER_INVESTIGATION_CHANNELS="${{ secrets.USER_INVESTIGATION_CHANNELS }}"
+          
+          ./server.sh >out.log 2>err.log &
+          
+          echo "That's all folks"
