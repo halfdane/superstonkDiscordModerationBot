@@ -2,7 +2,7 @@ SHELL := /bin/bash
 
 .PHONY: run
 run: venv
-	-/usr/bin/pkill -f superstonkDiscordModerationBot
+	-/usr/bin/pkill -f "python src/superstonkDiscordModerationBot.py"
 	./venv/bin/python src/superstonkDiscordModerationBot.py
 
 install:
