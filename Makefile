@@ -1,12 +1,9 @@
 SHELL := /bin/bash
-args = $(foreach a,$($(subst -,_,$1)_args),$(if $(value $a),$($a)))
-
-run_args = config
 
 .PHONY: run
 run: venv
 	-/usr/bin/pkill -f superstonkDiscordModerationBot
-	./venv/bin/python src/superstonkDiscordModerationBot.py $(call args,$@)
+	./venv/bin/python src/superstonkDiscordModerationBot.py
 
 install:
 	cp superstonkModerationBot.service /etc/systemd/system/
