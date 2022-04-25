@@ -11,17 +11,6 @@ import random
 class Flairy(Handler, Reaction):
     emoji = '🧚'
 
-    _flairy_command = ".*!\s*FL?AIRY\s*!"
-    _flairy_text = "\s*(.*?)"
-    _valid_colors = "(?:\s+(red|blue|pink|yellow|green|black))?\s*"
-    _last_word = "(\w*)"
-
-    _flairy_detect_user_flair_change = re.compile(rf"{_flairy_command}{_flairy_text}{_valid_colors}$",
-                                                  re.IGNORECASE | re.MULTILINE | re.DOTALL)
-
-    _flairy_detect_last_word = \
-        re.compile(rf"{_flairy_command}{_flairy_text}{_last_word}$", re.IGNORECASE | re.MULTILINE | re.DOTALL)
-
     _templates = {"red": "0446bc04-91c0-11ec-8118-ce042afdde96",
                   "blue": "6e40ab4c-f3cd-11eb-889e-ae4cdf00ff3b",
                   "pink": "6de5f58e-f3ce-11eb-af43-eae78a59944d",
@@ -34,6 +23,16 @@ class Flairy(Handler, Reaction):
     def __init__(self, bot):
         Handler.__init__(self, bot)
         Reaction.__init__(self, bot)
+
+        self._flairy_command = ".*!\s*FL?AIRY\s*!"
+        self._flairy_text = "\s*(.*?)"
+        self._valid_colors = f"(?:\s+({'|'.join(self._templates.keys())}))?\s*"
+        self._last_word = "(\w*)"
+        flags = re.IGNORECASE | re.MULTILINE | re.DOTALL
+        self._flairy_detect_user_flair_change = \
+            re.compile(rf"{self._flairy_command}{self._flairy_text}{self._valid_colors}$", flags)
+        self._flairy_detect_last_word = \
+            re.compile(rf"{self._flairy_command}{self._flairy_text}{self._last_word}$", flags)
 
     async def take(self, comment):
         body = getattr(comment, 'body', "")
@@ -54,21 +53,14 @@ class Flairy(Handler, Reaction):
                 return
 
             if len(flair_text) == 0:
-                emojis = random.sample(self._emojis, 2)
-                flair_text = f"{emojis[0]} {random.sample(self._flairs, 1)[0]} {emojis[1]}"
-                color = random.sample(list(self._templates.keys()), 1)[0]
-                message = "(ノಠ益ಠ)ノ彡┻━┻ YOU DIDN'T ASK FOR A FLAIR!\n\n " \
-                          "Let me show you how to do it:  \n\n"\
-                          f"     !FLAIRY!{flair_text}{color}\n\n...\n\n...\n\n"
-                self._logger.info(f"Randomly assigning: https://www.reddit.com{comment.permalink}")
-                await self.flair_user(comment, flair_text, color, message)
+                await self._bestow_random_flair(comment)
                 return
 
             last_word = self._flairy_detect_last_word.match(body).group(2)
             if last_word.lower() in ["orange", "grey", "gray", "purple", "white"]:
                 comment_from_flairies_view = await self.bot.flairy_reddit.comment(comment.id, fetch=False)
                 message = f"(ノಠ益ಠ)ノ彡┻━┻ {last_word.upper()} IS NOT A VALID COLOR!   \n" \
-                          f"Valid colors are `red`, `blue`, `pink`, `yellow`, `green` or `black`.   \n" \
+                          f"Valid colors are {', '.join(self._templates.keys())}.   \n" \
                           f"I'm making the change, so if that's not what you want " \
                           f"you have to summon me again."
                 self._logger.info(f"Wrong color: https://www.reddit.com{comment.permalink}")
@@ -84,6 +76,34 @@ class Flairy(Handler, Reaction):
             msg = await self.bot.flairy_channel.send(embed=e)
             await msg.add_reaction(self.emoji)
             await self.bot.add_reactions(msg)
+
+    async def _bestow_random_flair(self, comment):
+        _emojis = ['🏴‍☠', '💪', '💎', '🎊', '🌕',
+                   '🦍🚀', '🦍', '💎🙌🏻', '🎮🛑',
+                   '♾️', '🐵', '💙', '🍦💩🪑'
+                   ]
+
+        _flairs = ["TOMORROW!", "Hola", "I'm here for the memes", "es mucho", "We're in the endgame now", "Gamecock",
+                   "FUCK YOU PAY ME", "Locked and loaded ", "Power to the Players", "Nothin But Time", "GME to the Moon! ",
+                   "Infinite Risk ", "Hang in There! ", "Power to the Players ", "Power to the Creators ",
+                   "Probably nothing", "Gimme me my money ", "GME ", "Apes together strong", "before the split",
+                   "Gamestop 4U", "Casual lurker until MOASS", "GMERICA ", "GME ", "Superstonk Ape", "GME to the Moon!",
+                   "Pepperidge Farm remembers", "LOVE GME ", "SuperApe ", "What’s an exit strategy", "C.R.E.A.M",
+                   "ZEN APE ", "No Cell No Sell", "GameStop", "Power to the Players ", "Crayon Sniffer ", "Mods are sus",
+                   "DEEP FUCKING VALUE ", "Fuck no I’m not selling my GME!", "Fuck Citadel", "I just love the stock ",
+                   "FUD is the Mind-Killer", "No target, just up!", "We are in a completely fraudulent system ",
+                   "Get rich or die buyin’", "GME go Brrrr ", "Apes together strong ", "wen moon", "I SAID WE GREEN TODAY",
+                   "Buy now, ask questions later ", "I am not a cat", "I like the stock. ", "Just Like the Stonk",
+                   "Bullish"]
+
+        emojis = random.sample(_emojis, 2)
+        flair_text = f"{emojis[0]} {random.sample(_flairs, 1)[0]} {emojis[1]}"
+        color = random.sample(list(self._templates.keys()), 1)[0]
+        message = "(ノಠ益ಠ)ノ彡┻━┻ YOU DIDN'T ASK FOR A FLAIR!\n\n " \
+                  "Let me show you how to do it:  \n\n" \
+                  f"     !FLAIRY!{flair_text}{color}\n\n...\n\n...\n\n"
+        self._logger.info(f"Randomly assigning: https://www.reddit.com{comment.permalink}")
+        await self.flair_user(comment, flair_text, color, message)
 
     async def handle_reaction(self, message, emoji, user, channel):
         if channel != self.bot.flairy_channel:
@@ -118,20 +138,3 @@ class Flairy(Handler, Reaction):
     def description(self):
         return "Accept the flair request. The flairy will take care of the rest."
 
-    _emojis = ['🏴‍☠', '💪', '💎', '🎊', '🌕',
-               '🦍🚀', '🦍', '💎🙌🏻', '🎮🛑',
-               '♾️', '🐵', '💙', '🍦💩🪑'
-               ]
-
-    _flairs = ["TOMORROW!", "Hola", "I'm here for the memes", "es mucho", "We're in the endgame now", "Gamecock",
-               "FUCK YOU PAY ME", "Locked and loaded ", "Power to the Players", "Nothin But Time", "GME to the Moon! ",
-               "Infinite Risk ", "Hang in There! ", "Power to the Players ", "Power to the Creators ",
-               "Probably nothing", "Gimme me my money ", "GME ", "Apes together strong", "before the split",
-               "Gamestop 4U", "Casual lurker until MOASS", "GMERICA ", "GME ", "Superstonk Ape", "GME to the Moon!",
-               "Pepperidge Farm remembers", "LOVE GME ", "SuperApe ", "What’s an exit strategy", "C.R.E.A.M",
-               "ZEN APE ", "No Cell No Sell", "GameStop", "Power to the Players ", "Crayon Sniffer ", "Mods are sus",
-               "DEEP FUCKING VALUE ", "Fuck no I’m not selling my GME!", "Fuck Citadel", "I just love the stock ",
-               "FUD is the Mind-Killer", "No target, just up!", "We are in a completely fraudulent system ",
-               "Get rich or die buyin’", "GME go Brrrr ", "Apes together strong ", "wen moon", "I SAID WE GREEN TODAY",
-               "Buy now, ask questions later ", "I am not a cat", "I like the stock. ", "Just Like the Stonk",
-               "Bullish"]
