@@ -18,6 +18,7 @@ class ImportantReports(Handler):
         if len(mods_reporting_rule_1) > 0:
             await self.__send_ban_list(mods_reporting_rule_1, item)
         elif user_report_count >= 5 or mod_report_count > 0:
+            await item.load()
             self._logger.info(f"Sending reported item {item}")
             embed = Embed.from_dict(self.__create_embed(item))
             msg = await self.bot.report_channel.send(embed=embed)
@@ -26,15 +27,17 @@ class ImportantReports(Handler):
     def __create_embed(self, item):
         url = f"https://www.reddit.com{item.permalink}"
         title = getattr(item, 'title', getattr(item, 'body', ""))[:75]
+        qv_score = None
         comments = getattr(item, 'comments', None)
+        if comments is not None and len(comments) > 0 and comments[0].author.name == "Superstonk_QV":
+            qv_score = str(comments[0].score)
 
         fields = []
         self.__field(fields, "Redditor", f"[{item.author}](https://www.reddit.com/u/{item.author})", False)
         self.__field(fields, "User Reports", "\n".join(f"{r[1]} {r[0]}" for r in item.user_reports), False)
         self.__field(fields, "Mod Reports", "\n".join(f"{r[1]} {r[0]}" for r in item.mod_reports), False)
         self.__field(fields, "Score", str(getattr(item, 'score', 0)), True)
-        self.__field(fields, "QV Score",
-                     str(comments[0].score) if comments and comments[0].author.name == "Superstonk_QV" else None, True)
+        self.__field(fields, "QV Score", qv_score, True)
         self.__field(fields, "Upvote Ratio", str(getattr(item, 'upvote_ratio', 0)), True)
         return {
             'url': url,
