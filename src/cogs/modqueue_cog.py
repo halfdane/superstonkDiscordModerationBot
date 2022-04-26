@@ -16,16 +16,14 @@ class ModQueueCog(commands.Cog):
         modqueue = []
         weights = []
         async for item in self._bot.subreddit.mod.modqueue(limit=None, only=type):
-            if item.num_reports < 3 or \
-                    getattr(item, 'approved', False) or \
-                    getattr(item, 'removed_by_category', None) is not None:
+            if getattr(item, 'approved', False) or getattr(item, 'removed_by_category', None) is not None:
                 continue
 
             now = datetime.now()
             item.created_utc = datetime.utcfromtimestamp(item.created_utc)
             hours_passed = (now - item.created_utc).total_seconds() / 3600
 
-            if hours_passed > 48:
+            if hours_passed > 72:
                 continue
 
             item.weight = (item.num_reports * 2) / hours_passed
