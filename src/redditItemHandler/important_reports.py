@@ -15,9 +15,16 @@ class ImportantReports(Handler):
         user_report_count = sum([r[1] for r in item.user_reports])
         mod_report_count = len([r[1] for r in item.mod_reports if r[1] != "AutoModerator"])
         mods_reporting_rule_1 = [r[1] for r in item.mod_reports if RULE_1.match(r[0])]
+
+        lots_of_reports = 10
+        if item.__class__.__name__ == "Submission":
+            lots_of_reports = 4
+        elif item.__class__.__name__ == "Comment":
+            lots_of_reports = 2
+
         if len(mods_reporting_rule_1) > 0:
             await self.__send_ban_list(mods_reporting_rule_1, item)
-        elif user_report_count >= 5 or mod_report_count > 0:
+        elif user_report_count >= lots_of_reports or mod_report_count > 0:
             await item.load()
             self._logger.info(f"Sending reported item {item}")
             embed = Embed.from_dict(self.__create_embed(item))
