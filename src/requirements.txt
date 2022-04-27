@@ -4,3 +4,4 @@ python-decouple
 pyyaml
 chevron
 pytest
+pytest-asyncio

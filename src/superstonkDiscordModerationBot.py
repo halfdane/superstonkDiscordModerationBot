@@ -30,6 +30,20 @@ from decouple import config
 
 
 class SuperstonkModerationBot(Bot):
+
+    reddit: asyncpraw.Reddit = None
+    flairy_reddit: asyncpraw.Reddit = None
+    subreddit: Optional[asyncpraw.reddit.Subreddit] = None
+    report_channel = 0
+    flairy_channel = 0
+    moderators = None
+    logger = logging.getLogger(__name__)
+    automod_rules = []
+    GENERIC_REACTIONS = None
+    USER_REACTIONS = None
+    FLAIR_REACTIONS = None
+    ALL_REACTIONS = None
+
     def __init__(self, **options):
         super().__init__(command_prefix='>',
                          description="Moderation bot for Superstonk.",
@@ -38,17 +52,6 @@ class SuperstonkModerationBot(Bot):
                          **options)
         self.reddit: asyncpraw.Reddit = options.get("reddit")
         self.flairy_reddit: asyncpraw.Reddit = options.get("flairy_reddit")
-        self.subreddit: Optional[asyncpraw.reddit.Subreddit] = None
-        self.report_channel = 0
-        self.flairy_channel = 0
-        self.moderators = None
-        self.logger = logging.getLogger(self.__class__.__name__)
-        self.automod_rules = []
-
-        self.GENERIC_REACTIONS = None
-        self.USER_REACTIONS = None
-        self.FLAIR_REACTIONS = None
-        self.ALL_REACTIONS = None
 
         super().add_cog(UserCog(self))
         super().add_cog(ModQueueCog(self))

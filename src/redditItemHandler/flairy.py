@@ -1,5 +1,6 @@
 import re
 
+import asyncpraw.models
 import disnake
 
 from discordReaction.abstract_reaction import Reaction
@@ -7,6 +8,7 @@ from redditItemHandler import Handler
 from disnake.utils import escape_markdown
 
 import random
+
 
 class Flairy(Handler, Reaction):
     emoji = '🧚'
