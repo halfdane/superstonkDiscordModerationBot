@@ -49,7 +49,6 @@ class ImportantReports(Handler):
         return {
             'url': url,
             'color': (207 << 16) + (206 << 8) + 255,
-            'title': getattr(item, 'title', getattr(item, 'body', ""))[:75],
             'description': f"[Reported {item.__class__.__name__}: {title}]({url})",
             'fields': fields
         }
