@@ -33,6 +33,6 @@ jobs:
           export USER_INVESTIGATION_CHANNELS="${{ secrets.USER_INVESTIGATION_CHANNELS }}"
           
           expord LOG_FILE=/var/log/superstonkDiscordModerationBot_`date +"%d%m%Y_%H%M"`.log
-          make >"${{ LOG_FILE }}" 2>&1 &
-          ln -sf "${{ LOG_FILE }}" /var/log/superstonkDiscordModerationBot.log
+          make >"${ LOG_FILE }" 2>&1 &
+          ln -sf "${ LOG_FILE }" /var/log/superstonkDiscordModerationBot.log
           echo "That's all folks"
