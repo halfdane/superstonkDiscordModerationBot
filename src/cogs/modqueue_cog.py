@@ -27,6 +27,9 @@ class ModQueueCog(commands.Cog):
                 continue
 
             item.weight = (item.num_reports * 2) / hours_passed
+            if item.num_reports > 3:
+                item.weight *= 10
+
             i = bisect_left(weights, item.weight)
             weights.insert(i, item.weight)
             modqueue.insert(i, item)
