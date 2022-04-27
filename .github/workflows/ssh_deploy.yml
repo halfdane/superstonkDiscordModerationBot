@@ -32,6 +32,7 @@ jobs:
           export FLAIRY_CHANNEL="${{ secrets.FLAIRY_CHANNEL }}"
           export USER_INVESTIGATION_CHANNELS="${{ secrets.USER_INVESTIGATION_CHANNELS }}"
           
-          make >/var/log/superstonkDiscordModerationBot_`date +"%d%m%Y_%H%M"`.log 2>&1 &
-          
+          expord LOG_FILE=/var/log/superstonkDiscordModerationBot_`date +"%d%m%Y_%H%M"`.log
+          make >"${{ LOG_FILE }}" 2>&1 &
+          ln -sf "${{ LOG_FILE }}" /var/log/superstonkDiscordModerationBot.log
           echo "That's all folks"
