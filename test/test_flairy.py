@@ -1,6 +1,6 @@
 from superstonkDiscordModerationBot import SuperstonkModerationBot
 from redditItemHandler.flairy import Flairy
-from unittest.mock import patch, Mock, AsyncMock
+from unittest.mock import patch, Mock, AsyncMock, MagicMock
 from asyncpraw.models import Comment
 import pytest
 
@@ -10,7 +10,11 @@ class TestFlairyRegex:
     def default_bot(self, mock_bot):
         mock_bot.flairy_reddit.comment = AsyncMock()
         mock_bot.flairy_reddit.comment.return_value = AsyncMock()
+
+        mock_bot.flairy_channel = MagicMock()
         mock_bot.flairy_channel.send = AsyncMock()
+        mock_bot.flairy_channel.history.filter.__aiter__.return_value = []
+
         mock_bot.is_forbidden_comment_message.return_value = False
 
     def default_comment(self, mock_comment):
@@ -98,5 +102,3 @@ class TestFlairyRegex:
         assert len(testee.flair_user.call_args[0][1]) > 2
         assert len(testee.flair_user.call_args[0][2]) > 2
         assert "YOU DIDN'T ASK FOR A FLAIR" in testee.flair_user.call_args[0][3]
-
-

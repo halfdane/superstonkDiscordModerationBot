@@ -5,3 +5,4 @@ pyyaml
 chevron
 pytest
 pytest-asyncio
+cachetools

@@ -1,20 +1,20 @@
 import asyncio
 import logging
+from datetime import datetime, timedelta
 
 from asyncpraw.exceptions import AsyncPRAWException
 
 
-class Streamer:
-
-    def __init__(self, name, _stream_items):
+class ActualStreamer:
+    def __init__(self, name, input_stream_function, handlers):
         self._logger = logging.getLogger(name)
-        self._stream_items = _stream_items
-        self.handlers = []
+        self.input_stream_function = input_stream_function
+        self.handlers = handlers
 
     def start(self, asyncio_loop):
-        asyncio_loop.create_task(self.loop())
+        asyncio_loop.create_task(self._loop())
 
-    async def loop(self):
+    async def _loop(self):
         while True:
             self._logger.info(f"Starting to fetch items")
             try:
@@ -27,14 +27,27 @@ class Streamer:
                 self._logger.exception(f"ignoring")
 
             self._logger.info(f"sleeping")
-            await asyncio.sleep(10)
+            await asyncio.sleep(1)
             self._logger.info(f"running again")
 
     async def _stream(self):
-        async for item in self._stream_items(skip_existing=True):
+        async for item in self.input_stream_function():
             for handler in self.handlers:
                 await handler.take(item)
 
-    def add_handler(self, handler):
-        self.handlers.append(handler)
-        return self
+
+class StreamBase:
+    def __init__(self, **kwargs):
+        self.kwargs = kwargs
+
+
+class Stream(StreamBase):
+    def __init__(self, name):
+        super().__init__(name=name)
+
+    def from_input(self, input_stream_function):
+        return StreamerWithHandler(input_stream_function=input_stream_function, **self.kwargs)
+
+class StreamerWithHandler(StreamBase):
+    def with_handlers(self, handlers):
+        return ActualStreamer(handlers=handlers, **self.kwargs)

@@ -24,7 +24,7 @@ from helper.redditor_extractor import extract_redditor
 
 from redditItemHandler.flairy import Flairy
 from redditItemHandler.important_reports import ImportantReports
-from streamer.streamer import Streamer
+from streamer.streamer import Stream
 
 from decouple import config
 
@@ -62,7 +62,7 @@ class SuperstonkModerationBot(Bot):
         self.report_channel = self.get_channel(REPORTING_CHANNEL)
         self.flairy_channel = self.get_channel(FLAIRY_CHANNEL)
 
-        self.logger.info(f"{str(bot.user)} is the discord user")
+        self.logger.info(f"{str(bot.user)} with id {str(bot.user.id)} is the discord user")
         self.logger.info(f"{USER_INVESTIGATION_CHANNELS}: discord channel to listen for users")
         self.logger.info(f"{REPORTING_CHANNEL}: discord channel for reports")
         self.logger.info(f"{FLAIRY_CHANNEL}: discord channel for flairy")
@@ -77,12 +77,14 @@ class SuperstonkModerationBot(Bot):
 
         self.ALL_REACTIONS = self.GENERIC_REACTIONS + self.USER_REACTIONS + self.FLAIR_REACTIONS
 
-        Streamer(name="Comments", _stream_items=self.subreddit.stream.comments)\
-            .add_handler(flairy)\
+        Stream("Comments")\
+            .from_input(self.subreddit.stream.comments)\
+            .with_handlers([flairy])\
             .start(self.loop)
 
-        Streamer(name="Reports", _stream_items=self.subreddit.mod.stream.reports)\
-            .add_handler(ImportantReports(self))\
+        Stream("Reports")\
+            .from_input(self.subreddit.mod.stream.reports)\
+            .with_handlers([ImportantReports(self)])\
             .start(self.loop)
 
         automod_config = await self.subreddit.wiki.get_page("config/automoderator")

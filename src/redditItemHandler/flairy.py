@@ -41,12 +41,15 @@ class Flairy(Handler, Reaction):
         if (flairy := self._flairy_detect_user_flair_change.match(body)) \
                 and comment.author not in self.bot.moderators \
                 and comment.author.name not in ["Roid_Rage_Smurf"]:
+            if await self._was_recently_posted(comment, self.bot.flairy_channel):
+                self._logger.info(f"skipping over recently handled flair request {self.permalink(comment)}")
+                return
 
             flair_text = flairy.group(1)
             if len(flair_text) > 63:
                 comment_from_flairies_view = await self.bot.flairy_reddit.comment(comment.id, fetch=False)
                 message = "(ノಠ益ಠ)ノ彡┻━┻ THE FLAIR TEXT IS TOO LONG!   \nPlease use less than 64 unicode characters"
-                self._logger.info(f"Too long: https://www.reddit.com{comment.permalink}")
+                self._logger.info(f"Too long: {self.permalink(comment)}")
                 await comment_from_flairies_view.reply(message)
                 return
 
@@ -65,11 +68,11 @@ class Flairy(Handler, Reaction):
                           f"Valid colors are {', '.join(self._templates.keys())}.   \n" \
                           f"I'm making the change, so if that's not what you want " \
                           f"you have to summon me again."
-                self._logger.info(f"Wrong color: https://www.reddit.com{comment.permalink}")
+                self._logger.info(f"Wrong color: {self.permalink(comment)}")
                 await comment_from_flairies_view.reply(message)
 
             self._logger.info(f"Sending flair request {comment} {flair_text}")
-            url = f"https://www.reddit.com{comment.permalink}"
+            url = self.permalink(comment)
             e = disnake.Embed(
                 url=url,
                 colour=disnake.Colour(0).from_rgb(207, 206, 255))
@@ -104,7 +107,7 @@ class Flairy(Handler, Reaction):
         message = "(ノಠ益ಠ)ノ彡┻━┻ YOU DIDN'T ASK FOR A FLAIR!\n\n " \
                   "Let me show you how to do it:  \n\n" \
                   f"     !FLAIRY!{flair_text}{color}\n\n...\n\n...\n\n"
-        self._logger.info(f"Randomly assigning: https://www.reddit.com{comment.permalink}")
+        self._logger.info(f"Randomly assigning: {self.permalink(comment)}")
         await self.flair_user(comment, flair_text, color, message)
 
     async def handle_reaction(self, message, emoji, user, channel):

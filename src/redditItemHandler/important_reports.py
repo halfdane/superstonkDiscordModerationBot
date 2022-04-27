@@ -25,14 +25,18 @@ class ImportantReports(Handler):
         if len(mods_reporting_rule_1) > 0:
             await self.__send_ban_list(mods_reporting_rule_1, item)
         elif user_report_count >= lots_of_reports or mod_report_count > 0:
+            if await self._was_recently_posted(item, self.bot.report_channel):
+                self._logger.info(f"skipping over recently handled report {self.permalink(item)}")
+                return
+
             await item.load()
-            self._logger.info(f"Sending reported item {item}")
+            self._logger.info(f"Sending reported item {self.permalink(item)}")
             embed = Embed.from_dict(self.__create_embed(item))
             msg = await self.bot.report_channel.send(embed=embed)
             await self.bot.add_reactions(msg)
 
     def __create_embed(self, item):
-        url = f"https://www.reddit.com{item.permalink}"
+        url = self.permalink(item)
         title = getattr(item, 'title', getattr(item, 'body', ""))[:75]
         qv_score = None
         comments = getattr(item, 'comments', None)
