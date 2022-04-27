@@ -74,12 +74,13 @@ class SuperstonkModerationBot(Bot):
 
         self.ALL_REACTIONS = self.GENERIC_REACTIONS + self.USER_REACTIONS + self.FLAIR_REACTIONS
 
-        comment_streamer = Streamer(name="Comments", _stream_items=self.subreddit.stream.comments).add_handler(flairy)
-        self.loop.create_task(comment_streamer.start())
+        Streamer(name="Comments", _stream_items=self.subreddit.stream.comments)\
+            .add_handler(flairy)\
+            .start(self.loop)
 
-        report_streamer = Streamer(name="Reports", _stream_items=self.subreddit.mod.stream.reports).add_handler(
-            ImportantReports(self))
-        self.loop.create_task(report_streamer.start())
+        Streamer(name="Reports", _stream_items=self.subreddit.mod.stream.reports)\
+            .add_handler(ImportantReports(self))\
+            .start(self.loop)
 
         automod_config = await self.subreddit.wiki.get_page("config/automoderator")
         for rule in automod_config.content_md.split("---"):
