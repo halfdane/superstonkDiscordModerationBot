@@ -24,10 +24,10 @@ class Flairy(Handler, Reaction):
         Handler.__init__(self, bot)
         Reaction.__init__(self, bot)
 
-        self._flairy_command = ".*!\s*FL?AIRY\s*!"
-        self._flairy_text = "\s*(.*?)"
-        self._valid_colors = f"(?:\s+({'|'.join(self._templates.keys())}))?\s*"
-        self._last_word = "(\w*)"
+        self._flairy_command = r".*!\s*FL?AIRY\s*!"
+        self._flairy_text = r"\s*(.*?)"
+        self._valid_colors = fr"(?:\s+({'|'.join(self._templates.keys())}))?\s*"
+        self._last_word = r"(\w*)"
         flags = re.IGNORECASE | re.MULTILINE | re.DOTALL
         self._flairy_detect_user_flair_change = \
             re.compile(rf"{self._flairy_command}{self._flairy_text}{self._valid_colors}$", flags)
