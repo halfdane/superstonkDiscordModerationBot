@@ -87,10 +87,6 @@ class Flairy(Handler, Reaction):
             await self.bot.add_reactions(msg)
 
     async def handle_reaction(self, message, emoji, user, channel):
-        self._logger.info(f"reaction in {channel}")
-        self._logger.info(f"self.bot.flairy_channel {self.bot.flairy_channel}")
-        self._logger.info(f"right channel?{channel == self.bot.flairy_channel}")
-
         if channel != self.bot.flairy_channel:
             return
         comment = await self.bot.get_item(message)
