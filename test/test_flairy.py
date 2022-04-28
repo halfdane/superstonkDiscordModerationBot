@@ -182,22 +182,3 @@ class TestFlairyRegex:
 
         mock_bot.flairy_reddit.subreddit.return_value.flair.delete.assert_not_called()
 
-    @patch('superstonkDiscordModerationBot.SuperstonkModerationBot', autospec=True)
-    @patch('asyncpraw.models.Comment')
-    @pytest.mark.asyncio
-    async def test_user_flairing_fails_when_both_color_and_template_are_given(self, mock_comment, mock_bot):
-        # given
-        self.default_comment(mock_comment)
-        mock_comment.body = "!FLAIRY:SEALME! whatever happens here"
-        mock_comment.author_flair_text = "some flair"
-        mock_comment.author_flair_template_id = "some template id"
-
-        self.default_bot(mock_bot)
-
-        # when
-        testee = Flairy(mock_bot)
-        with pytest.raises(Exception):
-            await testee.flair_user(mock_comment, "some flair", flair_color="green", template="553", message="hello")
-
-        # then
-
