@@ -171,7 +171,7 @@ class RandomFlairCommand:
         await self._flairy.flair_user(
             comment=comment,
             flair_text=flair_text,
-            color=color,
+            flair_color=color,
             message=message)
 
 
