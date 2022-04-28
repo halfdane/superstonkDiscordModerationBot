@@ -100,9 +100,6 @@ class Flairy(Handler, Reaction):
             await message.edit(content="Flair request was removed in the meantime")
 
     async def flair_user(self, comment, flair_text, flair_color=None, template=None, message=""):
-        if (not flair_color or template) and (flair_color or not template):
-            raise Exception("give either color or color_template")
-
         flair_text = flair_text.strip()
         color = (flair_color or self._default_color).lower().strip()
         template = (template or self._templates[color])
