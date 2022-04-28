@@ -185,7 +185,7 @@ class TestFlairyRegex:
     @patch('superstonkDiscordModerationBot.SuperstonkModerationBot', autospec=True)
     @patch('asyncpraw.models.Comment')
     @pytest.mark.asyncio
-    async def test_actual_user_flairing(self, mock_comment, mock_bot):
+    async def test_user_flairing_fails_when_both_color_and_template_are_given(self, mock_comment, mock_bot):
         # given
         self.default_comment(mock_comment)
         mock_comment.body = "!FLAIRY:SEALME! whatever happens here"

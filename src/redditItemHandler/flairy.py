@@ -93,7 +93,7 @@ class Flairy(Handler, Reaction):
         body = getattr(comment, 'body', "")
         flairy = self._flairy_detect_user_flair_change.match(body)
         if flairy is not None:
-            await self.flair_user(comment, flairy.group(1), flairy.group(2))
+            await self.flair_user(comment=comment, flair_text=flairy.group(1), flair_color=flairy.group(2))
             await self.bot.handle_reaction(message, "✅", user, channel)
         else:
             await self.bot.handle_reaction(message, "✅", user, channel)
