@@ -38,14 +38,14 @@ class PostCountLimiter(Handler):
 
     async def take(self, item):
         self.cache.expire()
-        posts = self.cache.get(item.author,
+        posts = self.cache.get(item.author.name,
                                TTLCache(maxsize=10, ttl=timedelta(**self._restricted_interval), timer=self.timer_function))
         posts.expire()
         posts[item.id] = {
             'permalink': self.permalink(item),
             'created_utc': datetime.utcfromtimestamp(item.created_utc)
         }
-        self.cache[item.author] = posts
+        self.cache[item.author.name] = posts
         await self.report_infraction(item.author, posts)
 
     async def report_infraction(self, author, posts):
