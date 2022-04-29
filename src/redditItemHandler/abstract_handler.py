@@ -11,6 +11,9 @@ class Handler:
     async def take(self, item):
         pass
 
+    async def on_ready(self):
+        pass
+
     async def _was_recently_posted(self, item, channel):
         an_hour_ago = datetime.now() - timedelta(hours=1)
         async for elem in channel \
@@ -20,5 +23,5 @@ class Handler:
                 return True
         return False
 
-    def permalink(self, comment):
-        return f"https://www.reddit.com{comment.permalink}"
+    def permalink(self, item):
+        return f"https://www.reddit.com{item.permalink}"

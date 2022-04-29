@@ -24,6 +24,7 @@ from helper.redditor_extractor import extract_redditor
 
 from redditItemHandler.flairy import Flairy
 from redditItemHandler.important_reports import ImportantReports
+from redditItemHandler.post_count_limiter import PostCountLimiter
 from streamer.streamer import Stream
 
 from decouple import config
@@ -85,6 +86,11 @@ class SuperstonkModerationBot(Bot):
         Stream("Reports")\
             .from_input(self.subreddit.mod.stream.reports)\
             .with_handlers([ImportantReports(self)])\
+            .start(self.loop)
+
+        Stream("Posts")\
+            .from_input(self.subreddit.stream.submissions)\
+            .with_handlers([PostCountLimiter(self)])\
             .start(self.loop)
 
         automod_config = await self.subreddit.wiki.get_page("config/automoderator")
@@ -158,19 +164,14 @@ if __name__ == "__main__":
     FLAIRY_CHANNEL = int(config("FLAIRY_CHANNEL"))
     USER_INVESTIGATION_CHANNELS = int(config("USER_INVESTIGATION_CHANNELS"))
 
-    bot = SuperstonkModerationBot(
-    reddit=asyncpraw.Reddit(
-        username=(config("reddit_username")),
-        password=(config("reddit_password")),
-        client_id=(config("reddit_client_id")),
-        client_secret=(config("reddit_client_secret")),
-        user_agent="com.halfdane.superstonk_moderation_bot:v0.1.1 (by u/half_dane)"),
-    flairy_reddit=asyncpraw.Reddit(
-        username=config("flairy_username"),
-        password=config("flairy_password"),
-        client_id=config("flairy_client_id"),
-        client_secret=config("flairy_client_secret"),
-        user_agent="desktop:com.halfdane.superstonk_flairy:v0.1.0 (by u/half_dane)")
-)
+    asyncpraw_reddit = asyncpraw.Reddit(username=(config("reddit_username")), password=(config("reddit_password")),
+                              client_id=(config("reddit_client_id")), client_secret=(config("reddit_client_secret")),
+                              user_agent="com.halfdane.superstonk_moderation_bot:v0.1.1 (by u/half_dane)")
+    flairy_asyncpraw_reddit = asyncpraw.Reddit(username=config("flairy_username"), password=config("flairy_password"),
+                              client_id=config("flairy_client_id"), client_secret=config("flairy_client_secret"),
+                              user_agent="desktop:com.halfdane.superstonk_flairy:v0.1.0 (by u/half_dane)")
 
-    bot.run(DISCORD_BOT_TOKEN)
+    with asyncpraw_reddit as reddit:
+        with flairy_asyncpraw_reddit as flairy_reddit:
+            bot = SuperstonkModerationBot(reddit=reddit, flairy_reddit=flairy_reddit)
+            bot.run(DISCORD_BOT_TOKEN)

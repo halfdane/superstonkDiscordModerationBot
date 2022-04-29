@@ -15,6 +15,9 @@ class ActualStreamer:
         asyncio_loop.create_task(self._loop())
 
     async def _loop(self):
+        for handler in self.handlers:
+            await handler.on_ready()
+
         while True:
             self._logger.info(f"Starting to fetch items")
             try:
