@@ -50,23 +50,22 @@ class PostCountLimiter(Handler):
 
     async def report_infraction(self, author, posts):
         if self.timestamp_to_use is None and len(posts) > 5:
+            self._logger.info(f"Oops, looks like {author} is posting a lot: {posts}")
 
-            e = Embed(
-                colour=disnake.Colour(0).from_rgb(207, 206, 255))
-            e.description = f"Post count over threshold"
-            e.add_field("Redditor", f"[{author}](https://www.reddit.com/u/{author})", inline=False)
+            embed = Embed(colour=disnake.Colour(0).from_rgb(207, 206, 255))
+            embed.description = f"** {author} posted more than 5 posts in the last 24 hours:**"
 
-            post_message = ""
-            for v in sorted(posts.values(), key=lambda v: v['created_utc']):
-                post_message += f"- **{v['created_utc']}**: {v['permalink']}   \n"
+            count = 0
+            for v in sorted(posts.values(), key=lambda x: x['created_utc']):
+                count += 1
+                embed.add_field(v['created_utc'], v['permalink'], inline=False)
 
-            e.add_field(f"Posts in the last {self._restricted_interval} before {datetime.utcnow()} UTC",
-                        post_message, inline=False)
+                if count % 20 == 0:
+                    await self.bot.report_channel.send(embed=embed)
+                    embed = disnake.Embed(colour=disnake.Colour(0).from_rgb(207, 206, 255))
 
-
-            self._logger.info(f"Oops, looks like {author} is posting a lot: {e}")
-            msg = await self.bot.report_channel.send(embed=e)
-            await self.bot.add_reactions(msg)
-
-
+            if count % 20 != 0:
+                embed.add_field("Redditor", f"[{author}](https://www.reddit.com/u/{author})", inline=False)
+                msg = await self.bot.report_channel.send(embed=embed)
+                await self.bot.add_reactions(msg)
 
