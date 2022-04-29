@@ -50,7 +50,6 @@ class PostCountLimiter(Handler):
 
     async def report_infraction(self, author, posts):
         if self.timestamp_to_use is None and len(posts) > 5:
-            self._logger.info(f"Oops, looks like {author} is posting a lot")
 
             e = Embed(
                 colour=disnake.Colour(0).from_rgb(207, 206, 255))
@@ -63,6 +62,9 @@ class PostCountLimiter(Handler):
 
             e.add_field(f"Posts in the last {self._restricted_interval} before {datetime.utcnow()} UTC",
                         post_message, inline=False)
+
+
+            self._logger.info(f"Oops, looks like {author} is posting a lot: {e}")
             msg = await self.bot.report_channel.send(embed=e)
             await self.bot.add_reactions(msg)
 
