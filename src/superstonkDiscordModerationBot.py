@@ -23,6 +23,7 @@ from discordReaction.wip_reaction import WipReaction
 from helper.redditor_extractor import extract_redditor
 
 from redditItemHandler.flairy import Flairy
+from redditItemHandler.front_desk_sticky import FrontDeskSticky
 from redditItemHandler.important_reports import ImportantReports
 from redditItemHandler.post_count_limiter import PostCountLimiter
 from streamer.streamer import Stream
@@ -90,7 +91,7 @@ class SuperstonkModerationBot(Bot):
 
         Stream("Posts")\
             .from_input(self.subreddit.stream.submissions)\
-            .with_handlers([PostCountLimiter(self)])\
+            .with_handlers([PostCountLimiter(self), FrontDeskSticky(self)])\
             .start(self.loop)
 
         automod_config = await self.subreddit.wiki.get_page("config/automoderator")
