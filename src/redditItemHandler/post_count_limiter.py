@@ -53,19 +53,12 @@ class PostCountLimiter(Handler):
             self._logger.info(f"Oops, looks like {author} is posting a lot: {posts}")
 
             embed = Embed(colour=disnake.Colour(0).from_rgb(207, 206, 255))
-            embed.description = f"** {author} posted more than 5 posts in the last 24 hours:**"
+            embed.description = f"** {author} posted more than 5 posts since {datetime.utcnow()}:**"
+            embed.add_field("Redditor", f"[{author}](https://www.reddit.com/u/{author})", inline=False)
 
-            count = 0
-            for v in sorted(posts.values(), key=lambda x: x['created_utc']):
-                count += 1
-                embed.add_field(v['created_utc'], v['permalink'], inline=False)
+            # for v in sorted(posts.values(), key=lambda x: x['created_utc']):
+            #     embed.add_field(v['created_utc'], v['permalink'], inline=False)
 
-                if count % 20 == 0:
-                    await self.bot.report_channel.send(embed=embed)
-                    embed = disnake.Embed(colour=disnake.Colour(0).from_rgb(207, 206, 255))
-
-            if count % 20 != 0:
-                embed.add_field("Redditor", f"[{author}](https://www.reddit.com/u/{author})", inline=False)
-                msg = await self.bot.report_channel.send(embed=embed)
-                await self.bot.add_reactions(msg)
+            msg = await self.bot.report_channel.send(embed=embed)
+            await self.bot.add_reactions(msg)
 
