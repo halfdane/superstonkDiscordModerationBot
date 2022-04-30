@@ -20,6 +20,7 @@ from discordReaction.help_reaction import HelpReaction
 from discordReaction.modnote_reaction import ModNoteReaction
 from discordReaction.user_history_reaction import UserHistoryReaction
 from discordReaction.wip_reaction import WipReaction
+from discord_output_logger import DiscordOutputLogger
 from helper.redditor_extractor import extract_redditor
 
 from redditItemHandler.flairy import Flairy
@@ -32,12 +33,12 @@ from decouple import config
 
 
 class SuperstonkModerationBot(Bot):
-
     reddit: asyncpraw.Reddit = None
     flairy_reddit: asyncpraw.Reddit = None
     subreddit: Optional[asyncpraw.reddit.Subreddit] = None
-    report_channel = 0
-    flairy_channel = 0
+    report_channel = None
+    flairy_channel = None
+    log_output_channel = None
     moderators = None
     logger = logging.getLogger(__name__)
     automod_rules = []
@@ -63,11 +64,15 @@ class SuperstonkModerationBot(Bot):
         self.moderators = [moderator async for moderator in self.subreddit.moderator]
         self.report_channel = self.get_channel(REPORTING_CHANNEL)
         self.flairy_channel = self.get_channel(FLAIRY_CHANNEL)
+        self.log_output_channel = self.get_channel(LOG_OUTPUT_CHANNEL)
+
+        discord_output_logging_handler.on_ready(self.log_output_channel, self.loop)
 
         self.logger.info(f"{str(bot.user)} with id {str(bot.user.id)} is the discord user")
         self.logger.info(f"{USER_INVESTIGATION_CHANNELS}: discord channel to listen for users")
         self.logger.info(f"{REPORTING_CHANNEL}: discord channel for reports")
         self.logger.info(f"{FLAIRY_CHANNEL}: discord channel for flairy")
+        self.logger.info(f"{LOG_OUTPUT_CHANNEL}: discord channel for debugging messages")
         self.logger.info(f"{await self.reddit.user.me()}: listening for reports on reddit")
         self.logger.info(f"{await self.flairy_reddit.user.me()}: handling flair requests on reddit")
 
@@ -79,19 +84,19 @@ class SuperstonkModerationBot(Bot):
 
         self.ALL_REACTIONS = self.GENERIC_REACTIONS + self.USER_REACTIONS + self.FLAIR_REACTIONS
 
-        Stream("Comments")\
-            .from_input(self.subreddit.stream.comments)\
-            .with_handlers([flairy])\
+        Stream("Comments") \
+            .from_input(self.subreddit.stream.comments) \
+            .with_handlers([flairy]) \
             .start(self.loop)
 
-        Stream("Reports")\
-            .from_input(self.subreddit.mod.stream.reports)\
-            .with_handlers([ImportantReports(self)])\
+        Stream("Reports") \
+            .from_input(self.subreddit.mod.stream.reports) \
+            .with_handlers([ImportantReports(self)]) \
             .start(self.loop)
 
-        Stream("Posts")\
-            .from_input(self.subreddit.stream.submissions)\
-            .with_handlers([PostCountLimiter(self), FrontDeskSticky(self)])\
+        Stream("Posts") \
+            .from_input(self.subreddit.stream.submissions) \
+            .with_handlers([PostCountLimiter(self), FrontDeskSticky(self)]) \
             .start(self.loop)
 
         automod_config = await self.subreddit.wiki.get_page("config/automoderator")
@@ -158,19 +163,27 @@ class SuperstonkModerationBot(Bot):
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(name)s]: %(message)s')
+    discord_output_logging_handler = DiscordOutputLogger()
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s [%(name)s]: %(message)s',
+        handlers=[discord_output_logging_handler, logging.StreamHandler()]
+    )
 
     DISCORD_BOT_TOKEN = config("discord_bot_token")
     REPORTING_CHANNEL = int(config("REPORTING_CHANNEL"))
     FLAIRY_CHANNEL = int(config("FLAIRY_CHANNEL"))
+    LOG_OUTPUT_CHANNEL = int(config("LOG_OUTPUT_CHANNEL"))
     USER_INVESTIGATION_CHANNELS = int(config("USER_INVESTIGATION_CHANNELS"))
 
     asyncpraw_reddit = asyncpraw.Reddit(username=(config("reddit_username")), password=(config("reddit_password")),
-                              client_id=(config("reddit_client_id")), client_secret=(config("reddit_client_secret")),
-                              user_agent="com.halfdane.superstonk_moderation_bot:v0.1.1 (by u/half_dane)")
+                                        client_id=(config("reddit_client_id")),
+                                        client_secret=(config("reddit_client_secret")),
+                                        user_agent="com.halfdane.superstonk_moderation_bot:v0.1.1 (by u/half_dane)")
     flairy_asyncpraw_reddit = asyncpraw.Reddit(username=config("flairy_username"), password=config("flairy_password"),
-                              client_id=config("flairy_client_id"), client_secret=config("flairy_client_secret"),
-                              user_agent="desktop:com.halfdane.superstonk_flairy:v0.1.0 (by u/half_dane)")
+                                               client_id=config("flairy_client_id"),
+                                               client_secret=config("flairy_client_secret"),
+                                               user_agent="desktop:com.halfdane.superstonk_flairy:v0.1.0 (by u/half_dane)")
 
     with asyncpraw_reddit as reddit:
         with flairy_asyncpraw_reddit as flairy_reddit:

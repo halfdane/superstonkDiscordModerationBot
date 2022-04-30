@@ -16,14 +16,16 @@ class FrontDeskSticky(Handler):
         super().__init__(bot)
 
     async def take(self, item):
-        if self.needs_front_desk(item):
+        if await self.needs_front_desk(item):
+            self._logger.info(f"No Front Desk -- adding it now")
             front_desk = await item.reply(self._sticky_text)
             await front_desk.mod.distinguish(how='yes', sticky=True)
 
-    def needs_front_desk(self, item):
+    async def needs_front_desk(self, item):
         if getattr(getattr(item, "author", None), "name", None) == "AutoModerator" and \
                 item.title == "| $GME Daily Discussion | New to the sub? Start here!":
-            self._logger.info(f"Found the daily: {item.permalink}")
+            self._logger.info(f"Found the daily: {self.permalink(item)}")
+            await item.load()
             for c in item.comments:
                 if getattr(getattr(c, "author", None), "name", None) == "half_dane" and \
                         "The Front Desk is open!" in c.body:

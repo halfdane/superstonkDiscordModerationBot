@@ -37,6 +37,7 @@ jobs:
           export REPORTING_CHANNEL="${{ secrets.REPORTING_CHANNEL }}"
           export FLAIRY_CHANNEL="${{ secrets.FLAIRY_CHANNEL }}"
           export USER_INVESTIGATION_CHANNELS="${{ secrets.USER_INVESTIGATION_CHANNELS }}"
+          export LOG_OUTPUT_CHANNEL="${{ secrets.LOG_OUTPUT_CHANNEL }}"
           
           export LOG_FILE=/var/log/superstonkDiscordModerationBot_`date +"%Y%m%d_%H%M"`.log
           make >"${LOG_FILE}" 2>&1 &
