@@ -13,7 +13,7 @@ class TestFlairyRegex:
     testee = Flairy(None)
 
     def match(self, string, expected1, expected2=None, comparison=EQUALS):
-        m = self.testee._flairy_detect_user_flair_change.match(string)
+        m = self.testee.flairy_detect_user_flair_change.match(string)
 
         if expected1:
             assert comparison(m.group(1), expected1)
@@ -26,7 +26,7 @@ class TestFlairyRegex:
             assert comparison(m, None)
 
     def notmatch(self, string, expected1, expected2):
-        m = self.testee._flairy_detect_user_flair_change.match(string)
+        m = self.testee.flairy_detect_user_flair_change.match(string)
 
         if expected1:
             assert m.group(1) == expected1

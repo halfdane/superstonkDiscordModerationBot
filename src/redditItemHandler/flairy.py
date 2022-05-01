@@ -36,62 +36,46 @@ class Flairy(Handler, Reaction):
         self.flags = re.IGNORECASE | re.MULTILINE | re.DOTALL
 
         self.detect_flairy_command = \
-            re.compile(rf"{self.flairy_command_detection}", self.flags)
+            re.compile(rf"{self.flairy_command_detection}|u/superstonk-flairy", self.flags)
 
-        self._flairy_detect_user_flair_change = \
+        self.flairy_detect_user_flair_change = \
             re.compile(rf"{self.flair_command}{self._flairy_text}{self._valid_colors}$", self.flags)
 
         self._commands = [
+            FlairWasRecentlyRequestedCommand(self),
             ClearCommand(self),
             SealmeCommand(self, self._templates[self._default_color]),
             RandomFlairCommand(self),
-            WrongColorCommand(self)
+            WrongColorCommand(self),
+            FlairTooLongCommand(self),
+            FlairContainsForbiddenPhraseCommand(self),
+            FlairyExplainerCommand(self, self._templates.keys()),
+            SendFlairToDiscordCommand(self)
         ]
 
     async def take(self, comment):
         body = getattr(comment, 'body', "")
-        if (self.detect_flairy_command.match(body)) \
-                and comment.author not in self.bot.moderators \
-                and comment.author.name not in ["Roid_Rage_Smurf"]:
+        author = getattr(getattr(comment, "author", None), "name", None)
+        if author == "Superstonk-Flairy":
+            self._logger.info(f"Not answering to myself: {self.permalink(comment)}")
+            return
 
-            if await self._was_recently_posted(comment, self.bot.flairy_channel):
-                self._logger.info(f"skipping over recently handled flair request {self.permalink(comment)}")
-                return
+        if self.detect_flairy_command.match(body):
+            is_mod = author in self.bot.moderators + ["Roid_Rage_Smurf"]
+
+            self._logger.info(
+                f"seems to be a flairy command from {author}. Treat like mod? {is_mod} {self.permalink(comment)}")
 
             for command in self._commands:
-                if await command.handled(body, comment):
+                if await command.handled(body, comment, is_mod):
                     return
-
-            flairy = self._flairy_detect_user_flair_change.match(body)
-            flair_text = flairy.group(1)
-            if len(flair_text) > 63:
-                comment_from_flairies_view = await self.bot.flairy_reddit.comment(comment.id, fetch=False)
-                message = "(ノಠ益ಠ)ノ彡┻━┻ THE FLAIR TEXT IS TOO LONG!   \nPlease use less than 64 unicode characters"
-                self._logger.info(f"Too long: {self.permalink(comment)}")
-                await comment_from_flairies_view.reply(message)
-                return
-
-            if self.bot.is_forbidden_comment_message(flair_text):
-                self._logger.info(f"Silently refusing to grant flair with restricted content: {flair_text}")
-                return
-
-            self._logger.info(f"Sending flair request {comment} {flair_text}")
-            url = self.permalink(comment)
-            e = disnake.Embed(
-                url=url,
-                colour=disnake.Colour(0).from_rgb(207, 206, 255))
-            e.description = f"[Flair Request: {escape_markdown(comment.body)}]({url})"
-            e.add_field("Redditor", f"[{comment.author}](https://www.reddit.com/u/{comment.author})", inline=False)
-            msg = await self.bot.flairy_channel.send(embed=e)
-            await msg.add_reaction(self.emoji)
-            await self.bot.add_reactions(msg)
 
     async def handle_reaction(self, message, emoji, user, channel):
         if channel != self.bot.flairy_channel:
             return
         comment = await self.bot.get_item(message)
         body = getattr(comment, 'body', "")
-        flairy = self._flairy_detect_user_flair_change.match(body)
+        flairy = self.flairy_detect_user_flair_change.match(body)
         if flairy is not None:
             await self.flair_user(comment=comment, flair_text=flairy.group(1), flair_color=flairy.group(2))
             await self.bot.handle_reaction(message, "✅", user, channel)
@@ -128,7 +112,10 @@ class RandomFlairCommand:
         self._random_flair_command = \
             re.compile(rf"{self._flairy.flairy_command_detection}\s*!$", self._flairy.flags)
 
-    async def handled(self, body, comment):
+    async def handled(self, body, comment, is_mod):
+        if is_mod:
+            return False
+
         if self._random_flair_command.match(body):
             await self._bestow_random_flair(comment)
             return True
@@ -160,9 +147,10 @@ class RandomFlairCommand:
         emojis = random.sample(_emojis, 2)
         flair_text = f"{emojis[0]} {random.sample(_flairs, 1)[0]} {emojis[1]}"
         color = random.sample(list(self._flairy._templates.keys()), 1)[0]
-        message = "(ノಠ益ಠ)ノ彡┻━┻ YOU DIDN'T ASK FOR A FLAIR!\n\n " \
-                  "Let me show you how to do it:  \n\n" \
-                  f"     !FLAIRY!{flair_text}{color}\n\n...\n\n...\n\n"
+        message = f"""(✿☉｡☉) You didn't ask for a flair?!    
+Okay, lemme try this:  !FLAIRY!{flair_text}{color}   
+...   
+...\n\n"""
         self._logger.info(f"Randomly assigning: {self._flairy.permalink(comment)}")
 
         await self._flairy.flair_user(
@@ -180,17 +168,20 @@ class SealmeCommand:
             re.compile(rf"{self._flairy.flairy_command_detection}:SEALME\s*!", self._flairy.flags)
         self._default_template = default_template
 
-    async def handled(self, body, comment):
+    async def handled(self, body, comment, is_mod):
+        if is_mod:
+            return False
+
         if self._sealme_command.match(body):
             current_flair = getattr(comment, 'author_flair_text', "")
             current_template = getattr(comment, 'author_flair_template_id', self._default_template)
             message = 'Witness meee /u/Justind123  \n\n'
             await self._flairy.flair_user(
                 comment=comment,
-                flair_text=current_flair+'🦭',
+                flair_text=current_flair + '🦭',
                 template=current_template,
                 message=message)
-
+            self._logger.info(f"SEALING: {self._flairy.permalink(comment)}")
             return True
 
         return False
@@ -204,7 +195,10 @@ class ClearCommand:
         self._reset_command = \
             re.compile(rf"{self._flairy.flairy_command_detection}:CLEARME\s*!", self._flairy.flags)
 
-    async def handled(self, body, comment):
+    async def handled(self, body, comment, is_mod):
+        if is_mod:
+            return False
+
         if self._reset_command.match(body):
             message = 'Clearing the flair as requested  \n\n' + r'(✿\^‿\^)━☆ﾟ.*･｡ﾟ '
             self._logger.info(f"Clearing flair: {self._flairy.permalink(comment)}")
@@ -228,7 +222,10 @@ class WrongColorCommand:
         self._detect_last_word = \
             re.compile(rf"{self._flairy.flair_command}.*?{self._last_word}$", self._flairy.flags)
 
-    async def handled(self, body, comment):
+    async def handled(self, body, comment, is_mod):
+        if is_mod:
+            return False
+
         last_word = self._detect_last_word.match(body).group(1)
         if last_word.lower() in ["orange", "grey", "gray", "purple", "white"]:
             comment_from_flairies_view = await self._flairy.bot.flairy_reddit.comment(comment.id, fetch=False)
@@ -240,3 +237,119 @@ class WrongColorCommand:
             await comment_from_flairies_view.reply(message)
 
         return False
+
+
+class FlairTooLongCommand:
+    def __init__(self, flairy):
+        self._logger = logging.getLogger(self.__class__.__name__)
+        self._flairy = flairy
+
+    async def handled(self, body, comment, is_mod):
+        if is_mod:
+            return False
+
+        flairy = self._flairy.flairy_detect_user_flair_change.match(body)
+        flair_text = flairy.group(1)
+        if len(flair_text) > 63:
+            comment_from_flairies_view = await self._flairy.bot.flairy_reddit.comment(comment.id, fetch=False)
+            message = "(ノಠ益ಠ)ノ彡┻━┻ THE FLAIR TEXT IS TOO LONG!   \nPlease use less than 64 unicode characters"
+            self._logger.info(f"Too long: {self._flairy.permalink(comment)}")
+            await comment_from_flairies_view.reply(message)
+            return True
+
+        return False
+
+
+class FlairContainsForbiddenPhraseCommand:
+    def __init__(self, flairy):
+        self._logger = logging.getLogger(self.__class__.__name__)
+        self._flairy = flairy
+
+    async def handled(self, body, comment, is_mod):
+        if is_mod:
+            return False
+
+        flairy = self._flairy.flairy_detect_user_flair_change.match(body)
+        flair_text = flairy.group(1)
+        if self._flairy.bot.is_forbidden_comment_message(flair_text):
+            self._logger.info(f"Silently refusing to grant flair with restricted content: {flair_text}")
+            return True
+
+        return False
+
+
+class FlairWasRecentlyRequestedCommand:
+    def __init__(self, flairy):
+        self._logger = logging.getLogger(self.__class__.__name__)
+        self._flairy = flairy
+
+    async def handled(self, body, comment, is_mod):
+        if is_mod:
+            return False
+
+        if await self._flairy._was_recently_posted(comment, self._flairy.bot.flairy_channel):
+            self._logger.info(f"skipping over recently handled flair request {self._flairy.permalink(comment)}")
+            return True
+        return False
+
+
+class FlairyExplainerCommand:
+    def __init__(self, flairy, available_colors):
+        self._logger = logging.getLogger(self.__class__.__name__)
+        self._flairy = flairy
+        self._flairy_explanation_text = f"""Are you talking about me? 😍   
+        
+This is how it works: you can request a flair with the magic incantation
+
+    !FLAIRY!🚀 some flair text 🚀
+
+The default color is black, but you can change that by writing one of these words at the very end : {', '.join(available_colors)} 
+
+Other available commands:   
+- `!FLAIRY!` : if you can't think of a flair, I'll give you one of my own choice 🤭   
+- `!FLAIRY:CLEARME!` : remove all flairs and pretend you're a new ape   
+- `!FLAIRY:SEALME!` : Justin seduced me to get this 🥵    
+"""
+
+    async def handled(self, body, comment, is_mod):
+
+        if "u/superstonk-flairy" in body.lower():
+            await comment.refresh()
+            for response in comment.replies:
+                author_name__lower = getattr(getattr(response, "author", None), "name", "").lower()
+                if author_name__lower == "superstonk-flairy" and \
+                        "Are you talking about me? 😍" in response.body:
+                    self._logger.info(f"Found a flair explainer request, but it's already answered: {self._flairy.permalink(response)}")
+                    return True
+
+            comment_from_flairies_view = await self._flairy.bot.flairy_reddit.comment(comment.id, fetch=False)
+            self._logger.info(f"Explaining flairs: {self._flairy.permalink(comment)}")
+            await comment_from_flairies_view.reply(self._flairy_explanation_text)
+            return True
+
+        return False
+
+
+class SendFlairToDiscordCommand:
+    def __init__(self, flairy):
+        self._logger = logging.getLogger(self.__class__.__name__)
+        self._flairy = flairy
+
+    async def handled(self, body, comment, is_mod):
+        if is_mod:
+            return False
+
+        flairy = self._flairy.flairy_detect_user_flair_change.match(body)
+        flair_text = flairy.group(1)
+
+        self._logger.info(f"Sending flair request {comment} {flair_text}")
+        url = self._flairy.permalink(comment)
+        e = disnake.Embed(
+            url=url,
+            colour=disnake.Colour(0).from_rgb(207, 206, 255))
+        e.description = f"[Flair Request: {escape_markdown(comment.body)}]({url})"
+        e.add_field("Redditor", f"[{comment.author}](https://www.reddit.com/u/{comment.author})", inline=False)
+        msg = await self._flairy.bot.flairy_channel.send(embed=e)
+        await msg.add_reaction(self._flairy.emoji)
+        await self._flairy.bot.add_reactions(msg)
+        return True

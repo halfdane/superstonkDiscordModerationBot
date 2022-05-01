@@ -106,7 +106,7 @@ class TestFlairyRegex:
         assert kwargs['comment'] == mock_comment
         assert len(kwargs['flair_text']) > 2
         assert len(kwargs['flair_color']) > 2
-        assert "YOU DIDN'T ASK FOR A FLAIR" in kwargs['message']
+        assert "(✿☉｡☉) You didn't ask for a flair?!" in kwargs['message']
         assert "template" not in kwargs
 
     @patch('superstonkDiscordModerationBot.SuperstonkModerationBot', autospec=True)
