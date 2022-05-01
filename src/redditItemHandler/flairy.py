@@ -309,6 +309,7 @@ Other available commands:
 - `!FLAIRY!` : if you can't think of a flair, I'll give you one of my own choice 🤭   
 - `!FLAIRY:CLEARME!` : remove all flairs and pretend you're a new ape   
 - `!FLAIRY:SEALME!` : Justin seduced me to get this 🥵    
+- `u/Superstonk-Flairy`  : If you tag me, I'll come around and explain how to get flairs
 """
 
     async def handled(self, body, comment, is_mod):
