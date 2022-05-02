@@ -121,6 +121,15 @@ class RandomFlairCommand:
             return False
 
         if self._random_flair_command.match(body):
+            await comment.refresh()
+            for response in comment.replies:
+                author_name__lower = getattr(getattr(response, "author", None), "name", "").lower()
+                if author_name__lower == "superstonk-flairy" and \
+                        "(✿☉｡☉) You didn't ask for a flair" in response.body:
+                    self._logger.info(f"Random flair request was already delivered: {permalink(response)}")
+                    return True
+
+
             await self._bestow_random_flair(comment)
             return True
 

@@ -93,6 +93,7 @@ class TestFlairyRegex:
         self.default_comment(mock_comment)
         self.default_bot(mock_bot)
         mock_comment.body = "!FLAIRY!"
+        mock_comment.refresh = AsyncMock()
 
         # when
         testee = Flairy(mock_bot)
