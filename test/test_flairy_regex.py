@@ -89,3 +89,5 @@ class TestFlairyRegex:
     def test_use_only_complete_word_as_color(self):
         self.match("!Flairy! ComputerShared", "ComputerSha", "red", NOT_EQUALS)
         self.match("!Flairy! ComputerShared", "ComputerShared", None)
+
+

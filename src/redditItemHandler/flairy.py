@@ -10,6 +10,8 @@ from disnake.utils import escape_markdown
 
 import random
 
+from redditItemHandler.abstract_handler import permalink
+
 
 class Flairy(Handler, Reaction):
     emoji = '🧚'
@@ -26,6 +28,8 @@ class Flairy(Handler, Reaction):
     def __init__(self, bot):
         Handler.__init__(self, bot)
         Reaction.__init__(self, bot)
+
+        flairy_reddit = getattr(bot, "flairy_reddit", None)
 
         self.flairy_command_detection = r".*!\s*FL?AIRY"
         self.flair_command = rf"{self.flairy_command_detection}\s*!"
@@ -49,7 +53,7 @@ class Flairy(Handler, Reaction):
             WrongColorCommand(self),
             FlairTooLongCommand(self),
             FlairContainsForbiddenPhraseCommand(self),
-            FlairyExplainerCommand(self, self._templates.keys()),
+            FlairyExplainerCommand(flairy_reddit, self._templates.keys()),
             SendFlairToDiscordCommand(self)
         ]
 
@@ -57,14 +61,14 @@ class Flairy(Handler, Reaction):
         body = getattr(comment, 'body', "")
         author = getattr(getattr(comment, "author", None), "name", None)
         if author == "Superstonk-Flairy":
-            self._logger.info(f"Not answering to myself: {self.permalink(comment)}")
+            self._logger.info(f"Not answering to myself: {permalink(comment)}")
             return
 
-        if self.detect_flairy_command.match(body):
+        if self.detect_flairy_command.search(body):
             is_mod = author in self.bot.moderators + ["Roid_Rage_Smurf"]
 
             self._logger.info(
-                f"seems to be a flairy command from {author}. Treat like mod? {is_mod} {self.permalink(comment)}")
+                f"seems to be a flairy command from {author}. Treat like mod? {is_mod} {permalink(comment)}")
 
             for command in self._commands:
                 if await command.handled(body, comment, is_mod):
@@ -151,7 +155,7 @@ class RandomFlairCommand:
 Okay, lemme try this:  !FLAIRY!{flair_text}{color}   
 ...   
 ...\n\n"""
-        self._logger.info(f"Randomly assigning: {self._flairy.permalink(comment)}")
+        self._logger.info(f"Randomly assigning: {permalink(comment)}")
 
         await self._flairy.flair_user(
             comment=comment,
@@ -181,7 +185,7 @@ class SealmeCommand:
                 flair_text=current_flair + '🦭',
                 template=current_template,
                 message=message)
-            self._logger.info(f"SEALING: {self._flairy.permalink(comment)}")
+            self._logger.info(f"SEALING: {permalink(comment)}")
             return True
 
         return False
@@ -201,7 +205,7 @@ class ClearCommand:
 
         if self._reset_command.match(body):
             message = 'Clearing the flair as requested  \n\n' + r'(✿\^‿\^)━☆ﾟ.*･｡ﾟ '
-            self._logger.info(f"Clearing flair: {self._flairy.permalink(comment)}")
+            self._logger.info(f"Clearing flair: {permalink(comment)}")
 
             subreddit_from_flairies_view = await self._flairy.bot.flairy_reddit.subreddit("Superstonk")
             await subreddit_from_flairies_view.flair.delete(redditor=comment.author)
@@ -233,7 +237,7 @@ class WrongColorCommand:
                       f"Valid colors are {', '.join(self._flairy._templates.keys())}.   \n" \
                       f"I'm making the change, so if that's not what you want " \
                       f"you have to summon me again."
-            self._logger.info(f"Wrong color: {self._flairy.permalink(comment)}")
+            self._logger.info(f"Wrong color: {permalink(comment)}")
             await comment_from_flairies_view.reply(message)
 
         return False
@@ -253,7 +257,7 @@ class FlairTooLongCommand:
         if len(flair_text) > 63:
             comment_from_flairies_view = await self._flairy.bot.flairy_reddit.comment(comment.id, fetch=False)
             message = "(ノಠ益ಠ)ノ彡┻━┻ THE FLAIR TEXT IS TOO LONG!   \nPlease use less than 64 unicode characters"
-            self._logger.info(f"Too long: {self._flairy.permalink(comment)}")
+            self._logger.info(f"Too long: {permalink(comment)}")
             await comment_from_flairies_view.reply(message)
             return True
 
@@ -288,15 +292,15 @@ class FlairWasRecentlyRequestedCommand:
             return False
 
         if await self._flairy._was_recently_posted(comment, self._flairy.bot.flairy_channel):
-            self._logger.info(f"skipping over recently handled flair request {self._flairy.permalink(comment)}")
+            self._logger.info(f"skipping over recently handled flair request {permalink(comment)}")
             return True
         return False
 
 
 class FlairyExplainerCommand:
-    def __init__(self, flairy, available_colors):
+    def __init__(self, flairy_reddit, available_colors):
         self._logger = logging.getLogger(self.__class__.__name__)
-        self._flairy = flairy
+        self._flairy_reddit = flairy_reddit
         self._flairy_explanation_text = f"""Are you talking about me? 😍   
         
 This is how it works: you can request a flair with the magic incantation
@@ -313,18 +317,17 @@ Other available commands:
 """
 
     async def handled(self, body, comment, is_mod):
-
         if "u/superstonk-flairy" in body.lower():
             await comment.refresh()
             for response in comment.replies:
                 author_name__lower = getattr(getattr(response, "author", None), "name", "").lower()
                 if author_name__lower == "superstonk-flairy" and \
                         "Are you talking about me? 😍" in response.body:
-                    self._logger.info(f"Found a flair explainer request, but it's already answered: {self._flairy.permalink(response)}")
+                    self._logger.info(f"Found a flair explainer request, but it's already answered: {permalink(response)}")
                     return True
 
-            comment_from_flairies_view = await self._flairy.bot.flairy_reddit.comment(comment.id, fetch=False)
-            self._logger.info(f"Explaining flairs: {self._flairy.permalink(comment)}")
+            comment_from_flairies_view = await self._flairy_reddit.comment(comment.id, fetch=False)
+            self._logger.info(f"Explaining flairs: {permalink(comment)}")
             await comment_from_flairies_view.reply(self._flairy_explanation_text)
             return True
 
@@ -344,7 +347,7 @@ class SendFlairToDiscordCommand:
         flair_text = flairy.group(1)
 
         self._logger.info(f"Sending flair request {comment} {flair_text}")
-        url = self._flairy.permalink(comment)
+        url = permalink(comment)
         e = disnake.Embed(
             url=url,
             colour=disnake.Colour(0).from_rgb(207, 206, 255))

@@ -1,5 +1,8 @@
 import logging
-from datetime import datetime, timedelta
+
+
+def permalink(item):
+    return f"https://www.reddit.com{item.permalink}"
 
 
 class Handler:
@@ -21,6 +24,3 @@ class Handler:
             if self.permalink(item) == elem.embeds[0].url:
                 return True
         return False
-
-    def permalink(self, item):
-        return f"https://www.reddit.com{item.permalink}"
