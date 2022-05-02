@@ -215,7 +215,7 @@ class ClearCommand:
         self._flairy = flairy
 
         self._reset_command = \
-            re.compile(rf"{self._flairy.flairy_command_detection}:CLEARME\s*!", self._flairy.flags)
+            re.compile(rf"{self._flairy.flairy_command_detection}\s*:\s*CLEARME\s*!", self._flairy.flags)
 
     async def handled(self, body, comment, is_mod):
         if is_mod:

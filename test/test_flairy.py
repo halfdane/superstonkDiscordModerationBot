@@ -136,7 +136,7 @@ class TestFlairyRegex:
     async def test_flair_clearing(self, mock_comment, mock_bot):
         # given
         self.default_comment(mock_comment)
-        mock_comment.body = "!FLAIRY:CLEARME! whatever happens here"
+        mock_comment.body = "! FLAIRY : CLEARME! whatever happens here"
 
         self.default_bot(mock_bot)
 
