@@ -46,6 +46,7 @@ class Flairy(Handler, Reaction):
             re.compile(rf"{self.flair_command}{self._flairy_text}{self._valid_colors}$", self.flags)
 
         self._commands = [
+            CommentAlreadyHasAResponse(self),
             FlairWasRecentlyRequestedCommand(self),
             ClearCommand(self),
             SealmeCommand(self, self._templates[self._default_color]),
@@ -108,6 +109,23 @@ class Flairy(Handler, Reaction):
         return "Accept the flair request. The flairy will take care of the rest."
 
 
+class CommentAlreadyHasAResponse:
+    def __init__(self, flairy):
+        self._logger = logging.getLogger(self.__class__.__name__)
+        self._flairy = flairy
+        self._random_flair_command = \
+            re.compile(rf"{self._flairy.flairy_command_detection}\s*!$", self._flairy.flags)
+
+    async def handled(self, body, comment, is_mod):
+        await comment.refresh()
+        for response in comment.replies:
+            author_name__lower = getattr(getattr(response, "author", None), "name", "").lower()
+            if author_name__lower == "superstonk-flairy":
+                self._logger.info(f"Flairy already responded: {permalink(response)}")
+                return True
+        return False
+
+
 class RandomFlairCommand:
 
     def __init__(self, flairy):
@@ -121,15 +139,6 @@ class RandomFlairCommand:
             return False
 
         if self._random_flair_command.match(body):
-            await comment.refresh()
-            for response in comment.replies:
-                author_name__lower = getattr(getattr(response, "author", None), "name", "").lower()
-                if author_name__lower == "superstonk-flairy" and \
-                        "(✿☉｡☉) You didn't ask for a flair" in response.body:
-                    self._logger.info(f"Random flair request was already delivered: {permalink(response)}")
-                    return True
-
-
             await self._bestow_random_flair(comment)
             return True
 
@@ -327,14 +336,6 @@ Other available commands:
 
     async def handled(self, body, comment, is_mod):
         if "u/superstonk-flairy" in body.lower():
-            await comment.refresh()
-            for response in comment.replies:
-                author_name__lower = getattr(getattr(response, "author", None), "name", "").lower()
-                if author_name__lower == "superstonk-flairy" and \
-                        "Are you talking about me? 😍" in response.body:
-                    self._logger.info(f"Found a flair explainer request, but it's already answered: {permalink(response)}")
-                    return True
-
             comment_from_flairies_view = await self._flairy_reddit.comment(comment.id, fetch=False)
             self._logger.info(f"Explaining flairs: {permalink(comment)}")
             await comment_from_flairies_view.reply(self._flairy_explanation_text)

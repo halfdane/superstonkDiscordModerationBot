@@ -24,6 +24,7 @@ class TestFlairyRegex:
         mock_comment.body = "!FLAIRY! some flair"
         mock_comment.author.name = ""
         mock_comment.author_flair_text = "existing flair"
+        mock_comment.refresh = AsyncMock()
 
     @patch('superstonkDiscordModerationBot.SuperstonkModerationBot', autospec=True)
     @patch('asyncpraw.models.Comment')
@@ -93,7 +94,6 @@ class TestFlairyRegex:
         self.default_comment(mock_comment)
         self.default_bot(mock_bot)
         mock_comment.body = "!FLAIRY!"
-        mock_comment.refresh = AsyncMock()
 
         # when
         testee = Flairy(mock_bot)
