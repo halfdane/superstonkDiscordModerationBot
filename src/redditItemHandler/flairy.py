@@ -99,7 +99,7 @@ class Flairy(Handler, Reaction):
             redditor=comment.author,
             text=flair_text,
             flair_template_id=template)
-        message += rf'(✿\^‿\^)━☆ﾟ.*･｡ﾟ "{flair_text}"'
+        message += rf'(✿\^‿\^)━☆ﾟ.*･｡ﾟ {flair_text}'
         self._logger.info(log_message)
         comment_from_flairies_view = await self.bot.flairy_reddit.comment(comment.id, fetch=False)
         await comment_from_flairies_view.upvote()
@@ -145,7 +145,7 @@ class RandomFlairCommand:
         return False
 
     async def _bestow_random_flair(self, comment):
-        _emojis = ['🏴‍☠', '💪', '💎', '🎊', '🌕',
+        _emojis = ['🏴‍☠️', '💪', '💎', '🎊', '🌕',
                    '🦍🚀', '🦍', '💎🙌🏻', '🎮🛑',
                    '♾️', '🐵', '💙', '🍦💩🪑'
                    ]
@@ -169,10 +169,7 @@ class RandomFlairCommand:
         emojis = random.sample(_emojis, 2)
         flair_text = f"{emojis[0]} {random.sample(_flairs, 1)[0]} {emojis[1]}"
         color = random.sample(list(self._flairy._templates.keys()), 1)[0]
-        message = f"""(✿☉｡☉) You didn't ask for a flair?!    
-Okay, lemme try this:  !FLAIRY!{flair_text}{color}   
-...   
-...\n\n"""
+        message = f"""(✿☉｡☉) You didn't ask for a flair?! Lemme get one for you...   \n"""
         self._logger.info(f"Randomly assigning: {permalink(comment)}")
 
         await self._flairy.flair_user(
