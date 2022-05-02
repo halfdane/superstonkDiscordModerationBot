@@ -21,6 +21,6 @@ class Handler:
         async for elem in channel \
                 .history(limit=200) \
                 .filter(lambda message: message.author.id == self.bot.user.id):
-            if self.permalink(item) == elem.embeds[0].url:
+            if permalink(item) == elem.embeds[0].url:
                 return True
         return False

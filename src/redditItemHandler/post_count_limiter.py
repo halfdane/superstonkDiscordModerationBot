@@ -7,6 +7,8 @@ from redditItemHandler import Handler
 from disnake import Embed
 import disnake
 
+from redditItemHandler.abstract_handler import permalink
+
 
 class PostCountLimiter(Handler):
     _restricted_interval = {"hours": 24}
@@ -42,7 +44,7 @@ class PostCountLimiter(Handler):
                                TTLCache(maxsize=10, ttl=timedelta(**self._restricted_interval), timer=self.timer_function))
         posts.expire()
         posts[item.id] = {
-            'permalink': self.permalink(item),
+            'permalink': permalink(item),
             'created_utc': datetime.utcfromtimestamp(item.created_utc)
         }
         self.cache[item.author.name] = posts
