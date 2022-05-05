@@ -11,11 +11,11 @@ from redditItemHandler.abstract_handler import permalink
 
 
 class PostCountLimiter(Handler):
-    _restricted_interval = {"hours": 24}
+    _interval = timedelta(hours=24)
 
     def __init__(self, bot):
         super().__init__(bot)
-        self.cache = TTLCache(maxsize=1000, ttl=timedelta(**self._restricted_interval), timer=self.timer_function)
+        self.cache = TTLCache(maxsize=1000, ttl=self._interval, timer=self.timer_function)
         self.timestamp_to_use = None
 
     def timer_function(self):
@@ -32,16 +32,12 @@ class PostCountLimiter(Handler):
             utc_dt = datetime.utcfromtimestamp(post.created_utc)
             self.timestamp_to_use = utc_dt
             await self.take(post)
-
         self.timestamp_to_use = None
-
-        for author, posts in self.cache.items():
-            await self.report_infraction(author, posts)
 
     async def take(self, item):
         self.cache.expire()
         posts = self.cache.get(item.author.name,
-                               TTLCache(maxsize=30, ttl=timedelta(**self._restricted_interval), timer=self.timer_function))
+                               TTLCache(maxsize=30, ttl=self._interval, timer=self.timer_function))
         posts.expire()
         posts[item.id] = {
             'permalink': permalink(item),
@@ -61,7 +57,10 @@ class PostCountLimiter(Handler):
 
             for index, v in enumerate(sorted(posts.values(), key=lambda x: x['created_utc'])):
                 embed.description += f"{index + 1} **{v['created_utc']}** [{v['title']}]({v['permalink']})   \n"
+                
+            embed2 = Embed(colour=disnake.Colour(0).from_rgb(207, 206, 255))
+            embed2.description=str(posts)
 
-            msg = await self.bot.report_channel.send(embed=embed)
+            msg = await self.bot.report_channel.send(embeds=[embed, embed2])
             await self.bot.add_reactions(msg)
 
