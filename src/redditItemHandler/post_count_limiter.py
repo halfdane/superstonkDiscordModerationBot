@@ -45,7 +45,7 @@ class PostCountLimiter(Handler):
         posts.expire()
         posts[item.id] = {
             'permalink': permalink(item),
-            'title': getattr(item, 'title', getattr(item, 'body', ""))[:10],
+            'title': getattr(item, 'title', getattr(item, 'body', ""))[:30],
             'created_utc': datetime.utcfromtimestamp(item.created_utc)
         }
         self.cache[item.author.name] = posts
@@ -60,7 +60,7 @@ class PostCountLimiter(Handler):
             embed.add_field("Redditor", f"[{author}](https://www.reddit.com/u/{author})", inline=False)
 
             for v in sorted(posts.values(), key=lambda x: x['created_utc']):
-                embed.add_field(v['created_utc'], f"[{v['title']}]({v['permalink']})", inline=False)
+                embed.description += f"- **{v['created_utc']}** [{v['title']}]({v['permalink']})   \n"
 
             msg = await self.bot.report_channel.send(embed=embed)
             await self.bot.add_reactions(msg)
