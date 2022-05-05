@@ -56,11 +56,11 @@ class PostCountLimiter(Handler):
             self._logger.info(f"Oops, looks like {author} is posting a lot: {posts}")
 
             embed = Embed(colour=disnake.Colour(0).from_rgb(207, 206, 255))
-            embed.description = f"** {author} posted more than 5 posts since {datetime.utcnow()}: {len(posts)}**"
+            embed.description = f"**{author} posted {len(posts)} posts since {datetime.utcnow()}**  \n"
             embed.add_field("Redditor", f"[{author}](https://www.reddit.com/u/{author})", inline=False)
 
-            for v in sorted(posts.values(), key=lambda x: x['created_utc']):
-                embed.description += f"- **{v['created_utc']}** [{v['title']}]({v['permalink']})   \n"
+            for index, v in enumerate(sorted(posts.values(), key=lambda x: x['created_utc'])):
+                embed.description += f"{index + 1} **{v['created_utc']}** [{v['title']}]({v['permalink']})   \n"
 
             msg = await self.bot.report_channel.send(embed=embed)
             await self.bot.add_reactions(msg)
