@@ -1,3 +1,6 @@
+import asyncio
+from random import randint
+
 from redditItemHandler import Handler
 from redditItemHandler.abstract_handler import permalink
 
@@ -17,6 +20,7 @@ class FrontDeskSticky(Handler):
 
     async def take(self, item):
         if await self.needs_front_desk(item):
+            await asyncio.sleep(randint(30, 600))
             self._logger.info(f"No Front Desk -- adding it now")
             front_desk = await item.reply(self._sticky_text)
             await front_desk.mod.distinguish(how='yes', sticky=True)
