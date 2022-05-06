@@ -57,10 +57,7 @@ class PostCountLimiter(Handler):
 
             for index, v in enumerate(sorted(posts.values(), key=lambda x: x['created_utc'])):
                 embed.description += f"{index + 1} **{v['created_utc']}** [{v['title']}]({v['permalink']})   \n"
-                
-            embed2 = Embed(colour=disnake.Colour(0).from_rgb(207, 206, 255))
-            embed2.description=str(posts)
 
-            msg = await self.bot.report_channel.send(embeds=[embed, embed2])
+            msg = await self.bot.report_channel.send(embed=embed)
             await self.bot.add_reactions(msg)
 
