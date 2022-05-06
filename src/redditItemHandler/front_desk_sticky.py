@@ -7,10 +7,9 @@ class FrontDeskSticky(Handler):
 
 # The Front Desk is open!
 
-- [Computershare Megathread](https://www.reddit.com/r/Superstonk/comments/tdxn3w/computershare_megathread/)
-- [Join our Superstonk Discord](https://discord.gg/TxtxQpzAEd)
-
-# [Voting Megathread](https://www.reddit.com/r/Superstonk/comments/uddedr)
+[Computershare Megathread](https://www.reddit.com/r/Superstonk/comments/tdxn3w/computershare_megathread/) || 
+[Join our Superstonk Discord](https://discord.gg/TxtxQpzAEd) ||  
+[Voting Megathread](https://www.reddit.com/r/Superstonk/comments/uddedr)
 """
 
     def __init__(self, bot):
