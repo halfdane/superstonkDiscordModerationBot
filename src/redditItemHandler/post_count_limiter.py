@@ -6,6 +6,7 @@ from redditItemHandler import Handler
 
 from disnake import Embed
 import disnake
+from psaw import PushshiftAPI
 
 from redditItemHandler.abstract_handler import permalink
 
@@ -15,6 +16,7 @@ class PostCountLimiter(Handler):
 
     def __init__(self, bot):
         super().__init__(bot)
+        self.pushshift_api = PushshiftAPI()
         self.cache = TTLCache(maxsize=1000, ttl=self._interval, timer=self.timer_function)
         self.timestamp_to_use = None
 
@@ -28,24 +30,35 @@ class PostCountLimiter(Handler):
         await self.initial_cache_population()
 
     async def initial_cache_population(self):
-        async for post in self.bot.subreddit.top(time_filter="day", limit=None):
+        end_epoch = int(datetime.utcnow().timestamp())
+        start_epoch = int((datetime.utcnow() - timedelta(hours=24)).timestamp())
+
+        gen = self.pushshift_api.search_submissions(
+            after=start_epoch,
+            before=end_epoch,
+            subreddit='Superstonk',
+            metadata='true',
+            fields=['author', 'permalink', 'score', 'created_utc', 'id', 'title'],
+        )
+
+        for post in gen:
             utc_dt = datetime.utcfromtimestamp(post.created_utc)
             self.timestamp_to_use = utc_dt
             await self.take(post)
         self.timestamp_to_use = None
 
     async def take(self, item):
-        self.cache.expire()
-        posts = self.cache.get(item.author.name,
-                               TTLCache(maxsize=30, ttl=self._interval, timer=self.timer_function))
-        posts.expire()
-        posts[item.id] = {
-            'permalink': permalink(item),
-            'title': getattr(item, 'title', getattr(item, 'body', ""))[:30],
-            'created_utc': datetime.utcfromtimestamp(item.created_utc)
-        }
-        self.cache[item.author.name] = posts
-        await self.report_infraction(item.author, posts)
+        author_name = getattr(item.author, 'name', str(item.author))
+        posts = self.cache.get(author_name, TTLCache(maxsize=30, ttl=self._interval, timer=self.timer_function))
+
+        if item.id not in posts:
+            posts[item.id] = {
+                'permalink': permalink(item),
+                'title': getattr(item, 'title', getattr(item, 'body', ""))[:30],
+                'created_utc': datetime.utcfromtimestamp(item.created_utc)
+            }
+            self.cache[author_name] = posts
+            await self.report_infraction(author_name, posts)
 
     async def report_infraction(self, author, posts):
         if self.timestamp_to_use is None and len(posts) > 5:
@@ -60,4 +73,3 @@ class PostCountLimiter(Handler):
 
             msg = await self.bot.report_channel.send(embed=embed)
             await self.bot.add_reactions(msg)
-
