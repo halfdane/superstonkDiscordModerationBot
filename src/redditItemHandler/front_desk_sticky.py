@@ -11,7 +11,7 @@ class FrontDeskSticky(Handler):
 # The Front Desk is open!
 
 [Computershare Megathread](https://www.reddit.com/r/Superstonk/comments/tdxn3w/computershare_megathread/) || 
-[Join our Superstonk Discord](https://discord.gg/TxtxQpzAEd) ||  
+[Join our Superstonk Discord](discord.gg/superstonk) || 
 [Voting Megathread](https://www.reddit.com/r/Superstonk/comments/uddedr)
 """
 
