@@ -48,13 +48,13 @@ class Flairy(Handler, Reaction):
         self._commands = [
             CommentAlreadyHasAResponse(self),
             FlairWasRecentlyRequestedCommand(self),
+            FlairyExplainerCommand(flairy_reddit, self._templates.keys()),
             ClearCommand(self),
             SealmeCommand(self, self._templates[self._default_color]),
             RandomFlairCommand(self),
             WrongColorCommand(self),
             FlairTooLongCommand(self),
             FlairContainsForbiddenPhraseCommand(self),
-            FlairyExplainerCommand(flairy_reddit, self._templates.keys()),
             SendFlairToDiscordCommand(self)
         ]
 
