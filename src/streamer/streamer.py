@@ -21,17 +21,10 @@ class ActualStreamer:
         while True:
             self._logger.info(f"Starting to fetch items")
             try:
-                await asyncio.wait_for(self._stream(), timeout=3 * 60 * 60)
-            except AsyncPRAWException:
-                self._logger.exception(f"Ignoring exception - sleeping instead:")
-            except asyncio.TimeoutError:
-                self._logger.info(f"Aborting")
+                await asyncio.wait_for(self._stream(), timeout=10 * 60)
             except Exception:
                 self._logger.exception(f"ignoring")
-
-            self._logger.info(f"sleeping")
             await asyncio.sleep(1)
-            self._logger.info(f"running again")
 
     async def _stream(self):
         async for item in self.input_stream_function():
