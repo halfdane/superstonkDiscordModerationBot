@@ -51,7 +51,6 @@ class PostCountLimiter(Handler):
             await self.take(post)
         self.timestamp_to_use = None
 
-    @cachetools.cached
     async def take(self, item):
         author_name = getattr(item.author, 'name', str(item.author))
         posts = self.cache.get(author_name, TTLCache(maxsize=30, ttl=self._interval, timer=self.timer_function))
