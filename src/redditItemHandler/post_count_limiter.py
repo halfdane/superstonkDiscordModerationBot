@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 
+import cachetools
 from cachetools import TTLCache
 
 from redditItemHandler import Handler
@@ -7,6 +8,8 @@ from redditItemHandler import Handler
 from disnake import Embed
 import disnake
 from psaw import PushshiftAPI
+
+from threading import Lock
 
 from redditItemHandler.abstract_handler import permalink
 
@@ -19,6 +22,7 @@ class PostCountLimiter(Handler):
         self.pushshift_api = PushshiftAPI()
         self.cache = TTLCache(maxsize=1000, ttl=self._interval, timer=self.timer_function)
         self.timestamp_to_use = None
+        self.lock = Lock()
 
     def timer_function(self):
         if self.timestamp_to_use is not None:
@@ -47,17 +51,19 @@ class PostCountLimiter(Handler):
             await self.take(post)
         self.timestamp_to_use = None
 
+    @cachetools.cached
     async def take(self, item):
         author_name = getattr(item.author, 'name', str(item.author))
         posts = self.cache.get(author_name, TTLCache(maxsize=30, ttl=self._interval, timer=self.timer_function))
 
         if item.id not in posts:
-            posts[item.id] = {
-                'permalink': permalink(item),
-                'title': getattr(item, 'title', getattr(item, 'body', ""))[:30],
-                'created_utc': datetime.utcfromtimestamp(item.created_utc)
-            }
-            self.cache[author_name] = posts
+            with self.lock:
+                posts[item.id] = {
+                    'permalink': permalink(item),
+                    'title': getattr(item, 'title', getattr(item, 'body', ""))[:30],
+                    'created_utc': datetime.utcfromtimestamp(item.created_utc)
+                }
+                self.cache[author_name] = posts
             await self.report_infraction(author_name, posts)
 
     async def report_infraction(self, author, posts):
