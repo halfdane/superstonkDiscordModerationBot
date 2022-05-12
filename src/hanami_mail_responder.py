@@ -10,6 +10,8 @@ from disnake.ext import commands
 import nltk
 nltk.download('punkt')
 nltk.download('wordnet')
+nltk.download('omw-1.4')
+
 
 import discordReaction
 from helper.redditor_history import redditor_history
