@@ -1,18 +1,16 @@
-import configparser
 import json
 import logging
 import re
-import sys
-from typing import List, Optional
+from typing import Optional
 
 import asyncpraw
 import disnake
 import yaml
+from decouple import config
 from disnake import Message
 from disnake.ext import commands
 from disnake.ext.commands import Bot
 
-import reddit_helper
 from cogs.modqueue_cog import ModQueueCog
 from cogs.user_cog import UserCog
 from discordReaction.delete_reaction import DeleteReaction
@@ -21,15 +19,14 @@ from discordReaction.modnote_reaction import ModNoteReaction
 from discordReaction.user_history_reaction import UserHistoryReaction
 from discordReaction.wip_reaction import WipReaction
 from discord_output_logger import DiscordOutputLogger
+from hanami_mail_responder import Hanami
+from helper import reddit_helper
 from helper.redditor_extractor import extract_redditor
-
 from redditItemHandler.flairy import Flairy
 from redditItemHandler.front_desk_sticky import FrontDeskSticky
 from redditItemHandler.important_reports import ImportantReports
 from redditItemHandler.post_count_limiter import PostCountLimiter
 from streamer.streamer import Stream
-
-from decouple import config
 
 
 class SuperstonkModerationBot(Bot):
@@ -50,7 +47,6 @@ class SuperstonkModerationBot(Bot):
     def __init__(self, **options):
         super().__init__(command_prefix='>',
                          description="Moderation bot for Superstonk.",
-                         test_guilds=[952157731614249040, 828370452132921344],
                          sync_commands_debug=True,
                          **options)
         self.reddit: asyncpraw.Reddit = options.get("reddit")
@@ -58,6 +54,8 @@ class SuperstonkModerationBot(Bot):
 
         super().add_cog(UserCog(self))
         super().add_cog(ModQueueCog(self))
+        super().add_cog(Hanami(self))
+
 
     async def on_ready(self):
         self.subreddit = await self.reddit.subreddit("Superstonk")
@@ -176,16 +174,24 @@ if __name__ == "__main__":
     LOG_OUTPUT_CHANNEL = int(config("LOG_OUTPUT_CHANNEL"))
     USER_INVESTIGATION_CHANNELS = int(config("USER_INVESTIGATION_CHANNELS"))
 
-    asyncpraw_reddit = asyncpraw.Reddit(username=(config("reddit_username")), password=(config("reddit_password")),
-                                        client_id=(config("reddit_client_id")),
-                                        client_secret=(config("reddit_client_secret")),
-                                        user_agent="com.halfdane.superstonk_moderation_bot:v0.1.1 (by u/half_dane)")
-    flairy_asyncpraw_reddit = asyncpraw.Reddit(username=config("flairy_username"), password=config("flairy_password"),
-                                               client_id=config("flairy_client_id"),
-                                               client_secret=config("flairy_client_secret"),
-                                               user_agent="desktop:com.halfdane.superstonk_flairy:v0.1.0 (by u/half_dane)")
+    GUILD = int(config("GUILD"))
+
+    asyncpraw_reddit = \
+        asyncpraw.Reddit(username=(config("reddit_username")), password=(config("reddit_password")),
+                         client_id=(config("reddit_client_id")),
+                         client_secret=(config("reddit_client_secret")),
+                         user_agent="com.halfdane.superstonk_moderation_bot:v0.1.2 (by u/half_dane)")
+    flairy_asyncpraw_reddit = \
+        asyncpraw.Reddit(username=config("flairy_username"), password=config("flairy_password"),
+                         client_id=config("flairy_client_id"),
+                         client_secret=config("flairy_client_secret"),
+                         user_agent="desktop:com.halfdane.superstonk_flairy:v0.2.0 (by u/half_dane)")
 
     with asyncpraw_reddit as reddit:
         with flairy_asyncpraw_reddit as flairy_reddit:
-            bot = SuperstonkModerationBot(reddit=reddit, flairy_reddit=flairy_reddit)
+            bot = SuperstonkModerationBot(
+                reddit=reddit,
+                flairy_reddit=flairy_reddit,
+                test_guilds=[GUILD]
+            )
             bot.run(DISCORD_BOT_TOKEN)

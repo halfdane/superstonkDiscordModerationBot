@@ -7,7 +7,7 @@ run: venv
 
 .PHONY: test
 test: venv
-	venv/bin/pytest
+	venv/bin/pytest -vv
 
 venv: venv/bin/activate
 
