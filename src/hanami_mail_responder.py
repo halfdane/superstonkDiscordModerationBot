@@ -9,6 +9,7 @@ import disnake
 from disnake.ext import commands
 import nltk
 nltk.download('punkt')
+nltk.download('wordnet')
 
 import discordReaction
 from helper.redditor_history import redditor_history
