@@ -63,8 +63,7 @@ class PostCountLimiter(Handler):
                     'created_utc': datetime.utcfromtimestamp(item.created_utc)
                 }
                 self.cache[author_name] = posts
-
-        await self.report_infraction(author_name, posts)
+                await self.report_infraction(author_name, posts)
 
     async def report_infraction(self, author, posts):
         if self.timestamp_to_use is None and len(posts) > 5:

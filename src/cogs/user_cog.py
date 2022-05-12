@@ -36,4 +36,4 @@ class UserCog(commands.Cog):
         await ctx.edit_original_message(embed=e)
 
         msg = await ctx.original_message()
-        await discordReaction.add_reactions(msg)
+        await self._bot.add_reactions(msg)

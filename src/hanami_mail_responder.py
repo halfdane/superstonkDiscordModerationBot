@@ -8,10 +8,10 @@ from nltk.stem import WordNetLemmatizer
 import disnake
 from disnake.ext import commands
 import nltk
+
 nltk.download('punkt')
 nltk.download('wordnet')
 nltk.download('omw-1.4')
-
 
 import discordReaction
 from helper.redditor_history import redditor_history
@@ -29,10 +29,9 @@ class LemmaTokenizer:
 
 class Hanami(commands.Cog):
 
-    def __init__(self, subreddit=None, config=None, bot=None):
+    def __init__(self, subreddit=None, config=None):
         self._logger = logging.getLogger(self.__class__.__name__)
         self.subreddit = subreddit
-        self.bot = bot
         self.hanami_configs = re.compile(r'hanami_config/(.+)')
         self.tokenizer = LemmaTokenizer()
         self.config = config
@@ -41,9 +40,6 @@ class Hanami(commands.Cog):
         self.test_config = True
 
     async def on_ready(self):
-        if self.subreddit is None:
-            self.subreddit = self.bot.subreddit
-
         self.config = await self.load_config()
         self.preprocess_config()
 
@@ -80,34 +76,42 @@ class Hanami(commands.Cog):
     def categorize(self, phrase):
         categories = dict()
         for name, a_type in self.config['types'].items():
+            matches_of_type = dict()
             for trigger, weight in a_type['keywords'].items():
                 if trigger.search(phrase):
-                    current = categories.get(name, 0)
-                    categories[name] = current + weight
+                    current_weight = matches_of_type.get('total', 0)
+                    matches_of_type['total'] = current_weight + weight
+                    matches_of_type[trigger.pattern] = weight
+            if len(matches_of_type) > 0:
+                categories[name] = matches_of_type
 
         return categories
 
-    @commands.slash_command(description="drop the config")
-    async def hanami(self, ctx, *, redditor):
-        embed = disnake.Embed(title=f"Information about ``{ctx.guild}``",
-                              description='henlo world', color=0xf7fcfd)
-        await ctx.send(embed=embed)
+    @commands.slash_command(description="reload the config")
+    async def hanami_load_config(self, ctx):
+        await ctx.response.defer()
+        self.config = await self.load_config()
+        self.preprocess_config()
+        self._logger.info(f"finished {str(self.config)} hanami_config/testing")
+        embed = disnake.Embed(title="https://www.reddit.com/r/testsubsuperstonk/about/wiki/hanami_config/testing",
+                              description=f"```\n{str(self.config)}```", color=0xf7fcfd)
+        await ctx.edit_original_message(embed=embed)
 
+    @commands.slash_command(description="return the lemmatized input string")
+    async def hanami_lemmatize_input_string(self, ctx, input_string):
+        await ctx.response.defer()
+        embed = disnake.Embed(title=f"Lemmatized input string", color=0xf7fcfd)
+        embed.add_field('input_string', input_string, inline=False)
+        embed.add_field('result', self.preprocess_phrase(input_string), inline=False)
+        await ctx.edit_original_message(embed=embed)
 
-    #
-    # @hanami.sub_command(description="drop the config")
-    # async def config(self, ctx, *, redditor):
-    #     pass
-    #
-    # @hanami.sub_command(description="drop the config")
-    # async def whatever(self, ctx):
-    #     embed = disnake.Embed(title=f"Information about ``{ctx.guild}``",
-    #                           description='henlo world', color=0xf7fcfd)
-    #     await ctx.send(embed=embed)
-
-
-
-
+    @commands.slash_command(description="apply the identified categories")
+    async def hanami_categorize_input_string(self, ctx, input_string):
+        await ctx.response.defer()
+        embed = disnake.Embed(title=f"Categories", color=0xf7fcfd)
+        embed.add_field('input_string', input_string, inline=False)
+        embed.add_field('result', f"```\n{str(self.categorize(input_string))}```", inline=False)
+        await ctx.edit_original_message(embed=embed)
 
 
 SUPERSTONK_STOP_WORDS = ("com", "www", "https", "reddit", "hi", "just",

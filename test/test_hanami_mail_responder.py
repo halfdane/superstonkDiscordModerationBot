@@ -77,7 +77,7 @@ class TestHanamiMailResponder:
         categories = hanami.categorize(" user shill")
 
         # then
-        assert categories == {'some_type': 7 - 3}
+        assert categories == {'some_type': {'shill': -3, 'total': 7-3, 'user': 7}}
 
     @pytest.mark.asyncio
     async def test_preprocess(self):

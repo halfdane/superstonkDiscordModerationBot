@@ -52,17 +52,20 @@ class SuperstonkModerationBot(Bot):
         self.reddit: asyncpraw.Reddit = options.get("reddit")
         self.flairy_reddit: asyncpraw.Reddit = options.get("flairy_reddit")
 
-        super().add_cog(UserCog(self))
-        super().add_cog(ModQueueCog(self))
-        super().add_cog(Hanami(self))
-
-
     async def on_ready(self):
         self.subreddit = await self.reddit.subreddit("Superstonk")
         self.moderators = [moderator async for moderator in self.subreddit.moderator]
         self.report_channel = self.get_channel(REPORTING_CHANNEL)
         self.flairy_channel = self.get_channel(FLAIRY_CHANNEL)
         self.log_output_channel = self.get_channel(LOG_OUTPUT_CHANNEL)
+
+        super().add_cog(UserCog(self))
+        super().add_cog(ModQueueCog(self))
+
+        hanami = Hanami(await self.reddit.subreddit("testsubsuperstonk"))
+        await hanami.on_ready()
+        super().add_cog(hanami)
+
 
         discord_output_logging_handler.on_ready(self.log_output_channel, self.loop)
 

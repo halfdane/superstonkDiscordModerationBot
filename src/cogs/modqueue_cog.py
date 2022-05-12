@@ -62,4 +62,4 @@ class ModQueueCog(commands.Cog):
         embed.description += "\n".join(items)
         await ctx.edit_original_message(embed=embed)
         msg = await ctx.original_message()
-        await discordReaction.add_reactions(msg, discordReaction.GENERIC_REACTIONS)
+        await self._bot.add_reactions(msg)
