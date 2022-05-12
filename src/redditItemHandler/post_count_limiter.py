@@ -53,17 +53,18 @@ class PostCountLimiter(Handler):
 
     async def take(self, item):
         author_name = getattr(item.author, 'name', str(item.author))
-        posts = self.cache.get(author_name, TTLCache(maxsize=30, ttl=self._interval, timer=self.timer_function))
 
-        if item.id not in posts:
-            with self.lock:
+        with self.lock:
+            posts = self.cache.get(author_name, TTLCache(maxsize=30, ttl=self._interval, timer=self.timer_function))
+            if item.id not in posts:
                 posts[item.id] = {
                     'permalink': permalink(item),
                     'title': getattr(item, 'title', getattr(item, 'body', ""))[:30],
                     'created_utc': datetime.utcfromtimestamp(item.created_utc)
                 }
                 self.cache[author_name] = posts
-            await self.report_infraction(author_name, posts)
+
+        await self.report_infraction(author_name, posts)
 
     async def report_infraction(self, author, posts):
         if self.timestamp_to_use is None and len(posts) > 5:
