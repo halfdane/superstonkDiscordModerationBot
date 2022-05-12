@@ -7,6 +7,8 @@ from nltk.stem import WordNetLemmatizer
 
 import disnake
 from disnake.ext import commands
+import nltk
+nltk.download('punkt')
 
 import discordReaction
 from helper.redditor_history import redditor_history
