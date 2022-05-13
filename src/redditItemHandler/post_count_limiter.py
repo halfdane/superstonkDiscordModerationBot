@@ -55,7 +55,8 @@ class PostCountLimiter(Handler):
         author_name = getattr(item.author, 'name', str(item.author))
 
         with self.lock:
-            posts = self.cache.get(author_name, TTLCache(maxsize=30, ttl=self._interval, timer=self.timer_function))
+            posts = self.cache.get(str(author_name),
+                                   TTLCache(maxsize=30, ttl=self._interval, timer=self.timer_function))
             if item.id not in posts:
                 posts[item.id] = {
                     'permalink': permalink(item),
@@ -63,18 +64,33 @@ class PostCountLimiter(Handler):
                     'created_utc': datetime.utcfromtimestamp(item.created_utc)
                 }
                 self.cache[author_name] = posts
-                await self.report_infraction(author_name, posts)
+                await self.report_infraction(author_name, posts, item)
 
-    async def report_infraction(self, author, posts):
-        if self.timestamp_to_use is None and len(posts) > 5:
+    async def report_infraction(self, author, posts, item):
+        if self.timestamp_to_use is None and len(posts) >= 7:
             self._logger.info(f"Oops, looks like {author} is posting a lot: {posts}")
 
             embed = Embed(colour=disnake.Colour(0).from_rgb(207, 206, 255))
-            embed.description = f"**{author} posted {len(posts)} posts since {datetime.utcnow()}**  \n"
+            embed.description = f"**Prevented {author} from posting {permalink(item)}**  \n"
             embed.add_field("Redditor", f"[{author}](https://www.reddit.com/u/{author})", inline=False)
-
-            for index, v in enumerate(sorted(posts.values(), key=lambda x: x['created_utc'])):
-                embed.description += f"{index + 1} **{v['created_utc']}** [{v['title']}]({v['permalink']})   \n"
 
             msg = await self.bot.report_channel.send(embed=embed)
             await self.bot.add_reactions(msg)
+
+            await item.mod.remove(spam=True, mod_note="post count limit reached")
+            await item.author.message(
+                "Post Count Limit Reached",
+                """
+Your post was removed by a moderator because you have reached the limit of posts per user in 24 hours.
+
+Every ape may submit up to 7 posts in a 24 hour window, and you already had your fill. 
+Please take a little break before attempting to post again.  
+
+🦍🦍🦍🦍🦍🦍
+
+If you are repeatedly having posts/comments removed for rules violation, you will be banned either permanently or temporarily.
+
+If you feel this removal was unwarranted, please contact us via Mod Mail: https://www.reddit.com/message/compose?to=/r/Superstonk
+
+Thanks for being a member of r/Superstonk 💎🙌🚀
+""")
