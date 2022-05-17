@@ -22,14 +22,17 @@ from discord_output_logger import DiscordOutputLogger
 from hanami_mail_responder import Hanami
 from helper import reddit_helper
 from helper.redditor_extractor import extract_redditor
+from persistence.posts import Posts
 from redditItemHandler.flairy import Flairy
 from redditItemHandler.front_desk_sticky import FrontDeskSticky
 from redditItemHandler.important_reports import ImportantReports
 from redditItemHandler.post_count_limiter import PostCountLimiter
+from redditItemHandler.post_to_db import PostToDbHandler
 from streamer.streamer import Stream
 
 
 class SuperstonkModerationBot(Bot):
+
     reddit: asyncpraw.Reddit = None
     flairy_reddit: asyncpraw.Reddit = None
     subreddit: Optional[asyncpraw.reddit.Subreddit] = None
@@ -85,6 +88,9 @@ class SuperstonkModerationBot(Bot):
 
         self.ALL_REACTIONS = self.GENERIC_REACTIONS + self.USER_REACTIONS + self.FLAIR_REACTIONS
 
+        post_repo = Posts()
+        await post_repo.on_ready()
+
         Stream("Comments") \
             .from_input(self.subreddit.stream.comments) \
             .with_handlers([flairy]) \
@@ -97,7 +103,7 @@ class SuperstonkModerationBot(Bot):
 
         Stream("Posts") \
             .from_input(self.subreddit.stream.submissions) \
-            .with_handlers([PostCountLimiter(self), FrontDeskSticky(self)]) \
+            .with_handlers([PostToDbHandler(self, post_repo), PostCountLimiter(self, post_repo), FrontDeskSticky(self)]) \
             .start(self.loop)
 
         automod_config = await self.subreddit.wiki.get_page("config/automoderator")
