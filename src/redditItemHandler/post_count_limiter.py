@@ -36,7 +36,7 @@ class PostCountLimiter(Handler):
 
         if len(posts) > 7:
             self._logger.info(f"Oops, looks like {author_name} is posting a lot: {posts}")
-            sticky = item.reply(REMOVAL_COMMENT)
+            sticky = await item.reply(REMOVAL_COMMENT)
             sticky.mod.distinguish(how="yes", sticky=True)
             sticky.mod.ignore_reports()
 
