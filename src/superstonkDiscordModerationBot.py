@@ -201,18 +201,21 @@ if __name__ == "__main__":
     GUILD = int(config("GUILD"))
 
     asyncpraw_reddit = \
-        asyncpraw.Reddit(username=(config("reddit_username")), password=(config("reddit_password")),
+        asyncpraw.Reddit(username=(config("reddit_username")),
+                         password=(config("reddit_password")),
                          client_id=(config("reddit_client_id")),
                          client_secret=(config("reddit_client_secret")),
                          user_agent="com.halfdane.superstonk_moderation_bot:v0.1.2 (by u/half_dane)")
     flairy_asyncpraw_reddit = \
-        asyncpraw.Reddit(username=config("flairy_username"), password=config("flairy_password"),
+        asyncpraw.Reddit(username=config("flairy_username"),
+                         password=config("flairy_password"),
                          client_id=config("flairy_client_id"),
                          client_secret=config("flairy_client_secret"),
                          user_agent="com.halfdane.superstonk_flairy:v0.2.0 (by u/half_dane)")
 
     qvbot_asyncpraw_reddit = \
-        asyncpraw.Reddit(username=config("qvbot_username"), password=config("qvbot_password"),
+        asyncpraw.Reddit(username=config("qvbot_username"),
+                         password=config("qvbot_password"),
                          client_id=config("qvbot_client_id"),
                          client_secret=config("qvbot_client_secret"),
                          user_agent="com.halfdane.superstonk_qvbot:v0.1.0 (by u/half_dane)")

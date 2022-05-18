@@ -33,10 +33,10 @@ jobs:
           export flairy_username="${{ secrets.FLAIRY_USERNAME }}"
           export flairy_password="${{ secrets.FLAIRY_PASSWORD }}"
     
-          export qvbot_username="${{ secrets.QVBOT_CLIENT_ID }}"
-          export qvbot_password="${{ secrets.QVBOT_CLIENT_ID }}"
+          export qvbot_username="${{ secrets.QVBOT_USERNAME }}"
+          export qvbot_password="${{ secrets.QVBOT_PASSWORD }}"
           export qvbot_client_id="${{ secrets.QVBOT_CLIENT_ID }}"
-          export qvbot_client_secret="${{ secrets.QVBOT_CLIENT_ID }}"
+          export qvbot_client_secret="${{ secrets.QVBOT_CLIENT_SECRET }}"
           
           
           export GUILD="${{ secrets.GUILD }}"
@@ -46,9 +46,7 @@ jobs:
           export LOG_OUTPUT_CHANNEL="${{ secrets.LOG_OUTPUT_CHANNEL }}"
           
           export LOG_FILE=/var/log/superstonkDiscordModerationBot_`date +"%Y%m%d_%H%M"`.log
-          
-          env > out.txt
-          
+                    
           make >"${LOG_FILE}" 2>&1 &
           ln -sf "${LOG_FILE}" /var/log/superstonkDiscordModerationBot.log
           echo "That's all folks"
