@@ -2,7 +2,6 @@ import logging
 from collections import namedtuple
 from datetime import datetime
 from os.path import expanduser
-from pprint import pprint
 
 import aiosqlite
 
@@ -63,14 +62,20 @@ class Posts:
                 condition_statements.append('count_to_limit')
 
             if len(condition_statements) > 0:
-                statement = f"{statement} where "
+                statement = f'{statement} where {" and ".join(condition_statements)};'
 
-            statement = f'{statement} {" and ".join(condition_statements)};'
             async with db.execute(statement, condition_parameters) as cursor:
                 async for row in cursor:
                     Author = namedtuple("Author", "name")
                     Post = namedtuple("Post", "permalink author link_flair_text created_utc title score count_to_limit")
                     yield Post(row[0], Author(row[1]), row[2], row[3], row[4], row[5], row[6])
+
+    async def contains(self, post):
+        async with aiosqlite.connect(self.database) as db:
+            async with db.execute('select count(*) from POSTS where id=:permalink',
+                                  {'permalink': post.permalink}) as cursor:
+                rows = [row async for row in cursor]
+                return rows[0][0] >= 1
 
     async def do_not_count_to_limit(self, post):
         async with aiosqlite.connect(self.database) as db:

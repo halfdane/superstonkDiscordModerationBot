@@ -30,6 +30,9 @@ class PostCountLimiter(Handler):
         self.post_repo = post_repo
 
     async def take(self, item):
+        if await self.post_repo.contains(item):
+            return
+
         author_name = getattr(item.author, 'name', str(item.author))
         yesterday = datetime.utcnow() - timedelta(hours=24)
         posts = [p async for p in self.post_repo.fetch(author=author_name, since=yesterday, only_counting_to_limit=True)]

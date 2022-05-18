@@ -222,3 +222,22 @@ class TestPostDatabaseIntegration:
         posts = [post async for post in testee.fetch(only_counting_to_limit=True)]
         assert len(posts) == 1
         assert posts[0].permalink == f"perma3"
+
+    @pytest.mark.asyncio
+    async def test_database_contains(self):
+        # given
+        testee = Posts(test_db)
+        async with aiosqlite.connect(test_db) as db:
+            posts = [("perma1", "auth1", "flair1", "date1", "title1", "score1", True),
+                     ("perma2", "auth2", "flair2", "date2", "title2", "score2", False),
+                     ("perma3", "auth3", "flair3", "date3", "title3", "score3", True)]
+            await db.executemany('''
+                        INSERT INTO POSTS(id, author, flair, created_utc, title, score, count_to_limit) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?)''', posts)
+            await db.commit()
+
+        # when / then
+        PostWithId = namedtuple("Post", "permalink")
+        assert await testee.contains(PostWithId('perma1')) is True
+        assert await testee.contains(PostWithId('perma7')) is False
+
