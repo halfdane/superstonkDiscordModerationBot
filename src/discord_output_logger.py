@@ -9,7 +9,7 @@ class DiscordOutputLogger(logging.Handler):
         self.logging_output_channel = None
         self.asyncio_loop = None
 
-    def on_ready(self, logging_output_channel, asyncio_loop):
+    async def on_ready(self, logging_output_channel, asyncio_loop, **kwargs):
         self.logging_output_channel = logging_output_channel
         self.asyncio_loop = asyncio_loop
 

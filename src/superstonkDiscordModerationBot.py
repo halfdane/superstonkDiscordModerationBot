@@ -1,6 +1,7 @@
 import json
 import logging
 import re
+from pprint import pprint, pformat
 from typing import Optional
 
 import asyncpraw
@@ -37,9 +38,7 @@ class SuperstonkModerationBot(Bot):
     reddit: asyncpraw.Reddit = None
     flairy_reddit: asyncpraw.Reddit = None
     subreddit: Optional[asyncpraw.reddit.Subreddit] = None
-    report_channel = None
     flairy_channel = None
-    log_output_channel = None
     moderators = None
     logger = logging.getLogger(__name__)
     automod_rules = []
@@ -62,20 +61,31 @@ class SuperstonkModerationBot(Bot):
         self.COMPONENTS["qvbot_reddit"] = qvbot_reddit
 
     async def on_ready(self):
+        self.logger.info(f"{str(bot.user)} with id {str(bot.user.id)} is the discord user")
+        self.logger.info(f"{await self.COMPONENTS['readonly_reddit'].user.me()}: listening for reports on reddit")
+        self.logger.info(f"{await self.COMPONENTS['flairy_reddit'].user.me()}: handling flair requests on reddit")
+        self.logger.info(f"{await self.COMPONENTS['qvbot_reddit'].user.me()}: handling QV bot business on reddit")
+
         self.subreddit = await self.reddit.subreddit("Superstonk")
         self.COMPONENTS["superstonk_subreddit"] = self.subreddit
 
         self.COMPONENTS["superstonk_TEST_subreddit"] = await self.reddit.subreddit("testsubsuperstonk")
         self.COMPONENTS["superstonk_moderators"] = [moderator async for moderator in self.subreddit.moderator]
 
-        self.report_channel = self.get_channel(REPORTING_CHANNEL)
-        self.COMPONENTS["report_channel"] = self.report_channel
+        self.COMPONENTS["report_channel"] = self.get_channel(REPORTING_CHANNEL)
+        self.logger.info(f"{REPORTING_CHANNEL}: discord channel for reports")
 
-        self.flairy_channel = self.get_channel(FLAIRY_CHANNEL)
-        self.COMPONENTS["flairy_channel"] = self.flairy_channel
+        self.COMPONENTS["flairy_channel"] = self.get_channel(FLAIRY_CHANNEL)
+        self.logger.info(f"{FLAIRY_CHANNEL}: discord channel for flairy")
 
-        self.log_output_channel = self.get_channel(LOG_OUTPUT_CHANNEL)
-        self.COMPONENTS["log_output_channel"] = self.log_output_channel
+        self.COMPONENTS["logging_output_channel"] = self.get_channel(LOG_OUTPUT_CHANNEL)
+        self.logger.info(f"{LOG_OUTPUT_CHANNEL}: discord channel for debugging messages")
+
+        self.COMPONENTS["asyncio_loop"] = self.loop
+
+        post_repo = Posts()
+        await post_repo.on_ready()
+        self.COMPONENTS["post_repo"] = post_repo
 
         super().add_cog(UserCog(self, **self.COMPONENTS))
         super().add_cog(ModQueueCog(self, **self.COMPONENTS))
@@ -84,15 +94,9 @@ class SuperstonkModerationBot(Bot):
         await hanami.on_ready()
         super().add_cog(hanami)
 
-        discord_output_logging_handler.on_ready(self.log_output_channel, self.loop)
+        await discord_output_logging_handler.on_ready(**self.COMPONENTS)
 
-        self.logger.info(f"{str(bot.user)} with id {str(bot.user.id)} is the discord user")
         self.logger.info(f"{USER_INVESTIGATION_CHANNELS}: discord channel to listen for users")
-        self.logger.info(f"{REPORTING_CHANNEL}: discord channel for reports")
-        self.logger.info(f"{FLAIRY_CHANNEL}: discord channel for flairy")
-        self.logger.info(f"{LOG_OUTPUT_CHANNEL}: discord channel for debugging messages")
-        self.logger.info(f"{await self.reddit.user.me()}: listening for reports on reddit")
-        self.logger.info(f"{await self.flairy_reddit.user.me()}: handling flair requests on reddit")
 
         flairy = Flairy(self, **self.COMPONENTS)
 
@@ -101,10 +105,6 @@ class SuperstonkModerationBot(Bot):
         self.FLAIR_REACTIONS = (flairy,)
 
         self.ALL_REACTIONS = self.GENERIC_REACTIONS + self.USER_REACTIONS + self.FLAIR_REACTIONS
-
-        post_repo = Posts()
-        await post_repo.on_ready()
-        self.COMPONENTS["post_repo"] = post_repo
 
         Stream("Comments") \
             .from_input(self.subreddit.stream.comments) \
@@ -118,7 +118,7 @@ class SuperstonkModerationBot(Bot):
 
         Stream("Posts") \
             .from_input(self.subreddit.stream.submissions) \
-            .with_handlers([PostToDbHandler(self, post_repo), PostCountLimiter(self, **self.COMPONENTS), FrontDeskSticky(self)]) \
+            .with_handlers([PostToDbHandler(self, **self.COMPONENTS), PostCountLimiter(self, **self.COMPONENTS), FrontDeskSticky(self)]) \
             .start(self.loop)
 
         automod_config = await self.subreddit.wiki.get_page("config/automoderator")

@@ -16,6 +16,9 @@ class ImportantReports(Handler):
         super().__init__(bot)
         self.report_channel = report_channel
 
+    async def on_ready(self):
+        self._logger.info("Ready to handle important reports")
+
     async def take(self, item):
         user_report_count = sum([r[1] for r in item.user_reports])
         mod_report_count = len([r[1] for r in item.mod_reports if r[1] != "AutoModerator"])

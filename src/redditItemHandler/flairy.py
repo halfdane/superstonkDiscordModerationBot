@@ -22,11 +22,12 @@ class Flairy(Handler, Reaction):
 
     _default_color = "black"
 
-    def __init__(self, bot, superstonk_moderators=[], **kwargs):
+    def __init__(self, bot, superstonk_moderators=[], flairy_channel=None, **kwargs):
         Handler.__init__(self, bot)
         Reaction.__init__(self, bot)
 
         self.superstonk_moderators = superstonk_moderators
+        self.flairy_channel = flairy_channel
 
         flairy_reddit = getattr(bot, "flairy_reddit", None)
 
@@ -57,6 +58,9 @@ class Flairy(Handler, Reaction):
             SendFlairToDiscordCommand(self)
         ]
 
+    async def on_ready(self):
+        self._logger.info("Ready to handle flair requests")
+
     async def take(self, comment):
         body = getattr(comment, 'body', "")
         author = getattr(getattr(comment, "author", None), "name", None)
@@ -75,7 +79,7 @@ class Flairy(Handler, Reaction):
                     return
 
     async def handle_reaction(self, message, emoji, user, channel):
-        if channel != self.bot.flairy_channel:
+        if channel != self.flairy_channel:
             return
         comment = await self.bot.get_item(message)
         body = getattr(comment, 'body', "")
@@ -306,7 +310,7 @@ class FlairWasRecentlyRequestedCommand:
         if is_mod:
             return False
 
-        if await self._flairy._was_recently_posted(comment, self._flairy.bot.flairy_channel):
+        if await self._flairy._was_recently_posted(comment, self._flairy.flairy_channel):
             self._logger.info(f"skipping over recently handled flair request {permalink(comment)}")
             return True
         return False
@@ -360,7 +364,7 @@ class SendFlairToDiscordCommand:
             colour=disnake.Colour(0).from_rgb(207, 206, 255))
         e.description = f"[Flair Request: {escape_markdown(comment.body)}]({url})"
         e.add_field("Redditor", f"[{comment.author}](https://www.reddit.com/u/{comment.author})", inline=False)
-        msg = await self._flairy.bot.flairy_channel.send(embed=e)
+        msg = await self._flairy.flairy_channel.send(embed=e)
         await msg.add_reaction(self._flairy.emoji)
         await self._flairy.bot.add_reactions(msg)
         return True

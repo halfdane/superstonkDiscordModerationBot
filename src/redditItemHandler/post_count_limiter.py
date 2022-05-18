@@ -31,6 +31,9 @@ class PostCountLimiter(Handler):
         self.qvbot_reddit = qvbot_reddit
         self.report_channel = report_channel
 
+    async def on_ready(self):
+        self._logger.info("Ready to limit post count")
+
     async def take(self, item):
         if await self.post_repo.contains(item):
             return

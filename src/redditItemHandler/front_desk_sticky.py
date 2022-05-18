@@ -18,6 +18,9 @@ class FrontDeskSticky(Handler):
     def __init__(self, bot):
         super().__init__(bot)
 
+    async def on_ready(self):
+        self._logger.info("Ready to create a fresh Front Desk")
+
     async def take(self, item):
         if await self.needs_front_desk(item):
             await asyncio.sleep(randint(30, 600))
