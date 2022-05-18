@@ -33,6 +33,12 @@ jobs:
           export flairy_client_secret="${{ secrets.FLAIRY_CLIENT_SECRET }}"
           export flairy_username="${{ secrets.FLAIRY_USERNAME }}"
           export flairy_password="${{ secrets.FLAIRY_PASSWORD }}"
+    
+          export qvbot_username="${{ secrets.QVBOT_CLIENT_ID }}"
+          export qvbot_password="${{ secrets.QVBOT_CLIENT_ID }}"
+          export qvbot_client_id="${{ secrets.QVBOT_CLIENT_ID }}"
+          export qvbot_client_secret="${{ secrets.QVBOT_CLIENT_ID }}"
+          
           
           export GUILD="${{ secrets.GUILD }}"
           export REPORTING_CHANNEL="${{ secrets.REPORTING_CHANNEL }}"

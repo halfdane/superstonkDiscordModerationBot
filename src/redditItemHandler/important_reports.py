@@ -12,6 +12,10 @@ RULE_1 = re.compile(r"rule\s*1", re.IGNORECASE)
 
 class ImportantReports(Handler):
 
+    def __init__(self, bot, report_channel, **kwargs):
+        super().__init__(bot)
+        self.report_channel = report_channel
+
     async def take(self, item):
         user_report_count = sum([r[1] for r in item.user_reports])
         mod_report_count = len([r[1] for r in item.mod_reports if r[1] != "AutoModerator"])
@@ -26,14 +30,14 @@ class ImportantReports(Handler):
         if len(mods_reporting_rule_1) > 0:
             await self.__send_ban_list(mods_reporting_rule_1, item)
         elif user_report_count >= lots_of_reports or mod_report_count > 0:
-            if await self._was_recently_posted(item, self.bot.report_channel):
+            if await self._was_recently_posted(item, self.report_channel):
                 self._logger.info(f"skipping over recently handled report {permalink(item)}")
                 return
 
             await item.load()
             self._logger.info(f"Sending reported item {permalink(item)}")
             embed = Embed.from_dict(self.__create_embed(item))
-            msg = await self.bot.report_channel.send(embed=embed)
+            msg = await self.report_channel.send(embed=embed)
             await self.bot.add_reactions(msg)
 
     def __create_embed(self, item):

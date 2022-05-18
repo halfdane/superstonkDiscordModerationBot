@@ -67,7 +67,9 @@ class TestPostCountLimiter:
 
         mock_reddit = AsyncMock()
 
-        testee = PostCountLimiter(bot=mock_bot, post_repo=mock_post_repo, qvbot_reddit=mock_reddit)
+        mock_report_channel = AsyncMock()
+
+        testee = PostCountLimiter(bot=mock_bot, post_repo=mock_post_repo, qvbot_reddit=mock_reddit, report_channel=mock_report_channel)
 
         # when
         a_fake_post = fake_post()
@@ -85,4 +87,4 @@ class TestPostCountLimiter:
 
         mock_post_repo.do_not_count_to_limit.assert_awaited_with(a_fake_post)
 
-        mock_bot.report_channel.send.assert_awaited()
+        mock_report_channel.send.assert_awaited()

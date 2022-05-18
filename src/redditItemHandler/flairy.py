@@ -1,15 +1,12 @@
 import logging
+import random
 import re
 
-import asyncpraw.models
 import disnake
+from disnake.utils import escape_markdown
 
 from discordReaction.abstract_reaction import Reaction
 from redditItemHandler import Handler
-from disnake.utils import escape_markdown
-
-import random
-
 from redditItemHandler.abstract_handler import permalink
 
 
@@ -25,9 +22,11 @@ class Flairy(Handler, Reaction):
 
     _default_color = "black"
 
-    def __init__(self, bot):
+    def __init__(self, bot, superstonk_moderators=[], **kwargs):
         Handler.__init__(self, bot)
         Reaction.__init__(self, bot)
+
+        self.superstonk_moderators = superstonk_moderators
 
         flairy_reddit = getattr(bot, "flairy_reddit", None)
 
@@ -66,7 +65,7 @@ class Flairy(Handler, Reaction):
             return
 
         if self.detect_flairy_command.search(body):
-            is_mod = author in self.bot.moderators + ["Roid_Rage_Smurf"]
+            is_mod = author in self.superstonk_moderators + ["Roid_Rage_Smurf"]
 
             self._logger.info(
                 f"seems to be a flairy command from {author}. Treat like mod? {is_mod} {permalink(comment)}")
@@ -270,7 +269,8 @@ class FlairTooLongCommand:
         flairy = self._flairy.flairy_detect_user_flair_change.match(body)
         flair_text = flairy.group(1)
         if len(flair_text) > 63:
-            comment_from_flairies_view = await self._flairy.bot.flairy_reddit.comment(comment.id, fetch=False)
+            flairy_reddit = self._flairy.bot.flairy_reddit
+            comment_from_flairies_view = await flairy_reddit.comment(comment.id, fetch=False)
             message = "(ノಠ益ಠ)ノ彡┻━┻ THE FLAIR TEXT IS TOO LONG!   \nPlease use less than 64 unicode characters"
             self._logger.info(f"Too long: {permalink(comment)}")
             await comment_from_flairies_view.reply(message)

@@ -66,9 +66,7 @@ class SuperstonkModerationBot(Bot):
         self.COMPONENTS["superstonk_subreddit"] = self.subreddit
 
         self.COMPONENTS["superstonk_TEST_subreddit"] = await self.reddit.subreddit("testsubsuperstonk")
-
-        self.moderators = [moderator async for moderator in self.subreddit.moderator]
-        self.COMPONENTS["superstonk_moderators"] = self.moderators
+        self.COMPONENTS["superstonk_moderators"] = [moderator async for moderator in self.subreddit.moderator]
 
         self.report_channel = self.get_channel(REPORTING_CHANNEL)
         self.COMPONENTS["report_channel"] = self.report_channel
@@ -96,7 +94,7 @@ class SuperstonkModerationBot(Bot):
         self.logger.info(f"{await self.reddit.user.me()}: listening for reports on reddit")
         self.logger.info(f"{await self.flairy_reddit.user.me()}: handling flair requests on reddit")
 
-        flairy = Flairy(self)
+        flairy = Flairy(self, **self.COMPONENTS)
 
         self.GENERIC_REACTIONS = (HelpReaction(self), WipReaction(self), DeleteReaction(self))
         self.USER_REACTIONS = (ModNoteReaction(self), UserHistoryReaction(self))
@@ -115,7 +113,7 @@ class SuperstonkModerationBot(Bot):
 
         Stream("Reports") \
             .from_input(self.subreddit.mod.stream.reports) \
-            .with_handlers([ImportantReports(self)]) \
+            .with_handlers([ImportantReports(self, **self.COMPONENTS)]) \
             .start(self.loop)
 
         Stream("Posts") \

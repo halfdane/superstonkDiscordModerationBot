@@ -25,10 +25,11 @@ Thanks for being a member of r/Superstonk 💎🙌🚀
 class PostCountLimiter(Handler):
     _interval = timedelta(hours=24)
 
-    def __init__(self, bot, post_repo=None, qvbot_reddit=None, **kwargs):
+    def __init__(self, bot, post_repo=None, qvbot_reddit=None, report_channel=None, **kwargs):
         super().__init__(bot)
         self.post_repo = post_repo
         self.qvbot_reddit = qvbot_reddit
+        self.report_channel = report_channel
 
     async def take(self, item):
         if await self.post_repo.contains(item):
@@ -55,5 +56,5 @@ class PostCountLimiter(Handler):
         embed.description = f"**Prevented {author} from posting {permalink(item)}**  \n"
         embed.add_field("Redditor", f"[{author}](https://www.reddit.com/u/{author})", inline=False)
 
-        msg = await self.bot.report_channel.send(embed=embed)
+        msg = await self.report_channel.send(embed=embed)
         await self.bot.add_reactions(msg)
