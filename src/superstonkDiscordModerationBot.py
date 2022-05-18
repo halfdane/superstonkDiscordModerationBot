@@ -32,7 +32,6 @@ from streamer.streamer import Stream
 
 
 class SuperstonkModerationBot(Bot):
-
     COMPONENTS = dict()
 
     reddit: asyncpraw.Reddit = None
@@ -49,7 +48,7 @@ class SuperstonkModerationBot(Bot):
     FLAIR_REACTIONS = None
     ALL_REACTIONS = None
 
-    def __init__(self, reddit, flairy_reddit, **options):
+    def __init__(self, reddit, flairy_reddit, qvbot_reddit, **options):
         super().__init__(command_prefix='>',
                          description="Moderation bot for Superstonk.",
                          sync_commands_debug=True,
@@ -59,6 +58,8 @@ class SuperstonkModerationBot(Bot):
 
         self.flairy_reddit: asyncpraw.Reddit = flairy_reddit
         self.COMPONENTS["flairy_reddit"] = self.flairy_reddit
+
+        self.COMPONENTS["qvbot_reddit"] = qvbot_reddit
 
     async def on_ready(self):
         self.subreddit = await self.reddit.subreddit("Superstonk")
@@ -105,6 +106,7 @@ class SuperstonkModerationBot(Bot):
 
         post_repo = Posts()
         await post_repo.on_ready()
+        self.COMPONENTS["post_repo"] = post_repo
 
         Stream("Comments") \
             .from_input(self.subreddit.stream.comments) \
@@ -118,7 +120,7 @@ class SuperstonkModerationBot(Bot):
 
         Stream("Posts") \
             .from_input(self.subreddit.stream.submissions) \
-            .with_handlers([PostToDbHandler(self, post_repo), PostCountLimiter(self, post_repo), FrontDeskSticky(self)]) \
+            .with_handlers([PostToDbHandler(self, post_repo), PostCountLimiter(self, **self.COMPONENTS), FrontDeskSticky(self)]) \
             .start(self.loop)
 
         automod_config = await self.subreddit.wiki.get_page("config/automoderator")
@@ -209,13 +211,21 @@ if __name__ == "__main__":
         asyncpraw.Reddit(username=config("flairy_username"), password=config("flairy_password"),
                          client_id=config("flairy_client_id"),
                          client_secret=config("flairy_client_secret"),
-                         user_agent="desktop:com.halfdane.superstonk_flairy:v0.2.0 (by u/half_dane)")
+                         user_agent="com.halfdane.superstonk_flairy:v0.2.0 (by u/half_dane)")
+
+    qvbot_asyncpraw_reddit = \
+        asyncpraw.Reddit(username=config("qvbot_username"), password=config("qvbot_password"),
+                         client_id=config("qvbot_client_id"),
+                         client_secret=config("qvbot_client_secret"),
+                         user_agent="com.halfdane.superstonk_qvbot:v0.1.0 (by u/half_dane)")
 
     with asyncpraw_reddit as reddit:
         with flairy_asyncpraw_reddit as flairy_reddit:
-            bot = SuperstonkModerationBot(
-                reddit=reddit,
-                flairy_reddit=flairy_reddit,
-                test_guilds=[GUILD]
-            )
-            bot.run(DISCORD_BOT_TOKEN)
+            with qvbot_asyncpraw_reddit as qvbot_reddit:
+                bot = SuperstonkModerationBot(
+                    reddit=reddit,
+                    flairy_reddit=flairy_reddit,
+                    qvbot_reddit=qvbot_reddit,
+                    test_guilds=[GUILD]
+                )
+                bot.run(DISCORD_BOT_TOKEN)

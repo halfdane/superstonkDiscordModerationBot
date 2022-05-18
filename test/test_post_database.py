@@ -64,7 +64,6 @@ class TestPostDatabaseIntegration:
             async with db.execute("select * from POSTS") as cursor:
                 rows = [row async for row in cursor]
                 assert len(rows) == 3
-                pprint(rows)
                 assert ("perma1", "auth1", "flair1", "date1", "title1", "score1", "cnt1") in rows
                 assert ("perma2", "auth2", "flair2", "date2", "title2", "score2", True) in rows
                 assert ("perma3", "auth3", "flair3", "date3", "title3", "score3", "cnt3") in rows
@@ -83,7 +82,7 @@ class TestPostDatabaseIntegration:
 
         # when
         testee = Posts(test_db)
-        posts = [post async for post in testee.fetch()]
+        posts = await testee.fetch()
 
         # then
         assert len(posts) == 3
@@ -110,7 +109,7 @@ class TestPostDatabaseIntegration:
 
         # when
         testee = Posts(test_db)
-        posts = [post async for post in testee.fetch(author="auth1")]
+        posts = await testee.fetch(author="auth1")
 
         # then
         assert len(posts) == 2
@@ -140,7 +139,7 @@ class TestPostDatabaseIntegration:
         # when
         four_days_ago = now - timedelta(days=4)
         testee = Posts(test_db)
-        posts = [post async for post in testee.fetch(since=four_days_ago)]
+        posts = await testee.fetch(since=four_days_ago)
 
         # then
         assert len(posts) == 2
@@ -162,7 +161,7 @@ class TestPostDatabaseIntegration:
 
         # when
         testee = Posts(test_db)
-        posts = [post async for post in testee.fetch(only_counting_to_limit=True)]
+        posts = await testee.fetch(only_counting_to_limit=True)
 
         # then
         assert len(posts) == 2
@@ -189,7 +188,7 @@ class TestPostDatabaseIntegration:
         # when
         four_days_ago = now - timedelta(days=4)
         testee = Posts(test_db)
-        posts = [post async for post in testee.fetch(since=four_days_ago, author='auth3')]
+        posts = await testee.fetch(since=four_days_ago, author='auth3')
 
         # then
         assert len(posts) == 1
@@ -208,7 +207,7 @@ class TestPostDatabaseIntegration:
                         VALUES (?, ?, ?, ?, ?, ?, ?)''', posts)
             await db.commit()
 
-        posts = [post async for post in testee.fetch(only_counting_to_limit=True)]
+        posts = await testee.fetch(only_counting_to_limit=True)
         assert len(posts) == 2
         assert posts[0].permalink == f"perma1"
         assert posts[1].permalink == f"perma3"
@@ -219,7 +218,7 @@ class TestPostDatabaseIntegration:
         await testee.do_not_count_to_limit(PostWithId('perma1'))
 
         # then
-        posts = [post async for post in testee.fetch(only_counting_to_limit=True)]
+        posts = await testee.fetch(only_counting_to_limit=True)
         assert len(posts) == 1
         assert posts[0].permalink == f"perma3"
 

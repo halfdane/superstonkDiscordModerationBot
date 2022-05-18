@@ -1,11 +1,12 @@
-from superstonkDiscordModerationBot import SuperstonkModerationBot
 from redditItemHandler.flairy import Flairy
-from unittest.mock import patch, Mock, AsyncMock, MagicMock
-from asyncpraw.models import Comment
+from unittest.mock import patch, AsyncMock, MagicMock
+
 import pytest
 
+from redditItemHandler.flairy import Flairy
 
-class TestFlairyRegex:
+
+class TestFlairy:
 
     def default_bot(self, mock_bot):
         mock_bot.flairy_reddit.comment = AsyncMock()

@@ -64,11 +64,10 @@ class Posts:
             if len(condition_statements) > 0:
                 statement = f'{statement} where {" and ".join(condition_statements)};'
 
+            Author = namedtuple("Author", "name")
+            Post = namedtuple("Post", "permalink author link_flair_text created_utc title score count_to_limit")
             async with db.execute(statement, condition_parameters) as cursor:
-                async for row in cursor:
-                    Author = namedtuple("Author", "name")
-                    Post = namedtuple("Post", "permalink author link_flair_text created_utc title score count_to_limit")
-                    yield Post(row[0], Author(row[1]), row[2], row[3], row[4], row[5], row[6])
+                return [Post(row[0], Author(row[1]), row[2], row[3], row[4], row[5], row[6]) async for row in cursor]
 
     async def contains(self, post):
         async with aiosqlite.connect(self.database) as db:

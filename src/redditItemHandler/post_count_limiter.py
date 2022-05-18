@@ -25,9 +25,10 @@ Thanks for being a member of r/Superstonk 💎🙌🚀
 class PostCountLimiter(Handler):
     _interval = timedelta(hours=24)
 
-    def __init__(self, bot, post_repo=None):
+    def __init__(self, bot, post_repo=None, qvbot_reddit=None, **kwargs):
         super().__init__(bot)
         self.post_repo = post_repo
+        self.qvbot_reddit = qvbot_reddit
 
     async def take(self, item):
         if await self.post_repo.contains(item):
@@ -35,15 +36,17 @@ class PostCountLimiter(Handler):
 
         author_name = getattr(item.author, 'name', str(item.author))
         yesterday = datetime.utcnow() - timedelta(hours=24)
-        posts = [p async for p in self.post_repo.fetch(author=author_name, since=yesterday, only_counting_to_limit=True)]
+        posts = await self.post_repo.fetch(author=author_name, since=yesterday, only_counting_to_limit=True)
 
         if len(posts) > 7:
             self._logger.info(f"Oops, looks like {author_name} is posting a lot: {posts}")
-            sticky = await item.reply(REMOVAL_COMMENT)
-            sticky.mod.distinguish(how="yes", sticky=True)
-            sticky.mod.ignore_reports()
+            item_from_qvbot_view = await self.qvbot_reddit.submission(item.id, fetch=False)
 
-            await item.mod.remove(spam=True, mod_note="post count limit reached")
+            sticky = await item_from_qvbot_view.reply(REMOVAL_COMMENT)
+            await sticky.mod.distinguish(how="yes", sticky=True)
+            await sticky.mod.ignore_reports()
+            await item_from_qvbot_view.mod.remove(spam=False, mod_note="post count limit reached")
+
             await self.post_repo.do_not_count_to_limit(item)
             await self.report_infraction(author_name, item)
 
