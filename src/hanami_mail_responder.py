@@ -29,9 +29,9 @@ class LemmaTokenizer:
 
 class Hanami(commands.Cog):
 
-    def __init__(self, subreddit=None, config=None):
+    def __init__(self, superstonk_TEST_subreddit=None, config=None, **kwargs):
         self._logger = logging.getLogger(self.__class__.__name__)
-        self.subreddit = subreddit
+        self.subreddit = superstonk_TEST_subreddit
         self.hanami_configs = re.compile(r'hanami_config/(.+)')
         self.tokenizer = LemmaTokenizer()
         self.config = config

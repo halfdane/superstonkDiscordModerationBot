@@ -3,13 +3,13 @@ import re
 import disnake
 from disnake.ext import commands
 
-import discordReaction
 from helper.redditor_history import redditor_history
 
 
 class UserCog(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot, readonly_reddit, **kwargs):
         self._bot = bot
+        self.readonly_reddit = readonly_reddit
 
     @commands.slash_command(
         description="Display some helpful links for the given redditor.",
@@ -26,7 +26,7 @@ class UserCog(commands.Cog):
         elif m := re.match(r'u/(.*)', redditor):
             redditor = m.group(1)
 
-        redditor = await self._bot.reddit.redditor(redditor)
+        redditor = await self.readonly_reddit.redditor(redditor)
         history = await redditor_history(redditor)
 
         e = disnake.Embed(colour=disnake.Colour(0).from_rgb(207, 206, 255))

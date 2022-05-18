@@ -33,6 +33,8 @@ from streamer.streamer import Stream
 
 class SuperstonkModerationBot(Bot):
 
+    COMPONENTS = dict()
+
     reddit: asyncpraw.Reddit = None
     flairy_reddit: asyncpraw.Reddit = None
     subreddit: Optional[asyncpraw.reddit.Subreddit] = None
@@ -47,28 +49,41 @@ class SuperstonkModerationBot(Bot):
     FLAIR_REACTIONS = None
     ALL_REACTIONS = None
 
-    def __init__(self, **options):
+    def __init__(self, reddit, flairy_reddit, **options):
         super().__init__(command_prefix='>',
                          description="Moderation bot for Superstonk.",
                          sync_commands_debug=True,
                          **options)
-        self.reddit: asyncpraw.Reddit = options.get("reddit")
-        self.flairy_reddit: asyncpraw.Reddit = options.get("flairy_reddit")
+        self.reddit: asyncpraw.Reddit = reddit
+        self.COMPONENTS["readonly_reddit"] = self.reddit
+
+        self.flairy_reddit: asyncpraw.Reddit = flairy_reddit
+        self.COMPONENTS["flairy_reddit"] = self.flairy_reddit
 
     async def on_ready(self):
         self.subreddit = await self.reddit.subreddit("Superstonk")
+        self.COMPONENTS["superstonk_subreddit"] = self.subreddit
+
+        self.COMPONENTS["superstonk_TEST_subreddit"] = await self.reddit.subreddit("testsubsuperstonk")
+
         self.moderators = [moderator async for moderator in self.subreddit.moderator]
+        self.COMPONENTS["superstonk_moderators"] = self.moderators
+
         self.report_channel = self.get_channel(REPORTING_CHANNEL)
+        self.COMPONENTS["report_channel"] = self.report_channel
+
         self.flairy_channel = self.get_channel(FLAIRY_CHANNEL)
+        self.COMPONENTS["flairy_channel"] = self.flairy_channel
+
         self.log_output_channel = self.get_channel(LOG_OUTPUT_CHANNEL)
+        self.COMPONENTS["log_output_channel"] = self.log_output_channel
 
-        super().add_cog(UserCog(self))
-        super().add_cog(ModQueueCog(self))
+        super().add_cog(UserCog(self, **self.COMPONENTS))
+        super().add_cog(ModQueueCog(self, **self.COMPONENTS))
 
-        hanami = Hanami(await self.reddit.subreddit("testsubsuperstonk"))
+        hanami = Hanami(**self.COMPONENTS)
         await hanami.on_ready()
         super().add_cog(hanami)
-
 
         discord_output_logging_handler.on_ready(self.log_output_channel, self.loop)
 

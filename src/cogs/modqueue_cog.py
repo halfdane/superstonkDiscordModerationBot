@@ -5,17 +5,16 @@ from datetime import datetime
 import disnake
 from disnake.ext import commands
 
-import discordReaction
-
 
 class ModQueueCog(commands.Cog):
-    def __init__(self, discord_bot):
+    def __init__(self, discord_bot, superstonk_subreddit, **kwargs):
         self._bot = discord_bot
+        self.superstonk_subreddit = superstonk_subreddit
 
     async def fetch_modqueue(self, type):
         modqueue = []
         weights = []
-        async for item in self._bot.subreddit.mod.modqueue(limit=None, only=type):
+        async for item in self.superstonk_subreddit.mod.modqueue(limit=None, only=type):
             if getattr(item, 'approved', False) or getattr(item, 'removed_by_category', None) is not None:
                 continue
 
