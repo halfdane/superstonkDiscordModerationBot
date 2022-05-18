@@ -22,7 +22,6 @@ jobs:
           cd superstonkDiscordModerationBot
           git pull --rebase
           export discord_bot_token="${{ secrets.DISCORD_BOT_TOKEN }}"
-          export target_subreddit="${{ secrets.REDDIT_CLIENT_SECRET }}"
           
           export reddit_client_id="${{ secrets.REDDIT_CLIENT_ID }}"
           export reddit_client_secret="${{ secrets.REDDIT_CLIENT_SECRET }}"
@@ -47,6 +46,9 @@ jobs:
           export LOG_OUTPUT_CHANNEL="${{ secrets.LOG_OUTPUT_CHANNEL }}"
           
           export LOG_FILE=/var/log/superstonkDiscordModerationBot_`date +"%Y%m%d_%H%M"`.log
+          
+          env > out.txt
+          
           make >"${LOG_FILE}" 2>&1 &
           ln -sf "${LOG_FILE}" /var/log/superstonkDiscordModerationBot.log
           echo "That's all folks"
