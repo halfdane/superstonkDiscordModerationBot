@@ -25,11 +25,12 @@ Thanks for being a member of r/Superstonk 💎🙌🚀
 class PostCountLimiter(Handler):
     _interval = timedelta(hours=24)
 
-    def __init__(self, bot, post_repo=None, qvbot_reddit=None, report_channel=None, **kwargs):
+    def __init__(self, bot, post_repo=None, qvbot_reddit=None, report_channel=None, environment=None, **kwargs):
         super().__init__(bot)
         self.post_repo = post_repo
         self.qvbot_reddit = qvbot_reddit
         self.report_channel = report_channel
+        self.environment = environment
 
     async def on_ready(self):
         self._logger.info("Ready to limit post count")
@@ -44,10 +45,11 @@ class PostCountLimiter(Handler):
             self._logger.info(f"Oops, looks like {author_name} is posting a lot: {posts}")
             item_from_qvbot_view = await self.qvbot_reddit.submission(item.id, fetch=False)
 
-            sticky = await item_from_qvbot_view.reply(REMOVAL_COMMENT)
-            await sticky.mod.distinguish(how="yes", sticky=True)
-            await sticky.mod.ignore_reports()
-            await item_from_qvbot_view.mod.remove(spam=False, mod_note="post count limit reached")
+            if self.environment == 'live':
+                sticky = await item_from_qvbot_view.reply(REMOVAL_COMMENT)
+                await sticky.mod.distinguish(how="yes", sticky=True)
+                await sticky.mod.ignore_reports()
+                await item_from_qvbot_view.mod.remove(spam=False, mod_note="post count limit reached")
 
             await self.post_repo.do_not_count_to_limit(item)
             await self.report_infraction(author_name, item)

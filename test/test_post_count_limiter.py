@@ -24,7 +24,7 @@ class TestPostCountLimiter:
 
         mock_reddit = AsyncMock()
 
-        testee = PostCountLimiter(bot=mock_bot, post_repo=mock_post_repo, qvbot_reddit=mock_reddit)
+        testee = PostCountLimiter(bot=mock_bot, post_repo=mock_post_repo, qvbot_reddit=mock_reddit, environment="live")
 
         # when
         await testee.take(fake_post())
@@ -45,7 +45,7 @@ class TestPostCountLimiter:
 
         mock_reddit = AsyncMock()
 
-        testee = PostCountLimiter(bot=mock_bot, post_repo=mock_post_repo, qvbot_reddit=mock_reddit)
+        testee = PostCountLimiter(bot=mock_bot, post_repo=mock_post_repo, qvbot_reddit=mock_reddit, environment="live")
 
         # when
         await testee.take(fake_post())
@@ -55,6 +55,9 @@ class TestPostCountLimiter:
         mock_post_repo.do_not_count_to_limit.assert_not_called()
         mock_reddit.comment.assert_not_called()
         mock_bot.report_channel.send.assert_not_called()
+
+        mock_submission = mock_reddit.submission.return_value
+        mock_submission.mod.remove.assert_not_awaited()
 
     @pytest.mark.asyncio
     async def test_over_limit(self):
@@ -70,7 +73,7 @@ class TestPostCountLimiter:
         mock_report_channel = AsyncMock()
 
         testee = PostCountLimiter(bot=mock_bot, post_repo=mock_post_repo, qvbot_reddit=mock_reddit,
-                                  report_channel=mock_report_channel)
+                                  report_channel=mock_report_channel, environment="live")
 
         # when
         a_fake_post = fake_post()
@@ -89,3 +92,28 @@ class TestPostCountLimiter:
         mock_post_repo.do_not_count_to_limit.assert_awaited_with(a_fake_post)
 
         mock_report_channel.send.assert_awaited()
+
+    @pytest.mark.asyncio
+    async def test_ignore_over_limit_if_environment_isnt_live(self):
+        # given
+        mock_bot = AsyncMock()
+
+        mock_post_repo = AsyncMock()
+        mock_post_repo.fetch.return_value = [fake_post(f'{i}') for i in range(8)]
+
+        mock_reddit = AsyncMock()
+
+        mock_report_channel = AsyncMock()
+
+        testee = PostCountLimiter(bot=mock_bot, post_repo=mock_post_repo, qvbot_reddit=mock_reddit,
+                                  report_channel=mock_report_channel, environment="local")
+        # when
+        await testee.take(fake_post())
+
+        # then
+        mock_submission = mock_reddit.submission.return_value
+        mock_submission.mod.remove.assert_not_awaited()
+
+        mock_reddit.comment.assert_not_called()
+
+

@@ -85,7 +85,7 @@ class SuperstonkModerationBot(Bot):
         self.COMPONENTS["add_reactions_to_discord_message"] = self.add_reactions
         self.COMPONENTS["get_discord_cogs"] = lambda: self.cogs
         self.COMPONENTS["discord_bot_user"] = self.user
-
+        self.COMPONENTS["environment"] = ENVIRONMENT
 
         post_repo = Posts()
         await post_repo.on_ready()
@@ -205,6 +205,8 @@ if __name__ == "__main__":
     USER_INVESTIGATION_CHANNELS = int(config("USER_INVESTIGATION_CHANNELS"))
 
     GUILD = int(config("GUILD"))
+
+    ENVIRONMENT = config("environment")
 
     asyncpraw_reddit = \
         asyncpraw.Reddit(username=(config("reddit_username")),

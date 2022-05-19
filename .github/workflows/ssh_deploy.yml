@@ -38,6 +38,7 @@ jobs:
           export qvbot_client_id="${{ secrets.QVBOT_CLIENT_ID }}"
           export qvbot_client_secret="${{ secrets.QVBOT_CLIENT_SECRET }}"
           
+          export environment="${{ secrets.ENVIRONMENT }}"
           
           export GUILD="${{ secrets.GUILD }}"
           export REPORTING_CHANNEL="${{ secrets.REPORTING_CHANNEL }}"
