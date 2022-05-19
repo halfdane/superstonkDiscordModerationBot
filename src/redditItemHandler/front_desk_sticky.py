@@ -15,8 +15,8 @@ class FrontDeskSticky(Handler):
 [Voting Megathread](https://www.reddit.com/r/Superstonk/comments/uddedr)
 """
 
-    def __init__(self, bot):
-        super().__init__(bot)
+    def __init__(self, **kwargs):
+        super().__init__(None)
 
     async def on_ready(self):
         self._logger.info("Ready to create a fresh Front Desk")

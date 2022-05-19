@@ -23,7 +23,9 @@ from discord_output_logger import DiscordOutputLogger
 from hanami_mail_responder import Hanami
 from helper import reddit_helper
 from helper.redditor_extractor import extract_redditor
+from persistence.comments import Comments
 from persistence.posts import Posts
+from redditItemHandler.comment_to_db import CommentToDbHandler
 from redditItemHandler.flairy import Flairy
 from redditItemHandler.front_desk_sticky import FrontDeskSticky
 from redditItemHandler.important_reports import ImportantReports
@@ -61,7 +63,9 @@ class SuperstonkModerationBot(Bot):
         self.COMPONENTS["qvbot_reddit"] = qvbot_reddit
 
     async def on_ready(self):
-        self.logger.info(f"{str(bot.user)} with id {str(bot.user.id)} is the discord user")
+        self.COMPONENTS["discord_bot_user"] = self.user
+        self.logger.info(f"{self.COMPONENTS['discord_bot_user']} with id {self.COMPONENTS['discord_bot_user'].id} is the discord user")
+
         self.logger.info(f"{await self.COMPONENTS['readonly_reddit'].user.me()}: listening for reports on reddit")
         self.logger.info(f"{await self.COMPONENTS['flairy_reddit'].user.me()}: handling flair requests on reddit")
         self.logger.info(f"{await self.COMPONENTS['qvbot_reddit'].user.me()}: handling QV bot business on reddit")
@@ -91,6 +95,10 @@ class SuperstonkModerationBot(Bot):
         await post_repo.on_ready()
         self.COMPONENTS["post_repo"] = post_repo
 
+        comment_repo = Comments()
+        await comment_repo.on_ready()
+        self.COMPONENTS["comment_repo"] = comment_repo
+
         super().add_cog(UserCog(**self.COMPONENTS))
         super().add_cog(ModQueueCog(**self.COMPONENTS))
 
@@ -112,20 +120,21 @@ class SuperstonkModerationBot(Bot):
 
         Stream("Comments") \
             .from_input(self.subreddit.stream.comments) \
+            .add_handler(CommentToDbHandler(**self.COMPONENTS)) \
             .add_handler(flairy) \
-            .start(self.loop)
+            .start(**self.COMPONENTS)
 
         Stream("Reports") \
             .from_input(self.subreddit.mod.stream.reports) \
             .add_handler(ImportantReports(**self.COMPONENTS)) \
-            .start(self.loop)
+            .start(**self.COMPONENTS)
 
         Stream("Posts") \
             .from_input(self.subreddit.stream.submissions) \
-            .add_handler(PostToDbHandler(self, **self.COMPONENTS)) \
-            .add_handler(PostCountLimiter(self, **self.COMPONENTS)) \
-            .add_handler(FrontDeskSticky(self)) \
-            .start(self.loop)
+            .add_handler(PostToDbHandler(**self.COMPONENTS)) \
+            .add_handler(PostCountLimiter(**self.COMPONENTS)) \
+            .add_handler(FrontDeskSticky()) \
+            .start(**self.COMPONENTS)
 
         automod_config = await self.subreddit.wiki.get_page("config/automoderator")
         for rule in automod_config.content_md.split("---"):

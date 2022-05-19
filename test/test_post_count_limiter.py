@@ -17,14 +17,12 @@ class TestPostCountLimiter:
     @pytest.mark.asyncio
     async def test_not_limited(self):
         # given
-        mock_bot = AsyncMock()
-
         mock_post_repo = AsyncMock()
         mock_post_repo.contains.return_value = False
 
         mock_reddit = AsyncMock()
 
-        testee = PostCountLimiter(bot=mock_bot, post_repo=mock_post_repo, qvbot_reddit=mock_reddit, environment="live")
+        testee = PostCountLimiter(post_repo=mock_post_repo, qvbot_reddit=mock_reddit, environment="live")
 
         # when
         await testee.take(fake_post())
@@ -33,19 +31,16 @@ class TestPostCountLimiter:
         mock_post_repo.fetch.assert_called()
         mock_post_repo.do_not_count_to_limit.assert_not_called()
         mock_reddit.comment.assert_not_called()
-        mock_bot.report_channel.send.assert_not_called()
 
     @pytest.mark.asyncio
     async def test_ignore_removed_posts(self):
         # given
-        mock_bot = AsyncMock()
-
         mock_post_repo = AsyncMock()
         mock_post_repo.fetch.return_value = [fake_post(f'{i}', count_to_limit=(i%2)==0) for i in range(8)]
 
         mock_reddit = AsyncMock()
 
-        testee = PostCountLimiter(bot=mock_bot, post_repo=mock_post_repo, qvbot_reddit=mock_reddit, environment="live")
+        testee = PostCountLimiter(post_repo=mock_post_repo, qvbot_reddit=mock_reddit, environment="live")
 
         # when
         await testee.take(fake_post())
@@ -54,7 +49,6 @@ class TestPostCountLimiter:
         mock_post_repo.fetch.assert_called()
         mock_post_repo.do_not_count_to_limit.assert_not_called()
         mock_reddit.comment.assert_not_called()
-        mock_bot.report_channel.send.assert_not_called()
 
         mock_submission = mock_reddit.submission.return_value
         mock_submission.mod.remove.assert_not_awaited()
@@ -62,8 +56,6 @@ class TestPostCountLimiter:
     @pytest.mark.asyncio
     async def test_over_limit(self):
         # given
-        mock_bot = AsyncMock()
-
         mock_post_repo = AsyncMock()
         mock_post_repo.contains.return_value = False
         mock_post_repo.fetch.return_value = [fake_post(f'{i}') for i in range(8)]
@@ -72,8 +64,10 @@ class TestPostCountLimiter:
 
         mock_report_channel = AsyncMock()
 
-        testee = PostCountLimiter(bot=mock_bot, post_repo=mock_post_repo, qvbot_reddit=mock_reddit,
-                                  report_channel=mock_report_channel, environment="live")
+        environment = "live"
+        testee = PostCountLimiter(post_repo=mock_post_repo, qvbot_reddit=mock_reddit,
+                                  report_channel=mock_report_channel, environment=environment,
+                                  add_reactions_to_discord_message=AsyncMock())
 
         # when
         a_fake_post = fake_post()
@@ -96,17 +90,15 @@ class TestPostCountLimiter:
     @pytest.mark.asyncio
     async def test_ignore_over_limit_if_environment_isnt_live(self):
         # given
-        mock_bot = AsyncMock()
-
         mock_post_repo = AsyncMock()
         mock_post_repo.fetch.return_value = [fake_post(f'{i}') for i in range(8)]
 
         mock_reddit = AsyncMock()
 
-        mock_report_channel = AsyncMock()
-
-        testee = PostCountLimiter(bot=mock_bot, post_repo=mock_post_repo, qvbot_reddit=mock_reddit,
-                                  report_channel=mock_report_channel, environment="local")
+        local = "local"
+        testee = PostCountLimiter(post_repo=mock_post_repo, qvbot_reddit=mock_reddit,
+                                  report_channel=AsyncMock(), environment=local,
+                                  add_reactions_to_discord_message=AsyncMock())
         # when
         await testee.take(fake_post())
 

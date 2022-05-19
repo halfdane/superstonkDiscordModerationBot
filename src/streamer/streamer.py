@@ -54,6 +54,6 @@ class StreamerWithHandler:
         self.handlers.append(handler)
         return self
 
-    def start(self, asyncio_loop):
+    def start(self, asyncio_loop, **kwargs):
         streamer = ActualStreamer(name=self.name, input_stream_function=self.input_stream_function, handlers=self.handlers)
         streamer.start(asyncio_loop)

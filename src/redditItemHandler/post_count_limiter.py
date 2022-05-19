@@ -25,11 +25,12 @@ Thanks for being a member of r/Superstonk 💎🙌🚀
 class PostCountLimiter(Handler):
     _interval = timedelta(hours=24)
 
-    def __init__(self, bot, post_repo=None, qvbot_reddit=None, report_channel=None, environment=None, **kwargs):
-        super().__init__(bot)
+    def __init__(self, add_reactions_to_discord_message=None, post_repo=None, qvbot_reddit=None, report_channel=None, environment=None, **kwargs):
+        super().__init__(None)
         self.post_repo = post_repo
         self.qvbot_reddit = qvbot_reddit
         self.report_channel = report_channel
+        self.add_reactions_to_discord_message = add_reactions_to_discord_message
         self.environment = environment
 
     async def on_ready(self):
@@ -60,4 +61,4 @@ class PostCountLimiter(Handler):
         embed.add_field("Redditor", f"[{author}](https://www.reddit.com/u/{author})", inline=False)
 
         msg = await self.report_channel.send(embed=embed)
-        await self.bot.add_reactions(msg)
+        await self.add_reactions_to_discord_message(msg)

@@ -3,8 +3,8 @@ from redditItemHandler import Handler
 
 class PostToDbHandler(Handler):
 
-    def __init__(self, bot, post_repo=None, **kwargs):
-        super().__init__(bot)
+    def __init__(self, post_repo=None, **kwargs):
+        super().__init__(None)
         self.persist_posts = post_repo
 
     async def on_ready(self):
