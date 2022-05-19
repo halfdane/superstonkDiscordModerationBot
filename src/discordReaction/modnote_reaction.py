@@ -10,13 +10,17 @@ from helper.redditor_extractor import extract_redditor
 class ModNoteReaction(Reaction):
     emoji = '🗒️'
 
+    def __init__(self, superstonk_subreddit, **kwargs):
+        super().__init__(None)
+        self.superstonk_subreddit = superstonk_subreddit
+
     async def handle_reaction(self, message: Message, emoji, user, channel):
         redditor = extract_redditor(message)
         try:
             count = 0
             embed = disnake.Embed(colour=disnake.Colour(0).from_rgb(207, 206, 255))
             embed.description = f"**ModNotes for {escape_markdown(redditor)}**\n"
-            async for k, v in fetch_modnotes(self.bot.reddit, redditor):
+            async for k, v in fetch_modnotes(self.superstonk_subreddit, redditor):
                 count += 1
                 embed.add_field(k, v, inline=False)
 
@@ -28,5 +32,6 @@ class ModNoteReaction(Reaction):
         except disnake.errors.HTTPException as e:
             self._logger.exception(f"Something went wrong: {e.response}")
 
-    def description(self):
+    @staticmethod
+    def description():
         return "Send the modnotes of the user in the 'Redditor' field via DM"

@@ -7,7 +7,7 @@ from disnake.utils import escape_markdown
 
 from discordReaction.abstract_reaction import Reaction
 from redditItemHandler import Handler
-from redditItemHandler.abstract_handler import permalink
+from redditItemHandler.abstract_handler import permalink, was_recently_posted
 
 
 class Flairy(Handler, Reaction):
@@ -108,7 +108,8 @@ class Flairy(Handler, Reaction):
         await comment_from_flairies_view.upvote()
         await comment_from_flairies_view.reply(message)
 
-    def description(self):
+    @staticmethod
+    def description():
         return "Accept the flair request. The flairy will take care of the rest."
 
 
@@ -310,7 +311,7 @@ class FlairWasRecentlyRequestedCommand:
         if is_mod:
             return False
 
-        if await self._flairy._was_recently_posted(comment, self._flairy.flairy_channel):
+        if await was_recently_posted(comment, self._flairy.flairy_channel, self._flairy.bot.user):
             self._logger.info(f"skipping over recently handled flair request {permalink(comment)}")
             return True
         return False

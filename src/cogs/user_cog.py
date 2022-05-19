@@ -7,8 +7,8 @@ from helper.redditor_history import redditor_history
 
 
 class UserCog(commands.Cog):
-    def __init__(self, bot, readonly_reddit, **kwargs):
-        self._bot = bot
+    def __init__(self, add_reactions_to_discord_message, readonly_reddit, **kwargs):
+        self.add_reactions_to_discord_message = add_reactions_to_discord_message
         self.readonly_reddit = readonly_reddit
 
     @commands.slash_command(
@@ -36,4 +36,4 @@ class UserCog(commands.Cog):
         await ctx.edit_original_message(embed=e)
 
         msg = await ctx.original_message()
-        await self._bot.add_reactions(msg)
+        await self.add_reactions_to_discord_message(msg)

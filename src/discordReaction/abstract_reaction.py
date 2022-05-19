@@ -1,4 +1,6 @@
 import logging
+from pprint import pprint
+
 
 class Reaction:
     emoji = None
@@ -13,5 +15,6 @@ class Reaction:
     async def unhandle_reaction(self, message, emoji, user, channel):
         pass
 
-    def description(self):
+    @staticmethod
+    def description():
         pass

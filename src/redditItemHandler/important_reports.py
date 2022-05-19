@@ -5,16 +5,19 @@ from disnake import Embed
 
 from helper.mod_notes import fetch_modnotes
 from redditItemHandler import Handler
-from redditItemHandler.abstract_handler import permalink
+from redditItemHandler.abstract_handler import permalink, was_recently_posted
 
 RULE_1 = re.compile(r"rule\s*1", re.IGNORECASE)
 
 
 class ImportantReports(Handler):
 
-    def __init__(self, bot, report_channel, **kwargs):
-        super().__init__(bot)
+    def __init__(self, add_reactions_to_discord_message, report_channel, readonly_reddit, discord_bot_user, **kwargs):
+        super().__init__(None)
         self.report_channel = report_channel
+        self.add_reactions_to_discord_message = add_reactions_to_discord_message
+        self.readonly_reddit = readonly_reddit
+        self.discord_bot_user = discord_bot_user
 
     async def on_ready(self):
         self._logger.info("Ready to handle important reports")
@@ -33,7 +36,7 @@ class ImportantReports(Handler):
         if len(mods_reporting_rule_1) > 0:
             await self.__send_ban_list(mods_reporting_rule_1, item)
         elif user_report_count >= lots_of_reports or mod_report_count > 0:
-            if await self._was_recently_posted(item, self.report_channel):
+            if await was_recently_posted(item, self.report_channel, self.discord_bot_user):
                 self._logger.info(f"skipping over recently handled report {permalink(item)}")
                 return
 
@@ -41,7 +44,7 @@ class ImportantReports(Handler):
             self._logger.info(f"Sending reported item {permalink(item)}")
             embed = Embed.from_dict(self.__create_embed(item))
             msg = await self.report_channel.send(embed=embed)
-            await self.bot.add_reactions(msg)
+            await self.add_reactions_to_discord_message(msg)
 
     def __create_embed(self, item):
         url = permalink(item)
@@ -70,7 +73,7 @@ class ImportantReports(Handler):
             field_list.append({"name": name, "value": value, "inline": inline})
 
     async def __send_ban_list(self, mods_reporting_rule_1, item):
-        modnotes = fetch_modnotes(reddit=self.bot.reddit, redditor_param=item.author, only='banuser')
+        modnotes = fetch_modnotes(reddit=self.readonly_reddit, redditor_param=item.author, only='banuser')
         bans = f"All bans of {item.author}   "
         async for k, v in modnotes:
             bans += f"- **{k}**: {v}   \n"
@@ -78,6 +81,6 @@ class ImportantReports(Handler):
         utc_datetime = datetime.datetime.utcnow()
         formatted_string = utc_datetime.strftime("%Y-%m-%d-%H%MZ")
         for reporting_mod in mods_reporting_rule_1:
-            mod = await self.bot.reddit.redditor(reporting_mod)
+            mod = await self.readonly_reddit.redditor(reporting_mod)
 
             await mod.message(f"Bans of {item.author} at {formatted_string}", bans)

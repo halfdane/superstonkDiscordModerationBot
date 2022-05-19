@@ -5,6 +5,15 @@ def permalink(item):
     return f"https://www.reddit.com{item.permalink}"
 
 
+async def was_recently_posted(item, channel, discord_bot_user):
+    async for elem in channel \
+            .history(limit=200) \
+            .filter(lambda message: message.author.id == discord_bot_user.id):
+        if len(getattr(elem, 'embeds', [])) > 0 and permalink(item) == elem.embeds[0].url:
+            return True
+    return False
+
+
 class Handler:
 
     def __init__(self, bot):
@@ -17,10 +26,3 @@ class Handler:
     async def on_ready(self):
         pass
 
-    async def _was_recently_posted(self, item, channel):
-        async for elem in channel \
-                .history(limit=200) \
-                .filter(lambda message: message.author.id == self.bot.user.id):
-            if len(getattr(elem, 'embeds', [])) > 0 and permalink(item) == elem.embeds[0].url:
-                return True
-        return False

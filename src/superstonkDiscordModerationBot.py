@@ -82,13 +82,17 @@ class SuperstonkModerationBot(Bot):
         self.logger.info(f"{LOG_OUTPUT_CHANNEL}: discord channel for debugging messages")
 
         self.COMPONENTS["asyncio_loop"] = self.loop
+        self.COMPONENTS["add_reactions_to_discord_message"] = self.add_reactions
+        self.COMPONENTS["get_discord_cogs"] = lambda: self.cogs
+        self.COMPONENTS["discord_bot_user"] = self.user
+
 
         post_repo = Posts()
         await post_repo.on_ready()
         self.COMPONENTS["post_repo"] = post_repo
 
-        super().add_cog(UserCog(self, **self.COMPONENTS))
-        super().add_cog(ModQueueCog(self, **self.COMPONENTS))
+        super().add_cog(UserCog(**self.COMPONENTS))
+        super().add_cog(ModQueueCog(**self.COMPONENTS))
 
         hanami = Hanami(**self.COMPONENTS)
         await hanami.on_ready()
@@ -100,25 +104,27 @@ class SuperstonkModerationBot(Bot):
 
         flairy = Flairy(self, **self.COMPONENTS)
 
-        self.GENERIC_REACTIONS = (HelpReaction(self), WipReaction(self), DeleteReaction(self))
-        self.USER_REACTIONS = (ModNoteReaction(self), UserHistoryReaction(self))
+        self.GENERIC_REACTIONS = (HelpReaction(**self.COMPONENTS), WipReaction(**self.COMPONENTS), DeleteReaction(**self.COMPONENTS))
+        self.USER_REACTIONS = (ModNoteReaction(**self.COMPONENTS), UserHistoryReaction(**self.COMPONENTS))
         self.FLAIR_REACTIONS = (flairy,)
 
         self.ALL_REACTIONS = self.GENERIC_REACTIONS + self.USER_REACTIONS + self.FLAIR_REACTIONS
 
         Stream("Comments") \
             .from_input(self.subreddit.stream.comments) \
-            .with_handlers([flairy]) \
+            .add_handler(flairy) \
             .start(self.loop)
 
         Stream("Reports") \
             .from_input(self.subreddit.mod.stream.reports) \
-            .with_handlers([ImportantReports(self, **self.COMPONENTS)]) \
+            .add_handler(ImportantReports(**self.COMPONENTS)) \
             .start(self.loop)
 
         Stream("Posts") \
             .from_input(self.subreddit.stream.submissions) \
-            .with_handlers([PostToDbHandler(self, **self.COMPONENTS), PostCountLimiter(self, **self.COMPONENTS), FrontDeskSticky(self)]) \
+            .add_handler(PostToDbHandler(self, **self.COMPONENTS)) \
+            .add_handler(PostCountLimiter(self, **self.COMPONENTS)) \
+            .add_handler(FrontDeskSticky(self)) \
             .start(self.loop)
 
         automod_config = await self.subreddit.wiki.get_page("config/automoderator")

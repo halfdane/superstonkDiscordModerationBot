@@ -36,18 +36,24 @@ class ActualStreamer:
                 await handler.take(item)
 
 
-class StreamBase:
-    def __init__(self, **kwargs):
-        self.kwargs = kwargs
-
-
-class Stream(StreamBase):
+class Stream:
     def __init__(self, name):
-        super().__init__(name=name)
+        self.name = name
 
     def from_input(self, input_stream_function):
-        return StreamerWithHandler(input_stream_function=input_stream_function, **self.kwargs)
+        return StreamerWithHandler(name=self.name, input_stream_function=input_stream_function)
 
-class StreamerWithHandler(StreamBase):
-    def with_handlers(self, handlers):
-        return ActualStreamer(handlers=handlers, **self.kwargs)
+
+class StreamerWithHandler:
+    def __init__(self, name, input_stream_function):
+        self.name = name
+        self.input_stream_function = input_stream_function
+        self.handlers = []
+
+    def add_handler(self, handler):
+        self.handlers.append(handler)
+        return self
+
+    def start(self, asyncio_loop):
+        streamer = ActualStreamer(name=self.name, input_stream_function=self.input_stream_function, handlers=self.handlers)
+        streamer.start(asyncio_loop)

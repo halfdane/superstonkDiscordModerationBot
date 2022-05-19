@@ -7,6 +7,9 @@ from helper.discord_text_formatter import cut
 class WipReaction(Reaction):
     emoji = '✅'
 
+    def __init__(self, **kwargs):
+        super().__init__(None)
+
     async def handle_reaction(self, message: Message, emoji, user, channel):
         for embed in message.embeds:
             lines = embed.description.split("\n")
@@ -31,17 +34,15 @@ class WipReaction(Reaction):
 
         await message.edit(embeds=message.embeds)
 
-    def description(self):
+    @staticmethod
+    def description():
         return "Mark the discord message as 'handled' so that it isn't dealt with several times"
-
 
     def strikethrough(self, text, maxlength=None):
         return f"~~{cut(text, maxlength=maxlength)}~~"
-
 
     def un_strikethrough(self, text):
         if str(text).startswith("~~") and str(text).endswith("~~"):
             return str(text)[len("~~"):-len("~~")]
         else:
             return text
-

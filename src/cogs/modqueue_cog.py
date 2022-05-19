@@ -7,8 +7,8 @@ from disnake.ext import commands
 
 
 class ModQueueCog(commands.Cog):
-    def __init__(self, discord_bot, superstonk_subreddit, **kwargs):
-        self._bot = discord_bot
+    def __init__(self, add_reactions_to_discord_message, superstonk_subreddit, **kwargs):
+        self.add_reactions_to_discord_message = add_reactions_to_discord_message
         self.superstonk_subreddit = superstonk_subreddit
 
     async def fetch_modqueue(self, type):
@@ -61,4 +61,4 @@ class ModQueueCog(commands.Cog):
         embed.description += "\n".join(items)
         await ctx.edit_original_message(embed=embed)
         msg = await ctx.original_message()
-        await self._bot.add_reactions(msg)
+        await self.add_reactions_to_discord_message(msg)
