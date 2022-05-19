@@ -35,14 +35,12 @@ class PostCountLimiter(Handler):
         self._logger.info("Ready to limit post count")
 
     async def take(self, item):
-        if await self.post_repo.contains(item):
-            return
-
         author_name = getattr(item.author, 'name', str(item.author))
         yesterday = datetime.utcnow() - timedelta(hours=24)
-        posts = await self.post_repo.fetch(author=author_name, since=yesterday, only_counting_to_limit=True)
+        posts = await self.post_repo.fetch(author=author_name, since=yesterday)
+        posts_that_count = list(filter(lambda p: p.count_to_limit, posts))
 
-        if len(posts) > 7:
+        if len(posts_that_count) > 7:
             self._logger.info(f"Oops, looks like {author_name} is posting a lot: {posts}")
             item_from_qvbot_view = await self.qvbot_reddit.submission(item.id, fetch=False)
 
