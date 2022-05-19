@@ -36,13 +36,34 @@ class TestPostCountLimiter:
         mock_bot.report_channel.send.assert_not_called()
 
     @pytest.mark.asyncio
+    async def test_ignore_removed_posts(self):
+        # given
+        mock_bot = AsyncMock()
+
+        mock_post_repo = AsyncMock()
+        mock_post_repo.fetch.return_value = [fake_post(f'{i}', count_to_limit=(i%2)==0) for i in range(8)]
+
+        mock_reddit = AsyncMock()
+
+        testee = PostCountLimiter(bot=mock_bot, post_repo=mock_post_repo, qvbot_reddit=mock_reddit)
+
+        # when
+        await testee.take(fake_post())
+
+        # then
+        mock_post_repo.fetch.assert_called()
+        mock_post_repo.do_not_count_to_limit.assert_not_called()
+        mock_reddit.comment.assert_not_called()
+        mock_bot.report_channel.send.assert_not_called()
+
+    @pytest.mark.asyncio
     async def test_over_limit(self):
         # given
         mock_bot = AsyncMock()
 
         mock_post_repo = AsyncMock()
         mock_post_repo.contains.return_value = False
-        mock_post_repo.fetch.return_value = [fake_post(f'{i}', count_to_limit=False) for i in range(8)]
+        mock_post_repo.fetch.return_value = [fake_post(f'{i}') for i in range(8)]
 
         mock_reddit = AsyncMock()
 
