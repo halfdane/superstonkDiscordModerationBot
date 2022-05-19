@@ -10,9 +10,9 @@ from helper.redditor_extractor import extract_redditor
 class ModNoteReaction(Reaction):
     emoji = '🗒️'
 
-    def __init__(self, superstonk_subreddit, **kwargs):
+    def __init__(self, readonly_reddit, **kwargs):
         super().__init__(None)
-        self.superstonk_subreddit = superstonk_subreddit
+        self.readonly_reddit = readonly_reddit
 
     async def handle_reaction(self, message: Message, emoji, user, channel):
         redditor = extract_redditor(message)
@@ -20,7 +20,7 @@ class ModNoteReaction(Reaction):
             count = 0
             embed = disnake.Embed(colour=disnake.Colour(0).from_rgb(207, 206, 255))
             embed.description = f"**ModNotes for {escape_markdown(redditor)}**\n"
-            async for k, v in fetch_modnotes(self.superstonk_subreddit, redditor):
+            async for k, v in fetch_modnotes(self.readonly_reddit, redditor):
                 count += 1
                 embed.add_field(k, v, inline=False)
 
