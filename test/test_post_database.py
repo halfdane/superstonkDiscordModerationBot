@@ -1,7 +1,6 @@
 from collections import namedtuple
 from datetime import datetime, timedelta
 from pathlib import Path
-from pprint import pprint
 
 import aiosqlite
 import pytest
@@ -9,7 +8,25 @@ import pytest_asyncio
 
 from persistence.posts import Posts
 
-test_db = f"some_test_db.db"
+test_db = f"some_post_test_db.db"
+
+
+def a_post(num, permalink=None, author=None, flair=None, created=None, title=None, score=None, counts=None):
+    return permalink if permalink else f"perma{num}", \
+           author if author else f"auth{num}", \
+           flair if flair else f"flair{num}", \
+           created if created else f"date{num}", \
+           title if title else f"title{num}", \
+           score if score else f"score{num}", \
+           counts if counts else f"cnt{num}",
+
+
+async def add_test_data(posts):
+    async with aiosqlite.connect(test_db) as db:
+        await db.executemany('''
+                            INSERT INTO POSTS(id, author, flair, created_utc, title, score, count_to_limit) 
+                            VALUES (?, ?, ?, ?, ?, ?, ?)''', posts)
+        await db.commit()
 
 
 class TestPostDatabaseIntegration:
@@ -49,7 +66,7 @@ class TestPostDatabaseIntegration:
         PostWithLimit = namedtuple("Post", "permalink author link_flair_text created_utc title score count_to_limit")
         PostWithoutLimit = namedtuple("Post", "permalink author link_flair_text created_utc title score")
 
-        posts = [
+        store_posts = [
             PostWithLimit("perma1", Author("auth1"), "flair1", "date1", "title1", "score1", "cnt1"),
             PostWithoutLimit("perma2", Author("auth2"), "flair2", "date2", "title2", "score2"),
             PostWithLimit("perma3", Author("auth3"), "flair3", "date3", "title3", "score3", "cnt3"),
@@ -57,28 +74,21 @@ class TestPostDatabaseIntegration:
 
         # when
         testee = Posts(test_db)
-        await testee.store(posts)
+        await testee.store(store_posts)
 
         # then
         async with aiosqlite.connect(test_db) as db:
             async with db.execute("select * from POSTS") as cursor:
                 rows = [row async for row in cursor]
                 assert len(rows) == 3
-                assert ("perma1", "auth1", "flair1", "date1", "title1", "score1", "cnt1") in rows
-                assert ("perma2", "auth2", "flair2", "date2", "title2", "score2", True) in rows
-                assert ("perma3", "auth3", "flair3", "date3", "title3", "score3", "cnt3") in rows
+                assert a_post(1) in rows
+                assert a_post(2, counts=True) in rows
+                assert a_post(3) in rows
 
     @pytest.mark.asyncio
     async def test_read_all(self):
         # given
-        async with aiosqlite.connect(test_db) as db:
-            posts = [("perma1", "auth1", "flair1", "date1", "title1", "score1", "cnt1"),
-                     ("perma2", "auth2", "flair2", "date2", "title2", "score2", "cnt2"),
-                     ("perma3", "auth3", "flair3", "date3", "title3", "score3", "cnt3")]
-            await db.executemany('''
-                        INSERT INTO POSTS(id, author, flair, created_utc, title, score, count_to_limit) 
-                        VALUES (?, ?, ?, ?, ?, ?, ?)''', posts)
-            await db.commit()
+        await add_test_data([a_post(1), a_post(2), a_post(3)])
 
         # when
         testee = Posts(test_db)
@@ -98,14 +108,9 @@ class TestPostDatabaseIntegration:
     @pytest.mark.asyncio
     async def test_read_from_user(self):
         # given
-        async with aiosqlite.connect(test_db) as db:
-            posts = [("perma1", "auth1", "flair1", "date1", "title1", "score1", "cnt1"),
-                     ("perma2", "auth2", "flair2", "date2", "title2", "score2", "cnt2"),
-                     ("perma3", "auth1", "flair3", "date3", "title3", "score3", "cnt3")]
-            await db.executemany('''
-                        INSERT INTO POSTS(id, author, flair, created_utc, title, score, count_to_limit)
-                        VALUES (?, ?, ?, ?, ?, ?, ?)''', posts)
-            await db.commit()
+        await add_test_data([a_post(1, author='auth1'),
+                             a_post(2),
+                             a_post(3, author='auth1')])
 
         # when
         testee = Posts(test_db)
@@ -127,14 +132,9 @@ class TestPostDatabaseIntegration:
         three_days_ago = now - timedelta(days=3)
         two_days_ago = now - timedelta(days=2)
 
-        async with aiosqlite.connect(test_db) as db:
-            posts = [("perma1", "auth1", "flair1", three_days_ago.timestamp(), "title1", "score1", "cnt1"),
-                     ("old", "auth2", "flair2", last_week.timestamp(), "title2", "score2", "cnt2"),
-                     ("perma3", "auth3", "flair3", two_days_ago.timestamp(), "title3", "score3", "cnt3")]
-            await db.executemany('''
-                        INSERT INTO POSTS(id, author, flair, created_utc, title, score, count_to_limit)
-                        VALUES (?, ?, ?, ?, ?, ?, ?)''', posts)
-            await db.commit()
+        await add_test_data([a_post(1, created=three_days_ago.timestamp()),
+                             a_post(2, created=last_week.timestamp(), permalink='old'),
+                             a_post(3, created=two_days_ago.timestamp())])
 
         # when
         four_days_ago = now - timedelta(days=4)
@@ -149,15 +149,10 @@ class TestPostDatabaseIntegration:
     @pytest.mark.asyncio
     async def test_read_counting_only(self):
         # given
-        async with aiosqlite.connect(test_db) as db:
-            posts = [("perma1", "auth1", "flair1", "date1", "title1", "score1", True),
-                     ("perma2", "auth2", "flair2", "date2", "title2", "score2", False),
-                     ("perma3", "auth3", "flair3", "date3", "title3", "score3", False),
-                     ("perma4", "auth4", "flair4", "date4", "title4", "score4", True)]
-            await db.executemany('''
-                        INSERT INTO POSTS(id, author, flair, created_utc, title, score, count_to_limit) 
-                        VALUES (?, ?, ?, ?, ?, ?, ?)''', posts)
-            await db.commit()
+        await add_test_data([a_post(1, counts=True),
+                             a_post(2, counts=False),
+                             a_post(3, counts=False),
+                             a_post(4, counts=True)])
 
         # when
         testee = Posts(test_db)
@@ -176,14 +171,9 @@ class TestPostDatabaseIntegration:
         three_days_ago = now - timedelta(days=3)
         two_days_ago = now - timedelta(days=2)
 
-        async with aiosqlite.connect(test_db) as db:
-            posts = [("perma1", "auth1", "flair1", three_days_ago.timestamp(), "title1", "score1", "cnt1"),
-                     ("old", "auth2", "flair2", last_week.timestamp(), "title2", "score2", "cnt2"),
-                     ("perma3", "auth3", "flair3", two_days_ago.timestamp(), "title3", "score3", "cnt3")]
-            await db.executemany('''
-                        INSERT INTO POSTS(id, author, flair, created_utc, title, score, count_to_limit)
-                        VALUES (?, ?, ?, ?, ?, ?, ?)''', posts)
-            await db.commit()
+        await add_test_data([a_post(1, created=three_days_ago.timestamp()),
+                             a_post(2, created=last_week.timestamp(), permalink='old'),
+                             a_post(3, created=two_days_ago.timestamp())])
 
         # when
         four_days_ago = now - timedelta(days=4)
@@ -198,19 +188,16 @@ class TestPostDatabaseIntegration:
     async def test_do_not_count(self):
         # given
         testee = Posts(test_db)
-        async with aiosqlite.connect(test_db) as db:
-            posts = [("perma1", "auth1", "flair1", "date1", "title1", "score1", True),
-                     ("perma2", "auth2", "flair2", "date2", "title2", "score2", False),
-                     ("perma3", "auth3", "flair3", "date3", "title3", "score3", True)]
-            await db.executemany('''
-                        INSERT INTO POSTS(id, author, flair, created_utc, title, score, count_to_limit) 
-                        VALUES (?, ?, ?, ?, ?, ?, ?)''', posts)
-            await db.commit()
+        await add_test_data([a_post(1, counts=True),
+                             a_post(2, counts=False),
+                             a_post(3, counts=True),
+                             a_post(4, counts=True)])
 
         posts = await testee.fetch(only_counting_to_limit=True)
-        assert len(posts) == 2
+        assert len(posts) == 3
         assert posts[0].permalink == f"perma1"
         assert posts[1].permalink == f"perma3"
+        assert posts[2].permalink == f"perma4"
 
         # when
         PostWithId = namedtuple("Post", "permalink")
@@ -219,24 +206,20 @@ class TestPostDatabaseIntegration:
 
         # then
         posts = await testee.fetch(only_counting_to_limit=True)
-        assert len(posts) == 1
+        assert len(posts) == 2
         assert posts[0].permalink == f"perma3"
+        assert posts[1].permalink == f"perma4"
 
     @pytest.mark.asyncio
     async def test_database_contains(self):
         # given
         testee = Posts(test_db)
-        async with aiosqlite.connect(test_db) as db:
-            posts = [("perma1", "auth1", "flair1", "date1", "title1", "score1", True),
-                     ("perma2", "auth2", "flair2", "date2", "title2", "score2", False),
-                     ("perma3", "auth3", "flair3", "date3", "title3", "score3", True)]
-            await db.executemany('''
-                        INSERT INTO POSTS(id, author, flair, created_utc, title, score, count_to_limit) 
-                        VALUES (?, ?, ?, ?, ?, ?, ?)''', posts)
-            await db.commit()
+        await add_test_data([a_post(1, counts=True),
+                             a_post(2, counts=False),
+                             a_post(3, counts=True),
+                             a_post(4, counts=True)])
 
         # when / then
         PostWithId = namedtuple("Post", "permalink")
         assert await testee.contains(PostWithId('perma1')) is True
         assert await testee.contains(PostWithId('perma7')) is False
-
