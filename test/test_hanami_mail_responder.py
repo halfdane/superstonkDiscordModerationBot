@@ -1,8 +1,9 @@
 import re
-
-from hanami_mail_responder import Hanami
 from unittest.mock import AsyncMock, MagicMock
+
 import pytest
+
+from cogs.hanami_mail_responder import Hanami
 
 
 class TestHanamiMailResponder:

@@ -1,8 +1,6 @@
 import json
 import logging
 import re
-from pprint import pprint, pformat
-from typing import Optional
 
 import asyncpraw
 import disnake
@@ -12,6 +10,7 @@ from disnake import Message
 from disnake.ext import commands
 from disnake.ext.commands import Bot
 
+from cogs.hanami_mail_responder import Hanami
 from cogs.modqueue_cog import ModQueueCog
 from cogs.user_cog import UserCog
 from discordReaction.delete_reaction import DeleteReaction
@@ -20,9 +19,10 @@ from discordReaction.modnote_reaction import ModNoteReaction
 from discordReaction.user_history_reaction import UserHistoryReaction
 from discordReaction.wip_reaction import WipReaction
 from discord_output_logger import DiscordOutputLogger
-from hanami_mail_responder import Hanami
 from helper import reddit_helper
 from helper.redditor_extractor import extract_redditor
+from loops.post_statistics import CalculatePostStatistics
+from loops.streamer import Stream
 from persistence.comments import Comments
 from persistence.posts import Posts
 from redditItemHandler.comment_to_db import CommentToDbHandler
@@ -31,7 +31,6 @@ from redditItemHandler.front_desk_sticky import FrontDeskSticky
 from redditItemHandler.important_reports import ImportantReports
 from redditItemHandler.post_count_limiter import PostCountLimiter
 from redditItemHandler.post_to_db import PostToDbHandler
-from streamer.streamer import Stream
 
 
 class SuperstonkModerationBot(Bot):
@@ -72,6 +71,12 @@ class SuperstonkModerationBot(Bot):
         return self.COMPONENTS[name]
 
     async def on_ready(self):
+        from apscheduler.schedulers.asyncio import AsyncIOScheduler
+        scheduler = AsyncIOScheduler()
+        scheduler.start()
+
+        await self.component("scheduler", scheduler)
+
         await self.component("discord_bot_user", self.user)
         self.logger.info(
             f"{self.COMPONENTS['discord_bot_user']} with id {self.COMPONENTS['discord_bot_user'].id} is the discord user")
@@ -104,6 +109,7 @@ class SuperstonkModerationBot(Bot):
 
         await self.component("post_repo", Posts())
         await self.component("comment_repo", Comments())
+        await self.component("calculate_post_statistics", CalculatePostStatistics(**self.COMPONENTS))
 
         hanami = Hanami(**self.COMPONENTS)
         await self.component("hanami", hanami)

@@ -9,3 +9,4 @@ cachetools
 psaw
 nltk
 aiosqlite
+apscheduler

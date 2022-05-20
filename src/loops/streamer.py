@@ -1,6 +1,5 @@
 import asyncio
 import logging
-from datetime import datetime, timedelta
 
 from asyncpraw.exceptions import AsyncPRAWException
 
