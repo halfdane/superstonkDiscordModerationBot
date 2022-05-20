@@ -48,7 +48,7 @@ class Flairy(Handler, Reaction):
         colors = list(self._templates.keys())
         self._commands = [
             CommentAlreadyHasAResponse(flairy_command_detection, regex_flags),
-            FlairWasRecentlyRequestedCommand(flairy_channel, kwargs),
+            FlairWasRecentlyRequestedCommand(flairy_channel, **kwargs),
             FlairyExplainerCommand(flairy_reddit, self._templates.keys()),
             ClearCommand(flairy_reddit, flairy_command_detection, regex_flags),
             SealmeCommand(self._templates[self._default_color], flairy_command_detection, regex_flags,
@@ -305,7 +305,7 @@ class FlairContainsForbiddenPhraseCommand:
 
 
 class FlairWasRecentlyRequestedCommand:
-    def __init__(self, flairy_channel, discord_bot_user):
+    def __init__(self, flairy_channel, discord_bot_user, **_):
         self._logger = logging.getLogger(self.__class__.__name__)
         self.flairy_channel = flairy_channel
         self.discord_bot_user = discord_bot_user
