@@ -10,7 +10,7 @@ class UserHistoryReaction(Reaction):
     emoji = '📜'
 
     def __init__(self, readonly_reddit, **kwargs):
-        super().__init__(None)
+        super().__init__()
         self.readonly_reddit = readonly_reddit
 
     async def handle_reaction(self, message: Message, emoji, user, channel):

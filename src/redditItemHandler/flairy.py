@@ -22,14 +22,14 @@ class Flairy(Handler, Reaction):
 
     _default_color = "black"
 
-    def __init__(self, bot, superstonk_moderators=[], flairy_channel=None, **kwargs):
+    def __init__(self, bot=None, superstonk_moderators=[], flairy_channel=None, flairy_reddit=None,
+                 is_forbidden_comment_message=None, add_reactions_to_discord_message=None, **kwargs):
         Handler.__init__(self, bot)
-        Reaction.__init__(self, bot)
+        Reaction.__init__(self)
 
         self.superstonk_moderators = superstonk_moderators
         self.flairy_channel = flairy_channel
-
-        flairy_reddit = getattr(bot, "flairy_reddit", None)
+        self.flairy_reddit = flairy_reddit
 
         self.flairy_command_detection = r".*!\s*FL?AIRY"
         self.flair_command = rf"{self.flairy_command_detection}\s*!"
@@ -45,17 +45,20 @@ class Flairy(Handler, Reaction):
         self.flairy_detect_user_flair_change = \
             re.compile(rf"{self.flair_command}{self._flairy_text}{self._valid_colors}$", self.flags)
 
+        colors = list(self._templates.keys())
         self._commands = [
-            CommentAlreadyHasAResponse(self),
-            FlairWasRecentlyRequestedCommand(self),
+            CommentAlreadyHasAResponse(self.flairy_command_detection, self.flags),
+            FlairWasRecentlyRequestedCommand(flairy_channel, kwargs),
             FlairyExplainerCommand(flairy_reddit, self._templates.keys()),
-            ClearCommand(self),
-            SealmeCommand(self, self._templates[self._default_color]),
-            RandomFlairCommand(self),
-            WrongColorCommand(self),
-            FlairTooLongCommand(self),
-            FlairContainsForbiddenPhraseCommand(self),
-            SendFlairToDiscordCommand(self)
+            ClearCommand(flairy_reddit, self.flairy_command_detection, self.flags),
+            SealmeCommand(self._templates[self._default_color], self.flairy_command_detection, self.flags,
+                          self.flair_user),
+            RandomFlairCommand(self.flairy_command_detection, self.flags, self.flair_user, colors),
+            WrongColorCommand(flairy_reddit, self.flair_command, self.flags, colors),
+            FlairTooLongCommand(self.flairy_detect_user_flair_change, flairy_reddit),
+            FlairContainsForbiddenPhraseCommand(is_forbidden_comment_message, self.flairy_detect_user_flair_change),
+            SendFlairToDiscordCommand(self.flairy_detect_user_flair_change, flairy_channel,
+                                      add_reactions_to_discord_message)
         ]
 
     async def on_ready(self):
@@ -86,10 +89,9 @@ class Flairy(Handler, Reaction):
         flairy = self.flairy_detect_user_flair_change.match(body)
         if flairy is not None:
             await self.flair_user(comment=comment, flair_text=flairy.group(1), flair_color=flairy.group(2))
-            await self.bot.handle_reaction(message, "✅", user, channel)
         else:
-            await self.bot.handle_reaction(message, "✅", user, channel)
             await message.edit(content="Flair request was removed in the meantime")
+        await self.bot.handle_reaction(message, "✅", user, channel)
 
     async def flair_user(self, comment, flair_text, flair_color=None, template=None, message=""):
         flair_text = flair_text.strip()
@@ -97,14 +99,14 @@ class Flairy(Handler, Reaction):
         template = (template or self._templates[color])
         previous_flair = getattr(comment, 'author_flair_text', "")
         log_message = f"[{previous_flair}] => [{flair_text}] with template {template} for the color {color}"
-        subreddit_from_flairies_view = await self.bot.flairy_reddit.subreddit("Superstonk")
+        subreddit_from_flairies_view = await self.flairy_reddit.subreddit("Superstonk")
         await subreddit_from_flairies_view.flair.set(
             redditor=comment.author,
             text=flair_text,
             flair_template_id=template)
         message += rf'(✿\^‿\^)━☆ﾟ.*･｡ﾟ {flair_text}'
         self._logger.info(log_message)
-        comment_from_flairies_view = await self.bot.flairy_reddit.comment(comment.id, fetch=False)
+        comment_from_flairies_view = await self.flairy_reddit.comment(comment.id, fetch=False)
         await comment_from_flairies_view.upvote()
         await comment_from_flairies_view.reply(message)
 
@@ -114,11 +116,10 @@ class Flairy(Handler, Reaction):
 
 
 class CommentAlreadyHasAResponse:
-    def __init__(self, flairy):
+    def __init__(self, flairy_command_detection, flags):
         self._logger = logging.getLogger(self.__class__.__name__)
-        self._flairy = flairy
         self._random_flair_command = \
-            re.compile(rf"{self._flairy.flairy_command_detection}\s*!$", self._flairy.flags)
+            re.compile(rf"{flairy_command_detection}\s*!$", flags)
 
     async def handled(self, body, comment, is_mod):
         await comment.refresh()
@@ -132,11 +133,12 @@ class CommentAlreadyHasAResponse:
 
 class RandomFlairCommand:
 
-    def __init__(self, flairy):
+    def __init__(self, flairy_command_detection, flags, flair_user_function, colors):
         self._logger = logging.getLogger(self.__class__.__name__)
-        self._flairy = flairy
         self._random_flair_command = \
-            re.compile(rf"{self._flairy.flairy_command_detection}\s*!$", self._flairy.flags)
+            re.compile(rf"{flairy_command_detection}\s*!$", flags)
+        self.flair_user_function = flair_user_function
+        self.colors = colors
 
     async def handled(self, body, comment, is_mod):
         if is_mod:
@@ -172,11 +174,11 @@ class RandomFlairCommand:
 
         emojis = random.sample(_emojis, 2)
         flair_text = f"{emojis[0]} {random.sample(_flairs, 1)[0]} {emojis[1]}"
-        color = random.sample(list(self._flairy._templates.keys()), 1)[0]
+        color = random.sample(self.colors, 1)[0]
         message = f"""(✿☉｡☉) You didn't ask for a flair?! Lemme get one for you...   \n"""
         self._logger.info(f"Randomly assigning: {permalink(comment)}")
 
-        await self._flairy.flair_user(
+        await self.flair_user_function(
             comment=comment,
             flair_text=flair_text,
             flair_color=color,
@@ -184,12 +186,12 @@ class RandomFlairCommand:
 
 
 class SealmeCommand:
-    def __init__(self, flairy, default_template):
+    def __init__(self, default_template, flairy_command_detection, flags, flair_user_function):
         self._logger = logging.getLogger(self.__class__.__name__)
-        self._flairy = flairy
         self._sealme_command = \
-            re.compile(rf"{self._flairy.flairy_command_detection}:SEALME\s*!", self._flairy.flags)
+            re.compile(rf"{flairy_command_detection}:SEALME\s*!", flags)
         self._default_template = default_template
+        self.flair_user_function = flair_user_function
 
     async def handled(self, body, comment, is_mod):
         if is_mod:
@@ -199,7 +201,7 @@ class SealmeCommand:
             current_flair = getattr(comment, 'author_flair_text', "")
             current_template = getattr(comment, 'author_flair_template_id', self._default_template)
             message = 'Witness meee /u/Justind123  \n\n'
-            await self._flairy.flair_user(
+            await self.flair_user_function(
                 comment=comment,
                 flair_text=current_flair + '🦭',
                 template=current_template,
@@ -211,12 +213,12 @@ class SealmeCommand:
 
 
 class ClearCommand:
-    def __init__(self, flairy):
+    def __init__(self, flairy_reddit, flairy_command_detection, flags):
         self._logger = logging.getLogger(self.__class__.__name__)
-        self._flairy = flairy
+        self.flairy_reddit = flairy_reddit
 
         self._reset_command = \
-            re.compile(rf"{self._flairy.flairy_command_detection}\s*:\s*CLEARME\s*!", self._flairy.flags)
+            re.compile(rf"{flairy_command_detection}\s*:\s*CLEARME\s*!", flags)
 
     async def handled(self, body, comment, is_mod):
         if is_mod:
@@ -226,9 +228,9 @@ class ClearCommand:
             message = 'Clearing the flair as requested  \n\n' + r'(✿\^‿\^)━☆ﾟ.*･｡ﾟ '
             self._logger.info(f"Clearing flair: {permalink(comment)}")
 
-            subreddit_from_flairies_view = await self._flairy.bot.flairy_reddit.subreddit("Superstonk")
+            subreddit_from_flairies_view = await self.flairy_reddit.subreddit("Superstonk")
             await subreddit_from_flairies_view.flair.delete(redditor=comment.author)
-            comment_from_flairies_view = await self._flairy.bot.flairy_reddit.comment(comment.id, fetch=False)
+            comment_from_flairies_view = await self.flairy_reddit.comment(comment.id, fetch=False)
             await comment_from_flairies_view.reply(message)
             return True
 
@@ -236,14 +238,12 @@ class ClearCommand:
 
 
 class WrongColorCommand:
-    def __init__(self, flairy):
+    def __init__(self, flairy_reddit, flair_command, flags, colors):
         self._logger = logging.getLogger(self.__class__.__name__)
-        self._flairy = flairy
-
         self._last_word = r"(\w*)"
-
-        self._detect_last_word = \
-            re.compile(rf"{self._flairy.flair_command}.*?{self._last_word}$", self._flairy.flags)
+        self._detect_last_word = re.compile(rf"{flair_command}.*?{self._last_word}$", flags)
+        self.colors = colors
+        self.flairy_reddit = flairy_reddit
 
     async def handled(self, body, comment, is_mod):
         if is_mod:
@@ -251,9 +251,9 @@ class WrongColorCommand:
 
         last_word = self._detect_last_word.match(body).group(1)
         if last_word.lower() in ["orange", "grey", "gray", "purple", "white"]:
-            comment_from_flairies_view = await self._flairy.bot.flairy_reddit.comment(comment.id, fetch=False)
+            comment_from_flairies_view = await self.flairy_reddit.comment(comment.id, fetch=False)
             message = f"(ノಠ益ಠ)ノ彡┻━┻ {last_word.upper()} IS NOT A VALID COLOR!   \n" \
-                      f"Valid colors are {', '.join(self._flairy._templates.keys())}.   \n" \
+                      f"Valid colors are {', '.join(self.colors)}.   \n" \
                       f"I'm making the change, so if that's not what you want " \
                       f"you have to summon me again."
             self._logger.info(f"Wrong color: {permalink(comment)}")
@@ -263,19 +263,19 @@ class WrongColorCommand:
 
 
 class FlairTooLongCommand:
-    def __init__(self, flairy):
+    def __init__(self, flairy_detect_user_flair_change, flairy_reddit):
         self._logger = logging.getLogger(self.__class__.__name__)
-        self._flairy = flairy
+        self.flairy_detect_user_flair_change = flairy_detect_user_flair_change
+        self.flairy_reddit = flairy_reddit
 
     async def handled(self, body, comment, is_mod):
         if is_mod:
             return False
 
-        flairy = self._flairy.flairy_detect_user_flair_change.match(body)
+        flairy = self.flairy_detect_user_flair_change.match(body)
         flair_text = flairy.group(1)
         if len(flair_text) > 63:
-            flairy_reddit = self._flairy.bot.flairy_reddit
-            comment_from_flairies_view = await flairy_reddit.comment(comment.id, fetch=False)
+            comment_from_flairies_view = await self.flairy_reddit.comment(comment.id, fetch=False)
             message = "(ノಠ益ಠ)ノ彡┻━┻ THE FLAIR TEXT IS TOO LONG!   \nPlease use less than 64 unicode characters"
             self._logger.info(f"Too long: {permalink(comment)}")
             await comment_from_flairies_view.reply(message)
@@ -285,17 +285,18 @@ class FlairTooLongCommand:
 
 
 class FlairContainsForbiddenPhraseCommand:
-    def __init__(self, flairy):
+    def __init__(self, is_forbidden_comment_message, flairy_detect_user_flair_change):
         self._logger = logging.getLogger(self.__class__.__name__)
-        self._flairy = flairy
+        self.is_forbidden_comment_message = is_forbidden_comment_message
+        self.flairy_detect_user_flair_change = flairy_detect_user_flair_change
 
     async def handled(self, body, comment, is_mod):
         if is_mod:
             return False
 
-        flairy = self._flairy.flairy_detect_user_flair_change.match(body)
+        flairy = self.flairy_detect_user_flair_change.match(body)
         flair_text = flairy.group(1)
-        if self._flairy.bot.is_forbidden_comment_message(flair_text):
+        if self.is_forbidden_comment_message(flair_text):
             self._logger.info(f"Silently refusing to grant flair with restricted content: {flair_text}")
             return True
 
@@ -303,15 +304,16 @@ class FlairContainsForbiddenPhraseCommand:
 
 
 class FlairWasRecentlyRequestedCommand:
-    def __init__(self, flairy):
+    def __init__(self, flairy_channel, discord_bot_user):
         self._logger = logging.getLogger(self.__class__.__name__)
-        self._flairy = flairy
+        self.flairy_channel = flairy_channel
+        self.discord_bot_user = discord_bot_user
 
     async def handled(self, body, comment, is_mod):
         if is_mod:
             return False
 
-        if await was_recently_posted(comment, self._flairy.flairy_channel, self._flairy.bot.user):
+        if await was_recently_posted(comment, self.flairy_channel, self.discord_bot_user):
             self._logger.info(f"skipping over recently handled flair request {permalink(comment)}")
             return True
         return False
@@ -347,15 +349,17 @@ Other available commands:
 
 
 class SendFlairToDiscordCommand:
-    def __init__(self, flairy):
+    def __init__(self, flairy_detect_user_flair_change, flairy_channel, add_reactions_to_discord_message):
         self._logger = logging.getLogger(self.__class__.__name__)
-        self._flairy = flairy
+        self.flairy_detect_user_flair_change = flairy_detect_user_flair_change
+        self.flairy_channel = flairy_channel
+        self.add_reactions_to_discord_message = add_reactions_to_discord_message
 
     async def handled(self, body, comment, is_mod):
         if is_mod:
             return False
 
-        flairy = self._flairy.flairy_detect_user_flair_change.match(body)
+        flairy = self.flairy_detect_user_flair_change.match(body)
         flair_text = flairy.group(1)
 
         self._logger.info(f"Sending flair request {comment} {flair_text}")
@@ -365,7 +369,7 @@ class SendFlairToDiscordCommand:
             colour=disnake.Colour(0).from_rgb(207, 206, 255))
         e.description = f"[Flair Request: {escape_markdown(comment.body)}]({url})"
         e.add_field("Redditor", f"[{comment.author}](https://www.reddit.com/u/{comment.author})", inline=False)
-        msg = await self._flairy.flairy_channel.send(embed=e)
-        await msg.add_reaction(self._flairy.emoji)
-        await self._flairy.bot.add_reactions(msg)
+        msg = await self.flairy_channel.send(embed=e)
+        await msg.add_reaction(Flairy.emoji)
+        await self.add_reactions_to_discord_message(msg)
         return True

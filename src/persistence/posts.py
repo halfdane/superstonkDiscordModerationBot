@@ -14,7 +14,7 @@ class Posts:
         self.database = database
         self._logger = logging.getLogger(self.__class__.__name__)
 
-    async def on_ready(self):
+    async def on_ready(self, **_):
         async with aiosqlite.connect(self.database) as db:
             await db.execute('CREATE TABLE if not exists '
                              'POSTS (id PRIMARY KEY, author, flair, created_utc, title, score, count_to_limit);')

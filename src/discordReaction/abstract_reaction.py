@@ -1,12 +1,10 @@
 import logging
-from pprint import pprint
 
 
 class Reaction:
     emoji = None
 
-    def __init__(self, bot):
-        self.bot = bot
+    def __init__(self, **_):
         self._logger = logging.getLogger(self.__class__.__name__)
 
     async def handle_reaction(self, message, emoji, user, channel):

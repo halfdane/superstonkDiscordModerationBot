@@ -6,7 +6,7 @@ class HelpReaction(Reaction):
     emoji = '❓'
 
     def __init__(self, get_discord_cogs, **kwargs):
-        super().__init__(None)
+        super().__init__()
         self.get_discord_cogs = get_discord_cogs
 
     async def handle_reaction(self, message: Message, emoji, user, channel):

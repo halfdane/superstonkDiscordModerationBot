@@ -7,9 +7,6 @@ from helper.discord_text_formatter import cut
 class WipReaction(Reaction):
     emoji = '✅'
 
-    def __init__(self, **kwargs):
-        super().__init__(None)
-
     async def handle_reaction(self, message: Message, emoji, user, channel):
         for embed in message.embeds:
             lines = embed.description.split("\n")

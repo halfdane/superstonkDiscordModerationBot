@@ -39,7 +39,6 @@ class SuperstonkModerationBot(Bot):
 
     reddit: asyncpraw.Reddit = None
     flairy_reddit: asyncpraw.Reddit = None
-    subreddit: Optional[asyncpraw.reddit.Subreddit] = None
     flairy_channel = None
     moderators = None
     logger = logging.getLogger(__name__)
@@ -62,49 +61,56 @@ class SuperstonkModerationBot(Bot):
 
         self.COMPONENTS["qvbot_reddit"] = qvbot_reddit
 
+    async def component(self, name, component=None):
+        if component is not None:
+            async def no_op(**_): pass
+
+            on_ready = getattr(component, 'on_ready', no_op)
+            await on_ready(**self.COMPONENTS)
+            self.COMPONENTS[name] = component
+
+        return self.COMPONENTS[name]
+
     async def on_ready(self):
-        self.COMPONENTS["discord_bot_user"] = self.user
-        self.logger.info(f"{self.COMPONENTS['discord_bot_user']} with id {self.COMPONENTS['discord_bot_user'].id} is the discord user")
+        await self.component("discord_bot_user", self.user)
+        self.logger.info(
+            f"{self.COMPONENTS['discord_bot_user']} with id {self.COMPONENTS['discord_bot_user'].id} is the discord user")
 
         self.logger.info(f"{await self.COMPONENTS['readonly_reddit'].user.me()}: listening for reports on reddit")
         self.logger.info(f"{await self.COMPONENTS['flairy_reddit'].user.me()}: handling flair requests on reddit")
         self.logger.info(f"{await self.COMPONENTS['qvbot_reddit'].user.me()}: handling QV bot business on reddit")
 
-        self.subreddit = await self.reddit.subreddit("Superstonk")
-        self.COMPONENTS["superstonk_subreddit"] = self.subreddit
+        superstonk_subreddit = await self.reddit.subreddit("Superstonk")
+        await self.component("superstonk_subreddit", superstonk_subreddit)
 
-        self.COMPONENTS["superstonk_TEST_subreddit"] = await self.reddit.subreddit("testsubsuperstonk")
-        self.COMPONENTS["superstonk_moderators"] = [moderator async for moderator in self.subreddit.moderator]
+        await self.component("superstonk_TEST_subreddit", await self.reddit.subreddit("testsubsuperstonk"))
+        await self.component("superstonk_moderators", [moderator async for moderator in superstonk_subreddit.moderator])
 
-        self.COMPONENTS["report_channel"] = self.get_channel(REPORTING_CHANNEL)
+        await self.component("report_channel", self.get_channel(REPORTING_CHANNEL))
         self.logger.info(f"{REPORTING_CHANNEL}: discord channel for reports")
 
-        self.COMPONENTS["flairy_channel"] = self.get_channel(FLAIRY_CHANNEL)
+        await self.component("flairy_channel", self.get_channel(FLAIRY_CHANNEL))
         self.logger.info(f"{FLAIRY_CHANNEL}: discord channel for flairy")
 
-        self.COMPONENTS["logging_output_channel"] = self.get_channel(LOG_OUTPUT_CHANNEL)
+        await self.component("logging_output_channel", self.get_channel(LOG_OUTPUT_CHANNEL))
         self.logger.info(f"{LOG_OUTPUT_CHANNEL}: discord channel for debugging messages")
 
-        self.COMPONENTS["asyncio_loop"] = self.loop
-        self.COMPONENTS["add_reactions_to_discord_message"] = self.add_reactions
-        self.COMPONENTS["get_discord_cogs"] = lambda: self.cogs
-        self.COMPONENTS["discord_bot_user"] = self.user
-        self.COMPONENTS["environment"] = ENVIRONMENT
+        await self.component("asyncio_loop", self.loop)
+        await self.component("add_reactions_to_discord_message", self.add_reactions)
+        await self.component("get_discord_cogs", lambda: self.cogs)
+        await self.component("is_forbidden_comment_message", self.is_forbidden_comment_message)
+        await self.component("discord_bot_user", self.user)
+        await self.component("environment", ENVIRONMENT)
 
-        post_repo = Posts()
-        await post_repo.on_ready()
-        self.COMPONENTS["post_repo"] = post_repo
+        await self.component("post_repo", Posts())
+        await self.component("comment_repo", Comments())
 
-        comment_repo = Comments()
-        await comment_repo.on_ready()
-        self.COMPONENTS["comment_repo"] = comment_repo
+        hanami = Hanami(**self.COMPONENTS)
+        await self.component("hanami", hanami)
+        super().add_cog(hanami)
 
         super().add_cog(UserCog(**self.COMPONENTS))
         super().add_cog(ModQueueCog(**self.COMPONENTS))
-
-        hanami = Hanami(**self.COMPONENTS)
-        await hanami.on_ready()
-        super().add_cog(hanami)
 
         await discord_output_logging_handler.on_ready(**self.COMPONENTS)
 
@@ -112,31 +118,32 @@ class SuperstonkModerationBot(Bot):
 
         flairy = Flairy(self, **self.COMPONENTS)
 
-        self.GENERIC_REACTIONS = (HelpReaction(**self.COMPONENTS), WipReaction(**self.COMPONENTS), DeleteReaction(**self.COMPONENTS))
+        self.GENERIC_REACTIONS = (
+            HelpReaction(**self.COMPONENTS), WipReaction(**self.COMPONENTS), DeleteReaction(**self.COMPONENTS))
         self.USER_REACTIONS = (ModNoteReaction(**self.COMPONENTS), UserHistoryReaction(**self.COMPONENTS))
         self.FLAIR_REACTIONS = (flairy,)
 
         self.ALL_REACTIONS = self.GENERIC_REACTIONS + self.USER_REACTIONS + self.FLAIR_REACTIONS
 
         Stream("Comments") \
-            .from_input(self.subreddit.stream.comments) \
+            .from_input(superstonk_subreddit.stream.comments) \
             .add_handler(CommentToDbHandler(**self.COMPONENTS)) \
             .add_handler(flairy) \
             .start(**self.COMPONENTS)
 
         Stream("Reports") \
-            .from_input(self.subreddit.mod.stream.reports) \
+            .from_input(superstonk_subreddit.mod.stream.reports) \
             .add_handler(ImportantReports(**self.COMPONENTS)) \
             .start(**self.COMPONENTS)
 
         Stream("Posts") \
-            .from_input(self.subreddit.stream.submissions) \
+            .from_input(superstonk_subreddit.stream.submissions) \
             .add_handler(PostToDbHandler(**self.COMPONENTS)) \
             .add_handler(PostCountLimiter(**self.COMPONENTS)) \
             .add_handler(FrontDeskSticky()) \
             .start(**self.COMPONENTS)
 
-        automod_config = await self.subreddit.wiki.get_page("config/automoderator")
+        automod_config = await superstonk_subreddit.wiki.get_page("config/automoderator")
         for rule in automod_config.content_md.split("---"):
             y = yaml.safe_load(rule)
             if y and y.get('action', "") == 'remove':
@@ -158,7 +165,7 @@ class SuperstonkModerationBot(Bot):
     async def get_item(self, m: Message):
         c = m.content if not m.embeds else m.embeds[0]
         s = str(c) if not isinstance(c, disnake.Embed) else json.dumps(c.to_dict())
-        return await reddit_helper.get_item(self.reddit, self.subreddit, s)
+        return await reddit_helper.get_item(string=s, **self.COMPONENTS)
 
     async def get_reaction_information(self, p: disnake.RawReactionActionEvent):
         channel = self.get_channel(p.channel_id)

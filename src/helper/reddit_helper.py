@@ -14,10 +14,10 @@ MODMAIL_URL_PATTERN = re.compile(
     r"https://mod.reddit.com/mail/all/(?P<id>\w+)")
 
 
-async def get_item(reddit: asyncpraw.Reddit, subreddit, str):
-    for u in REDDIT_URL_PATTERN.findall(str):
+async def get_item(readonly_reddit: asyncpraw.Reddit, superstonk_subreddit, string, **kwargs):
+    for u in REDDIT_URL_PATTERN.findall(string):
         if is_url(u[0]):
-            item = await get_item_from_url(reddit, subreddit, u[0])
+            item = await get_item_from_url(readonly_reddit, superstonk_subreddit, u[0])
             if item:
                 return item
             else:

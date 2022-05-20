@@ -39,7 +39,7 @@ class Hanami(commands.Cog):
             self.preprocess_config()
         self.test_config = True
 
-    async def on_ready(self):
+    async def on_ready(self, **_):
         self.config = await self.load_config()
         self.preprocess_config()
 
