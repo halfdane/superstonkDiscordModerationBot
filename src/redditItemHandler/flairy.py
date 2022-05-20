@@ -31,30 +31,30 @@ class Flairy(Handler, Reaction):
         self.flairy_channel = flairy_channel
         self.flairy_reddit = flairy_reddit
 
-        self.flairy_command_detection = r".*!\s*FL?AIRY"
-        self.flair_command = rf"{self.flairy_command_detection}\s*!"
+        flairy_command_detection = r".*!\s*FL?AIRY"
+        flair_command = rf"{flairy_command_detection}\s*!"
 
-        self._flairy_text = r"\s*(.*?)"
-        self._valid_colors = fr"(?:\s+({'|'.join(self._templates.keys())}))?\s*"
+        flairy_text = r"\s*(.*?)"
+        _valid_colors = fr"(?:\s+({'|'.join(self._templates.keys())}))?\s*"
 
-        self.flags = re.IGNORECASE | re.MULTILINE | re.DOTALL
+        regex_flags = re.IGNORECASE | re.MULTILINE | re.DOTALL
 
         self.detect_flairy_command = \
-            re.compile(rf"{self.flairy_command_detection}|u/superstonk-flairy", self.flags)
+            re.compile(rf"{flairy_command_detection}|u/superstonk-flairy", regex_flags)
 
         self.flairy_detect_user_flair_change = \
-            re.compile(rf"{self.flair_command}{self._flairy_text}{self._valid_colors}$", self.flags)
+            re.compile(rf"{flair_command}{flairy_text}{_valid_colors}$", regex_flags)
 
         colors = list(self._templates.keys())
         self._commands = [
-            CommentAlreadyHasAResponse(self.flairy_command_detection, self.flags),
+            CommentAlreadyHasAResponse(flairy_command_detection, regex_flags),
             FlairWasRecentlyRequestedCommand(flairy_channel, kwargs),
             FlairyExplainerCommand(flairy_reddit, self._templates.keys()),
-            ClearCommand(flairy_reddit, self.flairy_command_detection, self.flags),
-            SealmeCommand(self._templates[self._default_color], self.flairy_command_detection, self.flags,
+            ClearCommand(flairy_reddit, flairy_command_detection, regex_flags),
+            SealmeCommand(self._templates[self._default_color], flairy_command_detection, regex_flags,
                           self.flair_user),
-            RandomFlairCommand(self.flairy_command_detection, self.flags, self.flair_user, colors),
-            WrongColorCommand(flairy_reddit, self.flair_command, self.flags, colors),
+            RandomFlairCommand(flairy_command_detection, regex_flags, self.flair_user, colors),
+            WrongColorCommand(flairy_reddit, flair_command, regex_flags, colors),
             FlairTooLongCommand(self.flairy_detect_user_flair_change, flairy_reddit),
             FlairContainsForbiddenPhraseCommand(is_forbidden_comment_message, self.flairy_detect_user_flair_change),
             SendFlairToDiscordCommand(self.flairy_detect_user_flair_change, flairy_channel,
