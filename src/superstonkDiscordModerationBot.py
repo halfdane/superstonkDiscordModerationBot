@@ -1,10 +1,10 @@
-import json
 import logging
 import re
 
 import asyncpraw
 import disnake
 import yaml
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from decouple import config
 from disnake import Message
 from disnake.ext import commands
@@ -19,7 +19,6 @@ from discordReaction.modnote_reaction import ModNoteReaction
 from discordReaction.user_history_reaction import UserHistoryReaction
 from discordReaction.wip_reaction import WipReaction
 from discord_output_logger import DiscordOutputLogger
-from helper import reddit_helper
 from helper.redditor_extractor import extract_redditor
 from loops.post_statistics import CalculatePostStatistics
 from loops.streamer import Stream
@@ -36,28 +35,21 @@ from redditItemHandler.post_to_db import PostToDbHandler
 class SuperstonkModerationBot(Bot):
     COMPONENTS = dict()
 
-    reddit: asyncpraw.Reddit = None
-    flairy_reddit: asyncpraw.Reddit = None
-    flairy_channel = None
-    moderators = None
     logger = logging.getLogger(__name__)
     automod_rules = []
+
     GENERIC_REACTIONS = None
     USER_REACTIONS = None
     FLAIR_REACTIONS = None
     ALL_REACTIONS = None
 
-    def __init__(self, reddit, flairy_reddit, qvbot_reddit, **options):
+    def __init__(self, readonly_reddit, flairy_reddit, qvbot_reddit, **options):
         super().__init__(command_prefix='>',
                          description="Moderation bot for Superstonk.",
                          sync_commands_debug=True,
                          **options)
-        self.reddit: asyncpraw.Reddit = reddit
-        self.COMPONENTS["readonly_reddit"] = self.reddit
-
-        self.flairy_reddit: asyncpraw.Reddit = flairy_reddit
-        self.COMPONENTS["flairy_reddit"] = self.flairy_reddit
-
+        self.COMPONENTS["readonly_reddit"] = readonly_reddit
+        self.COMPONENTS["flairy_reddit"] = flairy_reddit
         self.COMPONENTS["qvbot_reddit"] = qvbot_reddit
 
     async def component(self, name, component=None):
@@ -71,7 +63,6 @@ class SuperstonkModerationBot(Bot):
         return self.COMPONENTS[name]
 
     async def on_ready(self):
-        from apscheduler.schedulers.asyncio import AsyncIOScheduler
         scheduler = AsyncIOScheduler()
         scheduler.start()
 
@@ -85,11 +76,11 @@ class SuperstonkModerationBot(Bot):
         self.logger.info(f"{await self.COMPONENTS['flairy_reddit'].user.me()}: handling flair requests on reddit")
         self.logger.info(f"{await self.COMPONENTS['qvbot_reddit'].user.me()}: handling QV bot business on reddit")
 
-        superstonk_subreddit = await self.reddit.subreddit("Superstonk")
+        superstonk_subreddit = await self.COMPONENTS["readonly_reddit"].subreddit("Superstonk")
+        testsubsuperstonk = await self.COMPONENTS["readonly_reddit"].subreddit("testsubsuperstonk")
         await self.component("superstonk_subreddit", superstonk_subreddit)
-
-        await self.component("superstonk_TEST_subreddit", await self.reddit.subreddit("testsubsuperstonk"))
-        await self.component("superstonk_moderators", [moderator async for moderator in superstonk_subreddit.moderator])
+        await self.component("superstonk_moderators", [m async for m in superstonk_subreddit.moderator])
+        await self.component("superstonk_TEST_subreddit", testsubsuperstonk)
 
         await self.component("report_channel", self.get_channel(REPORTING_CHANNEL))
         self.logger.info(f"{REPORTING_CHANNEL}: discord channel for reports")
@@ -118,7 +109,7 @@ class SuperstonkModerationBot(Bot):
         super().add_cog(UserCog(**self.COMPONENTS))
         super().add_cog(ModQueueCog(**self.COMPONENTS))
 
-        await discord_output_logging_handler.on_ready(**self.COMPONENTS)
+        await self.component("discord_output_logging_handler", discord_output_logging_handler)
 
         self.logger.info(f"{USER_INVESTIGATION_CHANNELS}: discord channel to listen for users")
 
@@ -167,11 +158,6 @@ class SuperstonkModerationBot(Bot):
 
     async def on_command_error(self, ctx: commands.Context, error):
         self.logger.exception(error)
-
-    async def get_item(self, m: Message):
-        c = m.content if not m.embeds else m.embeds[0]
-        s = str(c) if not isinstance(c, disnake.Embed) else json.dumps(c.to_dict())
-        return await reddit_helper.get_item(string=s, **self.COMPONENTS)
 
     async def get_reaction_information(self, p: disnake.RawReactionActionEvent):
         channel = self.get_channel(p.channel_id)
@@ -230,7 +216,7 @@ if __name__ == "__main__":
 
     ENVIRONMENT = config("environment")
 
-    asyncpraw_reddit = \
+    readonly_asyncpraw_reddit = \
         asyncpraw.Reddit(username=(config("reddit_username")),
                          password=(config("reddit_password")),
                          client_id=(config("reddit_client_id")),
@@ -250,11 +236,11 @@ if __name__ == "__main__":
                          client_secret=config("qvbot_client_secret"),
                          user_agent="com.halfdane.superstonk_qvbot:v0.1.0 (by u/half_dane)")
 
-    with asyncpraw_reddit as reddit:
+    with readonly_asyncpraw_reddit as readonly_reddit:
         with flairy_asyncpraw_reddit as flairy_reddit:
             with qvbot_asyncpraw_reddit as qvbot_reddit:
                 bot = SuperstonkModerationBot(
-                    reddit=reddit,
+                    readonly_reddit=readonly_reddit,
                     flairy_reddit=flairy_reddit,
                     qvbot_reddit=qvbot_reddit,
                     test_guilds=[GUILD]

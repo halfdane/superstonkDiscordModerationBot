@@ -82,9 +82,10 @@ class Flairy(Handler, Reaction):
                     return
 
     async def handle_reaction(self, message, emoji, user, channel):
-        if channel != self.flairy_channel:
+        if channel != self.flairy_channel or not message.embeds or len(message.embeds) == 0:
             return
-        comment = await self.bot.get_item(message)
+
+        comment = await self.flairy_reddit.comment(url=message.embeds[0].url)
         body = getattr(comment, 'body', "")
         flairy = self.flairy_detect_user_flair_change.match(body)
         if flairy is not None:

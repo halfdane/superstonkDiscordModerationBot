@@ -2,8 +2,6 @@ from datetime import datetime as dt
 
 import disnake
 
-from helper.discord_text_formatter import cut
-
 
 def __transform_mod_note(n):
     note = {
@@ -51,6 +49,5 @@ async def fetch_modnotes(reddit, redditor_param, only=None):
 
         yield (f"**{n['created_at']}**",
                f"{n['mod']} {n['action']} "
-               f"{n['details']} {cut(n['description'], 100)} "
+               f"{n['details']} {n['description'][:100]} "
                f"{link}")
-
