@@ -88,6 +88,15 @@ class Comments:
             async with db.execute(statement, condition_parameters) as cursor:
                 return [f"t1_{row[0]}" async for row in cursor]
 
+    async def find_mass_deleters(self, since: datetime):
+        statement = """
+            select author, count(*) as c from COMMENTS 
+            where deleted is not NULL and created_utc >:since 
+            group by author having c>3"""
+        async with aiosqlite.connect(self.database) as db:
+            async with db.execute(statement, {'since', since.timestamp()}) as cursor:
+                return [(row[0], row[1]) async for row in cursor]
+
     async def contains(self, comment):
         async with aiosqlite.connect(self.database) as db:
             async with db.execute('select count(*) from COMMENTS where id=:id',
