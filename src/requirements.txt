@@ -3,10 +3,11 @@ asyncpraw
 python-decouple
 pyyaml
 chevron
-pytest
-pytest-asyncio
-cachetools
 psaw
 nltk
 aiosqlite
 apscheduler
+
+pytest
+pytest-asyncio
+freezegun

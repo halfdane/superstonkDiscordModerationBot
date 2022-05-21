@@ -1,10 +1,11 @@
 from collections import namedtuple
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import aiosqlite
 import pytest
 import pytest_asyncio
+from freezegun import freeze_time
 
 from persistence.comments import Comments
 
@@ -16,8 +17,8 @@ def a_comment(num, id=None, author=None, created=None, score=None, deleted=None,
            author if author is not None else f"auth{num}", \
            created if created is not None else f"date{num}", \
            score if score is not None else f"score{num}", \
-           deleted if deleted is not None else False, \
-           mod_removed if mod_removed is not None else False,
+           deleted, \
+           mod_removed,
 
 
 async def add_test_data(comments):
@@ -61,6 +62,8 @@ class TestCommentDatabaseIntegration:
     @pytest.mark.asyncio
     async def test_store(self):
         # given
+        testee = Comments(test_db)
+
         Author = namedtuple("Author", "name")
         Comment = namedtuple("Commment", "id author created_utc body score removed")
         store_posts = [
@@ -70,20 +73,18 @@ class TestCommentDatabaseIntegration:
         ]
 
         # when
-        testee = Comments(test_db)
-        await testee.store(store_posts)
+        created = datetime(2022, 4, 17, tzinfo=timezone.utc)
+        with freeze_time(created):
+            await testee.store(store_posts)
 
         # then
-        sqlite_true = 1
-        sqlite_false = 0
-
         async with aiosqlite.connect(test_db) as db:
             async with db.execute("select * from COMMENTS") as cursor:
                 rows = [row async for row in cursor]
                 assert len(rows) == 3
-                assert a_comment(1, deleted=sqlite_true, mod_removed=sqlite_false) in rows
-                assert a_comment(2, deleted=sqlite_false, mod_removed=sqlite_true) in rows
-                assert a_comment(3, deleted=sqlite_false, mod_removed=sqlite_false) in rows
+                assert a_comment(1, score=f"{created.timestamp()}:score1", deleted=f"{created.timestamp()}", mod_removed=None) in rows
+                assert a_comment(2, score=f"{created.timestamp()}:score2", deleted=None, mod_removed=f"{created.timestamp()}") in rows
+                assert a_comment(3, score=f"{created.timestamp()}:score3", deleted=None, mod_removed=None) in rows
 
     @pytest.mark.asyncio
     async def test_read_all(self):
@@ -101,8 +102,8 @@ class TestCommentDatabaseIntegration:
             assert comments[i].author.name == f"auth{i + 1}"
             assert comments[i].created_utc == f"date{i + 1}"
             assert comments[i].score == f"score{i + 1}"
-            assert comments[i].deleted is False
-            assert comments[i].mod_removed is False
+            assert comments[i].deleted is None
+            assert comments[i].mod_removed is None
 
     @pytest.mark.asyncio
     async def test_read_after(self):
@@ -126,7 +127,6 @@ class TestCommentDatabaseIntegration:
         assert comments[0].id == f"id_1"
         assert comments[1].id == f"id_3"
 
-
     @pytest.mark.asyncio
     async def test_database_contains(self):
         # given
@@ -137,3 +137,31 @@ class TestCommentDatabaseIntegration:
         CommentWithId = namedtuple("Comment", "id")
         assert await testee.contains(CommentWithId('id_1')) is True
         assert await testee.contains(CommentWithId('id_7')) is False
+
+    @pytest.mark.asyncio
+    async def test_update_existing(self):
+        # given
+        testee = Comments(test_db)
+        Author = namedtuple("Author", "name")
+        Comment = namedtuple("Commment", "id author created_utc body score removed")
+        store_posts = [
+            Comment("id_1", Author("auth1"), "date1", "[deleted]", "score1", False),
+            Comment("id_2", Author("auth2"), "date2", "body2", "score2", True),
+            Comment("id_3", Author("auth3"), "date3", "body3", "score3", False),
+        ]
+
+        created = datetime(2022, 1, 24, tzinfo=timezone.utc)
+        with freeze_time(created):
+            await testee.store(store_posts)
+
+        # when
+        updated = datetime(2022, 1, 28, tzinfo=timezone.utc)
+        with freeze_time(updated):
+            await testee.store([Comment("id_1", Author("auth1"), "date1", "something", "score_new", True)])
+
+        # then
+        async with aiosqlite.connect(test_db) as db:
+            async with db.execute("select * from COMMENTS where id='id_1';") as cursor:
+                rows = [row async for row in cursor]
+                scores = f"{created.timestamp()}:score1 {updated.timestamp()}:score_new"
+                assert rows == [a_comment(1, score=scores, deleted=None, mod_removed=f"{updated.timestamp()}")]

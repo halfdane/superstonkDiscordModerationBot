@@ -20,15 +20,17 @@ class Comments:
                              'COMMENTS (id PRIMARY KEY, author, created_utc, score, deleted, mod_removed);')
 
     async def store(self, comments):
+        now = datetime.utcnow().timestamp()
+
         def __comment_to_db(comment):
             try:
                 return (
                     comment.id,
                     getattr(comment.author, 'name', str(comment.author)),
                     comment.created_utc,
-                    comment.score,
-                    comment.body == '[deleted]',
-                    comment.removed,
+                    f"{now}:{comment.score}",
+                    f"{now}" if comment.body == '[deleted]' else None,
+                    f"{now}" if comment.removed else None,
                 )
             except AttributeError as e:
                 self._logger.exception(f'this caused a problem: [{comment}]')
@@ -40,7 +42,10 @@ class Comments:
             await db.executemany('''
                     INSERT INTO COMMENTS(id, author, created_utc, score, deleted, mod_removed) 
                     VALUES (?, ?, ?, ?, ?, ?)
-                    ON CONFLICT(id) DO UPDATE SET score=excluded.score
+                    ON CONFLICT(id) DO UPDATE SET 
+                    score=score || " " || excluded.score, 
+                    deleted=excluded.deleted, 
+                    mod_removed=excluded.mod_removed
                     ''', comments)
             await db.commit()
 
@@ -59,7 +64,7 @@ class Comments:
             Author = namedtuple("Author", "name")
             Comment = namedtuple("Comment", "id author created_utc score deleted mod_removed")
             async with db.execute(statement, condition_parameters) as cursor:
-                return [Comment(row[0], Author(row[1]), row[2], row[3], row[4] != 0, row[5] != 0) async for row in cursor]
+                return [Comment(row[0], Author(row[1]), row[2], row[3], row[4], row[5]) async for row in cursor]
 
     async def contains(self, comment):
         async with aiosqlite.connect(self.database) as db:
