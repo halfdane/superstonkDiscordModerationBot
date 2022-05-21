@@ -35,7 +35,7 @@ class Flairy(Handler, Reaction):
         flair_command = rf"{flairy_command_detection}\s*!"
 
         flairy_text = r"\s*(.*?)"
-        _valid_colors = fr"(?:\s+({'|'.join(self._templates.keys())}))?\s*"
+        _valid_colors = fr"(?:\s*\b({'|'.join(self._templates.keys())}))?\s*"
 
         regex_flags = re.IGNORECASE | re.MULTILINE | re.DOTALL
 

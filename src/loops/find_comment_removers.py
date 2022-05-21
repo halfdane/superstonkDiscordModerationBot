@@ -18,6 +18,7 @@ class FindCommentRemovers:
         self.add_reactions_to_discord_message = add_reactions_to_discord_message
 
     async def on_ready(self, scheduler, **kwargs):
+        self._logger.info(f"Ready to identify comment removing trolls")
         scheduler.add_job(self.update_comments, "cron", minute="*/10")
         scheduler.add_job(self.identify_comment_removers, "cron", minute="1-59/10")
 

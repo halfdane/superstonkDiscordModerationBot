@@ -79,6 +79,7 @@ class TestFlairyRegex:
         self.match("!Flairy!  something   yellow   ", "something", "yellow")
         self.match("!Flairy!  something   green   ", "something", "green")
         self.match("!Flairy!  something   black   ", "something", "black")
+        self.match("!FLAIRY!🍇🦧🏴‍☠️GrapeApe🏴‍☠️🍇🦧red", "🍇🦧🏴‍☠️GrapeApe🏴‍☠️🍇🦧", "red")
 
     def test_invalid_colors(self):
         self.match("!Flairy!  something   violet   ", "something   violet", None)
