@@ -50,9 +50,32 @@ class Comments:
                     ''', comments)
             await db.commit()
 
-    async def fetch(self, since: datetime = None):
+    async def fetch(self, since: datetime = None, deleted_not_removed=False):
         async with aiosqlite.connect(self.database) as db:
             statement = 'select id, author, created_utc, score, deleted, mod_removed from COMMENTS'
+            condition_statements = []
+            condition_parameters = {}
+            if since is not None:
+                condition_statements.append('created_utc >:since')
+                condition_parameters['since'] = since.timestamp()
+
+            if deleted_not_removed:
+                condition_statements.append('deleted is not NULL and mod_removed is NULL')
+
+            if len(condition_statements) > 0:
+                statement = f'{statement} where {" and ".join(condition_statements)};'
+
+            Author = namedtuple("Author", "name")
+            Comment = namedtuple("Comment", "id author created_utc score deleted mod_removed")
+            async with db.execute(statement, condition_parameters) as cursor:
+                def __split_scores(scores):
+                    return [(datetime.utcfromtimestamp(float(check.split(":")[0])), int(check.split(":")[1]))
+                            for check in scores.split(" ")]
+                return [Comment(row[0], Author(row[1]), row[2], __split_scores(row[3]), row[4], row[5]) async for row in cursor]
+
+    async def fullnames(self, since: datetime = None):
+        async with aiosqlite.connect(self.database) as db:
+            statement = 'select id from COMMENTS'
             condition_statements = []
             condition_parameters = {}
             if since is not None:
@@ -62,10 +85,8 @@ class Comments:
             if len(condition_statements) > 0:
                 statement = f'{statement} where {" and ".join(condition_statements)};'
 
-            Author = namedtuple("Author", "name")
-            Comment = namedtuple("Comment", "id author created_utc score deleted mod_removed")
             async with db.execute(statement, condition_parameters) as cursor:
-                return [Comment(row[0], Author(row[1]), row[2], row[3], row[4], row[5]) async for row in cursor]
+                return [f"t1_{row[0]}" async for row in cursor]
 
     async def contains(self, comment):
         async with aiosqlite.connect(self.database) as db:

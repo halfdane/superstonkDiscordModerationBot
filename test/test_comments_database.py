@@ -11,12 +11,13 @@ from persistence.comments import Comments
 
 test_db = f"some_comment_test_db.db"
 
+a_timestamp = 1653125353.78856
 
 def a_comment(num, id=None, author=None, created=None, score=None, deleted=None, mod_removed=None):
     return id if id is not None else f"id_{num}", \
            author if author is not None else f"auth{num}", \
            created if created is not None else f"date{num}", \
-           score if score is not None else f"score{num}", \
+           score if score is not None else f"{a_timestamp}:{num}", \
            deleted, \
            mod_removed,
 
@@ -101,9 +102,29 @@ class TestCommentDatabaseIntegration:
             assert comments[i].id == f"id_{i + 1}"
             assert comments[i].author.name == f"auth{i + 1}"
             assert comments[i].created_utc == f"date{i + 1}"
-            assert comments[i].score == f"score{i + 1}"
+            assert comments[i].score == [(datetime.utcfromtimestamp(a_timestamp), i+1)]
             assert comments[i].deleted is None
             assert comments[i].mod_removed is None
+
+    @pytest.mark.asyncio
+    async def test_read_with_updates(self):
+        # given
+        await add_test_data([a_comment(1, score="1653118753.0:2 1653118802.0:6")])
+
+        # when
+        testee = Comments(test_db)
+        comments = await testee.fetch()
+
+        # then
+        assert len(comments) == 1
+        assert comments[0].id == f"id_1"
+        assert comments[0].author.name == f"auth1"
+        assert comments[0].created_utc == f"date1"
+        assert comments[0].score == [(datetime.utcfromtimestamp(1653118753.0), 2), (datetime.utcfromtimestamp(1653118802.0), 6)]
+        assert comments[0].deleted is None
+        assert comments[0].mod_removed is None
+
+
 
     @pytest.mark.asyncio
     async def test_read_after(self):
