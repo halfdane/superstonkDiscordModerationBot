@@ -19,7 +19,7 @@ class FindCommentRemovers:
         self._logger.info(f"Fetching comments from the last hour")
         now = datetime.utcnow()
         last_hour = now - timedelta(hours=1)
-        comment_ids_of_last_hour = [f"t1_{c.id}" for c in self.persist_comments.fetch(last_hour)]
+        comment_ids_of_last_hour = [f"t1_{c.id}" for c in await self.persist_comments.fetch(last_hour)]
         comments_of_last_hour = [c async for c in self.readonly_reddit.info(comment_ids_of_last_hour)]
         self._logger.info(f"Storing updated info for {len(comments_of_last_hour)} comments from the last hour")
         await self.persist_comments.store(comments_of_last_hour)
