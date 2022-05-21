@@ -11,8 +11,8 @@ from persistence.comments import Comments
 test_db = f"some_comment_test_db.db"
 
 
-def a_comment(num, permalink=None, author=None, created=None, score=None, deleted=None, mod_removed=None):
-    return permalink if permalink is not None else f"perma{num}", \
+def a_comment(num, id=None, author=None, created=None, score=None, deleted=None, mod_removed=None):
+    return id if id is not None else f"id_{num}", \
            author if author is not None else f"auth{num}", \
            created if created is not None else f"date{num}", \
            score if score is not None else f"score{num}", \
@@ -62,11 +62,11 @@ class TestCommentDatabaseIntegration:
     async def test_store(self):
         # given
         Author = namedtuple("Author", "name")
-        Comment = namedtuple("Commment", "permalink author created_utc body score removed")
+        Comment = namedtuple("Commment", "id author created_utc body score removed")
         store_posts = [
-            Comment("perma1", Author("auth1"), "date1", "[deleted]", "score1", False),
-            Comment("perma2", Author("auth2"), "date2", "body2", "score2", True),
-            Comment("perma3", Author("auth3"), "date3", "body3", "score3", False),
+            Comment("id_1", Author("auth1"), "date1", "[deleted]", "score1", False),
+            Comment("id_2", Author("auth2"), "date2", "body2", "score2", True),
+            Comment("id_3", Author("auth3"), "date3", "body3", "score3", False),
         ]
 
         # when
@@ -97,7 +97,7 @@ class TestCommentDatabaseIntegration:
         # then
         assert len(comments) == 3
         for i in range(3):
-            assert comments[i].permalink == f"perma{i + 1}"
+            assert comments[i].id == f"id_{i + 1}"
             assert comments[i].author.name == f"auth{i + 1}"
             assert comments[i].created_utc == f"date{i + 1}"
             assert comments[i].score == f"score{i + 1}"
@@ -113,7 +113,7 @@ class TestCommentDatabaseIntegration:
         two_days_ago = now - timedelta(days=2)
 
         await add_test_data([a_comment(1, created=three_days_ago.timestamp()),
-                             a_comment(2, created=last_week.timestamp(), permalink='old'),
+                             a_comment(2, created=last_week.timestamp(), id='old'),
                              a_comment(3, created=two_days_ago.timestamp())])
 
         # when
@@ -123,8 +123,8 @@ class TestCommentDatabaseIntegration:
 
         # then
         assert len(comments) == 2
-        assert comments[0].permalink == f"perma1"
-        assert comments[1].permalink == f"perma3"
+        assert comments[0].id == f"id_1"
+        assert comments[1].id == f"id_3"
 
 
     @pytest.mark.asyncio
@@ -134,6 +134,6 @@ class TestCommentDatabaseIntegration:
         await add_test_data([a_comment(1), a_comment(2), a_comment(3), a_comment(4)])
 
         # when / then
-        CommentWithId = namedtuple("Comment", "permalink")
-        assert await testee.contains(CommentWithId('perma1')) is True
-        assert await testee.contains(CommentWithId('perma7')) is False
+        CommentWithId = namedtuple("Comment", "id")
+        assert await testee.contains(CommentWithId('id_1')) is True
+        assert await testee.contains(CommentWithId('id_7')) is False

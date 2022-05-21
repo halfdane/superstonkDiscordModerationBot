@@ -1,8 +1,6 @@
 import logging
 
-
-def permalink(item):
-    return f"https://www.reddit.com{item.permalink}"
+from helper.links import permalink
 
 
 async def was_recently_posted(item, channel, discord_bot_user):

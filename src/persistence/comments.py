@@ -23,7 +23,7 @@ class Comments:
         def __comment_to_db(comment):
             try:
                 return (
-                    comment.permalink,
+                    comment.id,
                     getattr(comment.author, 'name', str(comment.author)),
                     comment.created_utc,
                     comment.score,
@@ -57,14 +57,14 @@ class Comments:
                 statement = f'{statement} where {" and ".join(condition_statements)};'
 
             Author = namedtuple("Author", "name")
-            Comment = namedtuple("Comment", "permalink author created_utc score deleted mod_removed")
+            Comment = namedtuple("Comment", "id author created_utc score deleted mod_removed")
             async with db.execute(statement, condition_parameters) as cursor:
                 return [Comment(row[0], Author(row[1]), row[2], row[3], row[4] != 0, row[5] != 0) async for row in cursor]
 
-    async def contains(self, post):
+    async def contains(self, comment):
         async with aiosqlite.connect(self.database) as db:
-            async with db.execute('select count(*) from COMMENTS where id=:permalink',
-                                  {'permalink': post.permalink}) as cursor:
+            async with db.execute('select count(*) from COMMENTS where id=:id',
+                                  {'id': comment.id}) as cursor:
                 rows = [row async for row in cursor]
                 return rows[0][0] >= 1
 
