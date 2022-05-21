@@ -23,7 +23,7 @@ class Posts:
         def __post_to_db(post):
             try:
                 return (
-                    post.permalink,
+                    post.id,
                     getattr(post.author, 'name', str(post.author)),
                     getattr(post, 'link_flair_text', "NONE"),
                     post.created_utc,
@@ -65,19 +65,19 @@ class Posts:
                 statement = f'{statement} where {" and ".join(condition_statements)};'
 
             Author = namedtuple("Author", "name")
-            Post = namedtuple("Post", "permalink author link_flair_text created_utc title score count_to_limit")
+            Post = namedtuple("Post", "id author link_flair_text created_utc title score count_to_limit")
             async with db.execute(statement, condition_parameters) as cursor:
                 return [Post(row[0], Author(row[1]), row[2], row[3], row[4], row[5], row[6]) async for row in cursor]
 
     async def contains(self, post):
         async with aiosqlite.connect(self.database) as db:
-            async with db.execute('select count(*) from POSTS where id=:permalink',
-                                  {'permalink': post.permalink}) as cursor:
+            async with db.execute('select count(*) from POSTS where id=:id',
+                                  {'id': post.id}) as cursor:
                 rows = [row async for row in cursor]
                 return rows[0][0] >= 1
 
     async def do_not_count_to_limit(self, post):
         async with aiosqlite.connect(self.database) as db:
-            await db.execute('UPDATE POSTS set count_to_limit=:count where id=:permalink',
-                             {'count': False, 'permalink': post.permalink})
+            await db.execute('UPDATE POSTS set count_to_limit=:count where id=:id',
+                             {'count': False, 'id': post.id})
             await db.commit()

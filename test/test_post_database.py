@@ -11,8 +11,8 @@ from persistence.posts import Posts
 test_db = f"some_post_test_db.db"
 
 
-def a_post(num, permalink=None, author=None, flair=None, created=None, title=None, score=None, counts=None):
-    return permalink if permalink else f"perma{num}", \
+def a_post(num, id=None, author=None, flair=None, created=None, title=None, score=None, counts=None):
+    return id if id else f"id{num}", \
            author if author else f"auth{num}", \
            flair if flair else f"flair{num}", \
            created if created else f"date{num}", \
@@ -63,13 +63,13 @@ class TestPostDatabaseIntegration:
     async def test_store(self):
         # given
         Author = namedtuple("Author", "name")
-        PostWithLimit = namedtuple("Post", "permalink author link_flair_text created_utc title score count_to_limit")
-        PostWithoutLimit = namedtuple("Post", "permalink author link_flair_text created_utc title score")
+        PostWithLimit = namedtuple("Post", "id author link_flair_text created_utc title score count_to_limit")
+        PostWithoutLimit = namedtuple("Post", "id author link_flair_text created_utc title score")
 
         store_posts = [
-            PostWithLimit("perma1", Author("auth1"), "flair1", "date1", "title1", "score1", "cnt1"),
-            PostWithoutLimit("perma2", Author("auth2"), "flair2", "date2", "title2", "score2"),
-            PostWithLimit("perma3", Author("auth3"), "flair3", "date3", "title3", "score3", "cnt3"),
+            PostWithLimit("id1", Author("auth1"), "flair1", "date1", "title1", "score1", "cnt1"),
+            PostWithoutLimit("id2", Author("auth2"), "flair2", "date2", "title2", "score2"),
+            PostWithLimit("id3", Author("auth3"), "flair3", "date3", "title3", "score3", "cnt3"),
         ]
 
         # when
@@ -97,7 +97,7 @@ class TestPostDatabaseIntegration:
         # then
         assert len(posts) == 3
         for i in range(3):
-            assert posts[i].permalink == f"perma{i + 1}"
+            assert posts[i].id == f"id{i + 1}"
             assert posts[i].author.name == f"auth{i + 1}"
             assert posts[i].link_flair_text == f"flair{i + 1}"
             assert posts[i].created_utc == f"date{i + 1}"
@@ -118,10 +118,10 @@ class TestPostDatabaseIntegration:
 
         # then
         assert len(posts) == 2
-        assert posts[0].permalink == f"perma1"
+        assert posts[0].id == f"id1"
         assert posts[0].author.name == f"auth1"
 
-        assert posts[1].permalink == f"perma3"
+        assert posts[1].id == f"id3"
         assert posts[1].author.name == f"auth1"
 
     @pytest.mark.asyncio
@@ -133,7 +133,7 @@ class TestPostDatabaseIntegration:
         two_days_ago = now - timedelta(days=2)
 
         await add_test_data([a_post(1, created=three_days_ago.timestamp()),
-                             a_post(2, created=last_week.timestamp(), permalink='old'),
+                             a_post(2, created=last_week.timestamp(), id='old'),
                              a_post(3, created=two_days_ago.timestamp())])
 
         # when
@@ -143,8 +143,8 @@ class TestPostDatabaseIntegration:
 
         # then
         assert len(posts) == 2
-        assert posts[0].permalink == f"perma1"
-        assert posts[1].permalink == f"perma3"
+        assert posts[0].id == f"id1"
+        assert posts[1].id == f"id3"
 
     @pytest.mark.asyncio
     async def test_read_counting_only(self):
@@ -160,8 +160,8 @@ class TestPostDatabaseIntegration:
 
         # then
         assert len(posts) == 2
-        assert posts[0].permalink == f"perma1"
-        assert posts[1].permalink == f"perma4"
+        assert posts[0].id == f"id1"
+        assert posts[1].id == f"id4"
 
     @pytest.mark.asyncio
     async def test_read_author_after(self):
@@ -172,7 +172,7 @@ class TestPostDatabaseIntegration:
         two_days_ago = now - timedelta(days=2)
 
         await add_test_data([a_post(1, created=three_days_ago.timestamp()),
-                             a_post(2, created=last_week.timestamp(), permalink='old'),
+                             a_post(2, created=last_week.timestamp(), id='old'),
                              a_post(3, created=two_days_ago.timestamp())])
 
         # when
@@ -182,7 +182,7 @@ class TestPostDatabaseIntegration:
 
         # then
         assert len(posts) == 1
-        assert posts[0].permalink == f"perma3"
+        assert posts[0].id == f"id3"
 
     @pytest.mark.asyncio
     async def test_do_not_count(self):
@@ -195,20 +195,20 @@ class TestPostDatabaseIntegration:
 
         posts = await testee.fetch(only_counting_to_limit=True)
         assert len(posts) == 3
-        assert posts[0].permalink == f"perma1"
-        assert posts[1].permalink == f"perma3"
-        assert posts[2].permalink == f"perma4"
+        assert posts[0].id == f"id1"
+        assert posts[1].id == f"id3"
+        assert posts[2].id == f"id4"
 
         # when
-        PostWithId = namedtuple("Post", "permalink")
+        PostWithId = namedtuple("Post", "id")
 
-        await testee.do_not_count_to_limit(PostWithId('perma1'))
+        await testee.do_not_count_to_limit(PostWithId('id1'))
 
         # then
         posts = await testee.fetch(only_counting_to_limit=True)
         assert len(posts) == 2
-        assert posts[0].permalink == f"perma3"
-        assert posts[1].permalink == f"perma4"
+        assert posts[0].id == f"id3"
+        assert posts[1].id == f"id4"
 
     @pytest.mark.asyncio
     async def test_database_contains(self):
@@ -220,6 +220,6 @@ class TestPostDatabaseIntegration:
                              a_post(4, counts=True)])
 
         # when / then
-        PostWithId = namedtuple("Post", "permalink")
-        assert await testee.contains(PostWithId('perma1')) is True
-        assert await testee.contains(PostWithId('perma7')) is False
+        PostWithId = namedtuple("Post", "id")
+        assert await testee.contains(PostWithId('id1')) is True
+        assert await testee.contains(PostWithId('id7')) is False
