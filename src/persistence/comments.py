@@ -24,13 +24,14 @@ class Comments:
 
         def __comment_to_db(comment):
             try:
+                mod_removed = comment.removed or (getattr(comment, "ban_note", None) is not None)
                 return (
                     comment.id,
                     getattr(comment.author, 'name', str(comment.author)),
                     comment.created_utc,
                     f"{now}:{comment.score}",
                     f"{now}" if comment.body == '[deleted]' else None,
-                    f"{now}" if comment.removed else None,
+                    f"{now}" if mod_removed else None,
                 )
             except AttributeError as e:
                 self._logger.exception(f'this caused a problem: [{comment}]')
