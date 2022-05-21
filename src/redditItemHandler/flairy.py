@@ -305,7 +305,7 @@ class FlairContainsForbiddenPhraseCommand:
 
 
 class FlairWasRecentlyRequestedCommand:
-    def __init__(self, flairy_channel, discord_bot_user, **_):
+    def __init__(self, flairy_channel=None, discord_bot_user=None, **_):
         self._logger = logging.getLogger(self.__class__.__name__)
         self.flairy_channel = flairy_channel
         self.discord_bot_user = discord_bot_user
