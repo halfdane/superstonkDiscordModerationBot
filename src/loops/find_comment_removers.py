@@ -13,7 +13,7 @@ class FindCommentRemovers:
 
     async def on_ready(self, scheduler, **kwargs):
         scheduler.add_job(self.update_comments, "cron", minute="*/10")
-        scheduler.add_job(self.identify_comment_removers, "cron", hour="1-59/10")
+        scheduler.add_job(self.identify_comment_removers, "cron", minute="1-59/10")
 
     async def update_comments(self):
         now = datetime.utcnow()
