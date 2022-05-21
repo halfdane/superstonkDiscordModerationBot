@@ -27,7 +27,7 @@ class Posts:
                     getattr(post.author, 'name', str(post.author)),
                     getattr(post, 'link_flair_text', "NONE"),
                     post.created_utc,
-                    post.title,
+                    post.title[:50],
                     post.score,
                     getattr(post, 'count_to_limit', True)
                 )
