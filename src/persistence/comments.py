@@ -2,6 +2,8 @@ import logging
 from collections import namedtuple
 from datetime import datetime
 from os.path import expanduser
+from typing import List
+from asyncpraw.models.reddit.comment import Comment
 
 import aiosqlite
 
@@ -17,42 +19,43 @@ class Comments:
     async def on_ready(self, **_):
         async with aiosqlite.connect(self.database) as db:
             await db.execute('CREATE TABLE if not exists '
-                             'COMMENTS (id PRIMARY KEY, author, created_utc, score, deleted, mod_removed);')
+                             'COMMENTS (id PRIMARY KEY, author, created_utc, deleted, mod_removed);')
+            await db.execute('CREATE TABLE if not exists '
+                             'SCORES(id NOT NULL , updated_utc real NOT NULL , score INT, PRIMARY KEY (id, updated_utc));')
 
-    async def store(self, comments):
+    async def store(self, comments: List[Comment]):
         now = datetime.utcnow().timestamp()
 
         def __comment_to_db(comment):
-            try:
-                mod_removed = comment.removed or (getattr(comment, "ban_note", None) is not None)
-                return (
-                    comment.id,
-                    getattr(comment.author, 'name', str(comment.author)),
-                    comment.created_utc,
-                    f"{now}:{comment.score}",
-                    f"{now}" if comment.body == '[deleted]' else None,
-                    f"{now}" if mod_removed else None,
-                )
-            except AttributeError as e:
-                self._logger.exception(f'this caused a problem: [{comment}]')
-                raise e
+            mod_removed = comment.removed or (getattr(comment, "ban_note", None) is not None)
+            return (
+                comment.id,
+                getattr(comment.author, 'name', str(comment.author)),
+                comment.created_utc,
+                now if comment.body == '[deleted]' else None,
+                now if mod_removed else None,
+            )
 
-        comments = [__comment_to_db(item) for item in comments]
+        def __score_to_db(item):
+            return item.id, now, item.score
 
+        db_scores = [__score_to_db(item) for item in comments]
+        db_comments = [__comment_to_db(item) for item in comments]
         async with aiosqlite.connect(self.database) as db:
             await db.executemany('''
-                    INSERT INTO COMMENTS(id, author, created_utc, score, deleted, mod_removed) 
-                    VALUES (?, ?, ?, ?, ?, ?)
+                    INSERT INTO COMMENTS(id, author, created_utc, deleted, mod_removed) 
+                    VALUES (?, ?, ?, ?, ?)
                     ON CONFLICT(id) DO UPDATE SET 
-                    score=score || " " || excluded.score, 
                     deleted=excluded.deleted, 
                     mod_removed=excluded.mod_removed
-                    ''', comments)
+                    ''', db_comments)
+            await db.executemany('INSERT INTO SCORES(id, updated_utc, score) VALUES (?, ?, ?)', db_scores)
+
             await db.commit()
 
     async def fetch(self, since: datetime = None, deleted_not_removed=False):
         async with aiosqlite.connect(self.database) as db:
-            statement = 'select id, author, created_utc, score, deleted, mod_removed from COMMENTS'
+            statement = 'select id, author, created_utc, deleted, mod_removed from COMMENTS'
             condition_statements = []
             condition_parameters = {}
             if since is not None:
@@ -66,12 +69,9 @@ class Comments:
                 statement = f'{statement} where {" and ".join(condition_statements)};'
 
             Author = namedtuple("Author", "name")
-            Comment = namedtuple("Comment", "id author created_utc score deleted mod_removed")
+            Comment = namedtuple("Comment", "id author created_utc deleted mod_removed")
             async with db.execute(statement, condition_parameters) as cursor:
-                def __split_scores(scores):
-                    return [(datetime.utcfromtimestamp(float(check.split(":")[0])), int(check.split(":")[1]))
-                            for check in scores.split(" ")]
-                return [Comment(row[0], Author(row[1]), row[2], __split_scores(row[3]), row[4], row[5]) async for row in cursor]
+                return [Comment(row[0], Author(row[1]), row[2], row[3], row[4]) async for row in cursor]
 
     async def fullnames(self, since: datetime = None):
         async with aiosqlite.connect(self.database) as db:
@@ -103,4 +103,26 @@ class Comments:
                                   {'id': comment.id}) as cursor:
                 rows = [row async for row in cursor]
                 return rows[0][0] >= 1
+
+
+t = '''
+drop table SCORES;
+
+CREATE TABLE if not exists 
+ SCORES(id NOT NULL , updated_utc real NOT NULL , score INT, PRIMARY KEY (id, updated_utc));
+
+insert into SCORES 
+WITH RECURSIVE split(eid, label, str) AS (
+    SELECT id, '', score||' ' FROM COMMENTS
+    UNION ALL SELECT
+    eid,
+    substr(str, 0, instr(str, ' ')),
+    substr(str, instr(str, ' ')+1)
+    FROM split WHERE str!=''
+) 
+SELECT eid as id, cast(substr(label, 0, instr(label, ':')) as real) as updated_utc, cast(substr(label, instr(label, ':')+1) as integer) as score
+FROM split
+WHERE label!='';
+
+'''
 
