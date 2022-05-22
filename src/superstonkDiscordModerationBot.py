@@ -20,7 +20,7 @@ from discordReaction.user_history_reaction import UserHistoryReaction
 from discordReaction.wip_reaction import WipReaction
 from discord_output_logger import DiscordOutputLogger
 from helper.redditor_extractor import extract_redditor
-from loops.find_comment_removers import FindCommentRemovers
+from loops.comment_based_troll_identifier import CommentBasedTrollIdentifier
 from loops.post_statistics import CalculatePostStatistics
 from loops.streamer import Stream
 from persistence.comments import Comments
@@ -102,7 +102,7 @@ class SuperstonkModerationBot(Bot):
         await self.component("post_repo", Posts())
         await self.component("comment_repo", Comments())
         await self.component("calculate_post_statistics", CalculatePostStatistics(**self.COMPONENTS))
-        await self.component("find_comment_removers", FindCommentRemovers(**self.COMPONENTS))
+        await self.component("comment_based_troll_identifier", CommentBasedTrollIdentifier(**self.COMPONENTS))
 
         hanami = Hanami(**self.COMPONENTS)
         await self.component("hanami", hanami)
