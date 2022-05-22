@@ -37,13 +37,10 @@ class FindCommentRemovers:
         now = datetime.utcnow()
         last_hour = now - timedelta(hours=1)
         authors = dict()
-        for comment in await self.persist_comments.fetch(since=last_hour, deleted_not_removed=True):
-            comments_of_author = authors.get(comment.author, [])
-            last_timestamp, last_score = comment.score[-1]
-            if last_score < 0:
-                comments_of_author.append(comment)
-            if len(comments_of_author) > 0:
-                authors[comment.author] = comments_of_author
+        for author, comment_id, score in await self.persist_comments.find_authors_with_removed_negative_comments(since=last_hour):
+            comments_of_author = authors.get(author, [])
+            comments_of_author.append(comment_id)
+            authors[author] = comments_of_author
 
         self._logger.info(f"Authors with at least one negative comment that was deleted: {authors}")
         sus = {k: v for k, v in authors.items() if len(v) > 3}

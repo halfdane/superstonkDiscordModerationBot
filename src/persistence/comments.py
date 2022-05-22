@@ -73,29 +73,22 @@ class Comments:
             async with db.execute(statement, condition_parameters) as cursor:
                 return [Comment(row[0], Author(row[1]), row[2], row[3], row[4]) async for row in cursor]
 
-    async def fullnames(self, since: datetime = None):
+    async def fullnames(self, since: datetime):
         async with aiosqlite.connect(self.database) as db:
-            statement = 'select id from COMMENTS'
-            condition_statements = []
-            condition_parameters = {}
-            if since is not None:
-                condition_statements.append('created_utc >:since')
-                condition_parameters['since'] = since.timestamp()
-
-            if len(condition_statements) > 0:
-                statement = f'{statement} where {" and ".join(condition_statements)};'
-
-            async with db.execute(statement, condition_parameters) as cursor:
+            statement = 'select id from COMMENTS where created_utc >:since'
+            async with db.execute(statement, {'since', since.timestamp()}) as cursor:
                 return [f"t1_{row[0]}" async for row in cursor]
 
-    async def find_mass_deleters(self, since: datetime):
+    async def find_authors_with_removed_negative_comments(self, since: datetime):
         statement = """
-            select author, count(*) as c from COMMENTS 
-            where deleted is not NULL and created_utc >:since 
-            group by author having c>3"""
+            select distinct c.author, c.id, min(s.score) 
+            from COMMENTS as c left join SCORES as s on c.id == s.id 
+            where s.score<0 and c.deleted is not NULL and c.deleted>:since
+            group by c.id order by c.author, c.deleted;
+            """
         async with aiosqlite.connect(self.database) as db:
             async with db.execute(statement, {'since', since.timestamp()}) as cursor:
-                return [(row[0], row[1]) async for row in cursor]
+                return [(row[0], row[1], row[2]) async for row in cursor]
 
     async def contains(self, comment):
         async with aiosqlite.connect(self.database) as db:
