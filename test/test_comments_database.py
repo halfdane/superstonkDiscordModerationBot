@@ -206,3 +206,27 @@ class TestCommentDatabaseIntegration:
                 rows = [row async for row in cursor]
                 assert rows == [a_score(1, updated=created.timestamp(), score="score1"),
                                 a_score(1, updated=updated.timestamp(), score="score_new")]
+
+    @pytest.mark.asyncio
+    async def test_fetch_fullnames(self):
+        # given
+        now = datetime.utcnow()
+        last_week = now - timedelta(weeks=1)
+        three_days_ago = now - timedelta(days=3)
+        two_days_ago = now - timedelta(days=2)
+
+        await add_test_data([a_comment(1, created=three_days_ago.timestamp()),
+                             a_comment(2, created=last_week.timestamp(), id='old'),
+                             a_comment(3, created=two_days_ago.timestamp())],
+                            [])
+
+        # when
+        four_days_ago = now - timedelta(days=4)
+        testee = Comments(test_db)
+        comments = await testee.fullnames(since=four_days_ago)
+
+        # then
+        assert len(comments) == 2
+        assert comments[0] == f"t1_id_1"
+        assert comments[1] == f"t1_id_3"
+

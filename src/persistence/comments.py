@@ -75,8 +75,10 @@ class Comments:
 
     async def fullnames(self, since: datetime):
         async with aiosqlite.connect(self.database) as db:
-            statement = 'select id from COMMENTS where created_utc >:since'
-            async with db.execute(statement, {'since', since.timestamp()}) as cursor:
+            statement = 'select id from COMMENTS where created_utc >:since;'
+            timestamp = since.timestamp()
+            print(f"parameter is {timestamp} of type {type(timestamp)}")
+            async with db.execute(statement, {'since': timestamp}) as cursor:
                 return [f"t1_{row[0]}" async for row in cursor]
 
     async def find_authors_with_removed_negative_comments(self, since: datetime):
