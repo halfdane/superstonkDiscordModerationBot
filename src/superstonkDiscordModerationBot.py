@@ -64,6 +64,7 @@ class SuperstonkModerationBot(Bot):
         return self.COMPONENTS[name]
 
     async def on_ready(self):
+        logging.getLogger('apscheduler').setLevel(logging.WARN)
         scheduler = AsyncIOScheduler()
         scheduler.start()
 
