@@ -22,16 +22,13 @@ from discord_output_logger import DiscordOutputLogger
 from helper.redditor_extractor import extract_redditor
 from loops.comment_based_troll_identifier import CommentBasedTrollIdentifier
 from loops.post_statistics import CalculatePostStatistics
-from loops.streamer import Stream
 from persistence.comments import Comments
 from persistence.posts import Posts
 from persistence.reports import Reports
-from redditItemHandler.comment_to_db import CommentToDbHandler
 from redditItemHandler.flairy import Flairy
 from redditItemHandler.front_desk_sticky import FrontDeskSticky
 from redditItemHandler.important_reports import ImportantReports
 from redditItemHandler.post_count_limiter import PostCountLimiter
-from redditItemHandler.post_to_db import PostToDbHandler
 from redditItemHandler.reddit_item_reader import RedditItemReader
 
 
