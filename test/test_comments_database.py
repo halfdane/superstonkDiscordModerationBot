@@ -208,7 +208,7 @@ class TestCommentDatabaseIntegration:
                                 a_score(1, updated=updated.timestamp(), score="score_new")]
 
     @pytest.mark.asyncio
-    async def test_fetch_fullnames(self):
+    async def test_fetch_ids(self):
         # given
         now = datetime.utcnow()
         last_week = now - timedelta(weeks=1)
@@ -223,10 +223,10 @@ class TestCommentDatabaseIntegration:
         # when
         four_days_ago = now - timedelta(days=4)
         testee = Comments(test_db)
-        comments = await testee.fullnames(since=four_days_ago)
+        comments = await testee.ids(since=four_days_ago)
 
         # then
         assert len(comments) == 2
-        assert comments[0] == f"t1_id_1"
-        assert comments[1] == f"t1_id_3"
+        assert comments[0] == f"id_1"
+        assert comments[1] == f"id_3"
 
