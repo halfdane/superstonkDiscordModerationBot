@@ -92,15 +92,15 @@ class Comments:
             async with db.execute(statement, {'since': since.timestamp()}) as cursor:
                 return [(row[0], row[1], row[2]) async for row in cursor]
 
-    async def find_authors_with_negative_comments(self, since: datetime):
+    async def find_authors_with_negative_comments(self, limit, since: datetime):
         statement = """
             select distinct c.author, c.id, min(s.score), count(*)
             from COMMENTS as c left join SCORES as s on c.id == s.id 
-            where s.score<0 
+            where s.score<:limit and s.created_utc>:since
             group by c.id order by c.author, c.deleted;
             """
         async with aiosqlite.connect(self.database) as db:
-            async with db.execute(statement, {'since': since.timestamp()}) as cursor:
+            async with db.execute(statement, {'since': since.timestamp(), 'limit': limit}) as cursor:
                 return [(row[0], row[1], row[2]) async for row in cursor]
 
     async def contains(self, comment):

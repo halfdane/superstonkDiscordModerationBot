@@ -60,7 +60,7 @@ class CommentBasedTrollIdentifier:
         now = datetime.utcnow()
         last_36_hours = now - timedelta(hours=36)
         authors = dict()
-        for author, comment_id, score in await self.persist_comments.find_authors_with_negative_comments(since=last_36_hours):
+        for author, comment_id, score in await self.persist_comments.find_authors_with_negative_comments(limit=-5, since=last_36_hours):
             comments_of_author = authors.get(author, [])
             comments_of_author.append(comment_id)
             authors[author] = comments_of_author
