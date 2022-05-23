@@ -25,12 +25,14 @@ from loops.post_statistics import CalculatePostStatistics
 from loops.streamer import Stream
 from persistence.comments import Comments
 from persistence.posts import Posts
+from persistence.reports import Reports
 from redditItemHandler.comment_to_db import CommentToDbHandler
 from redditItemHandler.flairy import Flairy
 from redditItemHandler.front_desk_sticky import FrontDeskSticky
 from redditItemHandler.important_reports import ImportantReports
 from redditItemHandler.post_count_limiter import PostCountLimiter
 from redditItemHandler.post_to_db import PostToDbHandler
+from redditItemHandler.reddit_item_reader import RedditItemReader
 
 
 class SuperstonkModerationBot(Bot):
@@ -102,6 +104,7 @@ class SuperstonkModerationBot(Bot):
 
         await self.component("post_repo", Posts())
         await self.component("comment_repo", Comments())
+        await self.component("report_repo", Reports())
         await self.component("calculate_post_statistics", CalculatePostStatistics(**self.COMPONENTS))
         await self.component("comment_based_troll_identifier", CommentBasedTrollIdentifier(**self.COMPONENTS))
 
@@ -125,23 +128,26 @@ class SuperstonkModerationBot(Bot):
 
         self.ALL_REACTIONS = self.GENERIC_REACTIONS + self.USER_REACTIONS + self.FLAIR_REACTIONS
 
-        Stream("Comments") \
-            .from_input(superstonk_subreddit.stream.comments) \
-            .add_handler(CommentToDbHandler(**self.COMPONENTS)) \
-            .add_handler(flairy) \
-            .start(**self.COMPONENTS)
+        await self.component("comments_reader",
+                             RedditItemReader(
+                                 name="Comments",
+                                 item_fetch_function=superstonk_subreddit.comments,
+                                 item_repository=self.COMPONENTS['comment_repo'],
+                                 handlers=[flairy]))
 
-        Stream("Reports") \
-            .from_input(superstonk_subreddit.mod.stream.reports) \
-            .add_handler(ImportantReports(**self.COMPONENTS)) \
-            .start(**self.COMPONENTS)
+        await self.component("reports_reader",
+                             RedditItemReader(
+                                 name="Reports",
+                                 item_fetch_function=superstonk_subreddit.mod.reports,
+                                 item_repository=self.COMPONENTS['report_repo'],
+                                 handlers=[ImportantReports(**self.COMPONENTS)]))
 
-        Stream("Posts") \
-            .from_input(superstonk_subreddit.stream.submissions) \
-            .add_handler(PostToDbHandler(**self.COMPONENTS)) \
-            .add_handler(PostCountLimiter(**self.COMPONENTS)) \
-            .add_handler(FrontDeskSticky()) \
-            .start(**self.COMPONENTS)
+        await self.component("posts_reader",
+                             RedditItemReader(
+                                 name="Posts",
+                                 item_fetch_function=superstonk_subreddit.submissions,
+                                 item_repository=self.COMPONENTS['post_repo'],
+                                 handlers=[PostCountLimiter(**self.COMPONENTS), FrontDeskSticky()]))
 
         automod_config = await superstonk_subreddit.wiki.get_page("config/automoderator")
         for rule in automod_config.content_md.split("---"):
