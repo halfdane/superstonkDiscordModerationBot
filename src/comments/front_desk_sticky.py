@@ -2,7 +2,7 @@ import asyncio
 from random import randint
 
 from redditItemHandler import Handler
-from redditItemHandler.abstract_handler import permalink
+from helper.links import permalink
 
 
 class FrontDeskSticky(Handler):
@@ -21,7 +21,7 @@ We have received several reports of people who lost money to someone who claimed
 """
 
     def __init__(self, **kwargs):
-        super().__init__(None)
+        super().__init__()
 
     async def on_ready(self):
         self._logger.info("Ready to create a fresh Front Desk")

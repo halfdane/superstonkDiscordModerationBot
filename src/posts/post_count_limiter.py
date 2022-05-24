@@ -3,8 +3,8 @@ from datetime import datetime, timedelta
 import disnake
 from disnake import Embed
 
+from helper.links import permalink
 from redditItemHandler import Handler
-from redditItemHandler.abstract_handler import permalink
 
 REMOVAL_COMMENT = """
 Your post was removed by a moderator because you have reached the limit of posts per user in 24 hours.
@@ -26,7 +26,7 @@ class PostCountLimiter(Handler):
     _interval = timedelta(hours=24)
 
     def __init__(self, add_reactions_to_discord_message=None, post_repo=None, qvbot_reddit=None, report_channel=None, environment=None, **kwargs):
-        super().__init__(None)
+        super().__init__()
         self.post_repo = post_repo
         self.qvbot_reddit = qvbot_reddit
         self.report_channel = report_channel

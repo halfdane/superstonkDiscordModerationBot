@@ -119,7 +119,7 @@ class SuperstonkModerationBot(Bot):
 
         self.logger.info(f"{USER_INVESTIGATION_CHANNELS}: discord channel to listen for users")
 
-        flairy = Flairy(self, **self.COMPONENTS)
+        flairy = Flairy(**self.COMPONENTS)
 
         self.GENERIC_REACTIONS = (
             HelpReaction(**self.COMPONENTS), WipReaction(**self.COMPONENTS), DeleteReaction(**self.COMPONENTS))

@@ -1,21 +1,9 @@
 import logging
 
-from helper.links import permalink
-
-
-async def was_recently_posted(item, channel, discord_bot_user):
-    async for elem in channel \
-            .history(limit=200) \
-            .filter(lambda message: message.author.id == discord_bot_user.id):
-        if len(getattr(elem, 'embeds', [])) > 0 and permalink(item) == elem.embeds[0].url:
-            return True
-    return False
-
 
 class Handler:
 
-    def __init__(self, bot):
-        self.bot = bot
+    def __init__(self):
         self._logger = logging.getLogger(self.__class__.__name__)
 
     async def take(self, item):

@@ -5,7 +5,7 @@ from disnake import Embed
 
 from helper.mod_notes import fetch_modnotes
 from redditItemHandler import Handler
-from redditItemHandler.abstract_handler import permalink, was_recently_posted
+from helper.links import permalink
 
 RULE_1 = re.compile(r"rule\s*1", re.IGNORECASE)
 
@@ -13,7 +13,7 @@ RULE_1 = re.compile(r"rule\s*1", re.IGNORECASE)
 class ImportantReports(Handler):
 
     def __init__(self, add_reactions_to_discord_message, report_channel, readonly_reddit, discord_bot_user, **kwargs):
-        super().__init__(None)
+        super().__init__()
         self.report_channel = report_channel
         self.add_reactions_to_discord_message = add_reactions_to_discord_message
         self.readonly_reddit = readonly_reddit
@@ -36,10 +36,6 @@ class ImportantReports(Handler):
         if len(mods_reporting_rule_1) > 0:
             await self.__send_ban_list(mods_reporting_rule_1, item)
         elif user_report_count >= lots_of_reports or mod_report_count > 0:
-            if await was_recently_posted(item, self.report_channel, self.discord_bot_user):
-                self._logger.info(f"skipping over recently handled report {permalink(item)}")
-                return
-
             await item.load()
             self._logger.info(f"Sending reported item {permalink(item)}")
             embed = Embed.from_dict(self.__create_embed(item))

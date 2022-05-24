@@ -1,5 +1,5 @@
 from collections import namedtuple
-from unittest.mock import patch, AsyncMock, MagicMock
+from unittest.mock import AsyncMock
 
 import pytest
 

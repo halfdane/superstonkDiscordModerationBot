@@ -6,8 +6,9 @@ import disnake
 from disnake.utils import escape_markdown
 
 from discordReaction.abstract_reaction import Reaction
+from discordReaction.wip_reaction import WipReaction
+from helper.links import permalink
 from redditItemHandler import Handler
-from redditItemHandler.abstract_handler import permalink, was_recently_posted
 
 
 class Flairy(Handler, Reaction):
@@ -22,9 +23,9 @@ class Flairy(Handler, Reaction):
 
     _default_color = "black"
 
-    def __init__(self, bot=None, superstonk_moderators=[], flairy_channel=None, flairy_reddit=None,
+    def __init__(self, superstonk_moderators=[], flairy_channel=None, flairy_reddit=None,
                  is_forbidden_comment_message=None, add_reactions_to_discord_message=None, **kwargs):
-        Handler.__init__(self, bot)
+        Handler.__init__(self)
         Reaction.__init__(self)
 
         self.superstonk_moderators = superstonk_moderators
@@ -48,7 +49,6 @@ class Flairy(Handler, Reaction):
         colors = list(self._templates.keys())
         self._commands = [
             CommentAlreadyHasAResponse(flairy_command_detection, regex_flags),
-            FlairWasRecentlyRequestedCommand(flairy_channel, **kwargs),
             FlairyExplainerCommand(flairy_reddit, self._templates.keys()),
             ClearCommand(flairy_reddit, flairy_command_detection, regex_flags),
             SealmeCommand(self._templates[self._default_color], flairy_command_detection, regex_flags,
@@ -92,7 +92,7 @@ class Flairy(Handler, Reaction):
             await self.flair_user(comment=comment, flair_text=flairy.group(1), flair_color=flairy.group(2))
         else:
             await message.edit(content="Flair request was removed in the meantime")
-        await self.bot.handle_reaction(message, "✅", user, channel)
+        await WipReaction.handle_reaction(None, message, None, None, None)
 
     async def flair_user(self, comment, flair_text, flair_color=None, template=None, message=""):
         flair_text = flair_text.strip()
@@ -301,22 +301,6 @@ class FlairContainsForbiddenPhraseCommand:
             self._logger.info(f"Silently refusing to grant flair with restricted content: {flair_text}")
             return True
 
-        return False
-
-
-class FlairWasRecentlyRequestedCommand:
-    def __init__(self, flairy_channel=None, discord_bot_user=None, **_):
-        self._logger = logging.getLogger(self.__class__.__name__)
-        self.flairy_channel = flairy_channel
-        self.discord_bot_user = discord_bot_user
-
-    async def handled(self, body, comment, is_mod):
-        if is_mod:
-            return False
-
-        if await was_recently_posted(comment, self.flairy_channel, self.discord_bot_user):
-            self._logger.info(f"skipping over recently handled flair request {permalink(comment)}")
-            return True
         return False
 
 
