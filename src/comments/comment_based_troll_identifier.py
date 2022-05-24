@@ -62,7 +62,7 @@ class CommentBasedTrollIdentifier:
             embed = disnake.Embed(colour=disnake.Colour(0).from_rgb(207, 206, 255))
             embed.description = message
             embed.add_field("Redditor", f"[{author}](https://www.reddit.com/u/{author})", inline=False)
-            links = [f"[c.id]({permalink(all_comments[c.id])})" for c in comments]
+            links = [f"[c]({permalink(all_comments[c])})" for c in comments]
             embed.add_field("Comments", ", ".join(links), inline=False)
 
             msg = await self.report_channel.send(embed=embed)
