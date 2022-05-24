@@ -81,8 +81,8 @@ class Flairy(Handler, Reaction):
                 if await command.handled(body, comment, is_mod):
                     return
 
-    async def handle_reaction(self, message, emoji, user, channel):
-        if channel != self.flairy_channel or not message.embeds or len(message.embeds) == 0:
+    async def handle_reaction(self, message, user):
+        if not message.embeds or len(message.embeds) == 0:
             return
 
         comment = await self.flairy_reddit.comment(url=message.embeds[0].url)
@@ -92,7 +92,7 @@ class Flairy(Handler, Reaction):
             await self.flair_user(comment=comment, flair_text=flairy.group(1), flair_color=flairy.group(2))
         else:
             await message.edit(content="Flair request was removed in the meantime")
-        await WipReaction.handle_reaction(None, message, None, None, None)
+        await WipReaction.handle_reaction(None, message, None)
 
     async def flair_user(self, comment, flair_text, flair_color=None, template=None, message=""):
         flair_text = flair_text.strip()

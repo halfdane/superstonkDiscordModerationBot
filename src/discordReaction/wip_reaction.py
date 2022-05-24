@@ -26,7 +26,7 @@ def un_strikethrough(text):
 class WipReaction(Reaction):
     emoji = '✅'
 
-    async def handle_reaction(self, message: Message, emoji, user, channel):
+    async def handle_reaction(self, message: Message, user):
         for embed in message.embeds:
             lines = embed.description.split("\n")
             embed.description = "\n".join([strikethrough(line) for line in lines])
@@ -38,7 +38,7 @@ class WipReaction(Reaction):
 
         await message.edit(embeds=message.embeds)
 
-    async def unhandle_reaction(self, message, emoji, user, channel):
+    async def unhandle_reaction(self, message, user):
         for embed in message.embeds:
             lines = embed.description.split("\n")
             embed.description = "\n".join([un_strikethrough(line) for line in lines])

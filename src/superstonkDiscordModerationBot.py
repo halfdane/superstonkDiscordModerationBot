@@ -178,7 +178,7 @@ class SuperstonkModerationBot(Bot):
 
         message: Message = await channel.fetch_message(p.message_id)
         emoji = p.emoji.name if not p.emoji.is_custom_emoji() else "<:{}:{}>".format(p.emoji.name, p.emoji.id)
-        return message, emoji, member, channel
+        return message, emoji, member
 
     async def on_raw_reaction_remove(self, p: disnake.RawReactionActionEvent):
         reaction_information = await self.get_reaction_information(p)
@@ -196,15 +196,15 @@ class SuperstonkModerationBot(Bot):
         for r in reactions:
             await msg.add_reaction(r.emoji)
 
-    async def handle_reaction(self, message, emoji, user, channel):
+    async def handle_reaction(self, message, emoji, user):
         for reaction in self.ALL_REACTIONS:
             if reaction.emoji == emoji:
-                await reaction.handle_reaction(message, emoji, user, channel)
+                await reaction.handle_reaction(message, user)
 
-    async def unhandle_reaction(self, message, emoji, user, channel):
+    async def unhandle_reaction(self, message, emoji, user):
         for reaction in self.ALL_REACTIONS:
             if reaction.emoji == emoji:
-                await reaction.unhandle_reaction(message, emoji, user, channel)
+                await reaction.unhandle_reaction(message, user)
 
 
 if __name__ == "__main__":

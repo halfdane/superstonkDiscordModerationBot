@@ -13,7 +13,7 @@ class UserHistoryReaction(Reaction):
         super().__init__()
         self.readonly_reddit = readonly_reddit
 
-    async def handle_reaction(self, message: Message, emoji, user, channel):
+    async def handle_reaction(self, message: Message, user):
         redditor = extract_redditor(message)
         try:
             history = await redditor_history(await self.readonly_reddit.redditor(redditor))

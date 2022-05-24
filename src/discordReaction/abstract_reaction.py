@@ -7,10 +7,10 @@ class Reaction:
     def __init__(self, **_):
         self._logger = logging.getLogger(self.__class__.__name__)
 
-    async def handle_reaction(self, message, emoji, user, channel):
+    async def handle_reaction(self, message, user):
         pass
 
-    async def unhandle_reaction(self, message, emoji, user, channel):
+    async def unhandle_reaction(self, message, user):
         pass
 
     @staticmethod

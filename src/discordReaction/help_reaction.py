@@ -9,7 +9,7 @@ class HelpReaction(Reaction):
         super().__init__()
         self.get_discord_cogs = get_discord_cogs
 
-    async def handle_reaction(self, message: Message, emoji, user, channel):
+    async def handle_reaction(self, message: Message, user):
         explanations = ["**Generic Reactions**"]
         for reaction in Reaction.__subclasses__():
             print(reaction)

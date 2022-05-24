@@ -4,7 +4,7 @@ from discordReaction.abstract_reaction import Reaction
 class DeleteReaction(Reaction):
     emoji = '❌'
 
-    async def handle_reaction(self, message, emoji, user, channel):
+    async def handle_reaction(self, message, user):
         await message.delete()
 
     @staticmethod
