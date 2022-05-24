@@ -56,14 +56,14 @@ class CommentBasedTrollIdentifier:
 
         sus = {k: v for k, v in authors.items() if len(v) > 3}
         self._logger.info(f"These are the suspicious ones: {sus}")
-        all_fullnames = [f"t1_{c}" for one_author in sus.values() for c in one_author]
-        all_comments = {c.id: c async for c in self.readonly_reddit.info(all_fullnames)}
         for author, comments in sus.items():
             embed = disnake.Embed(colour=disnake.Colour(0).from_rgb(207, 206, 255))
             embed.description = message
             embed.add_field("Redditor", f"[{author}](https://www.reddit.com/u/{author})", inline=False)
-            links = [f"[c]({permalink(all_comments[c])})" for c in comments]
-            embed.add_field("Comments", ", ".join(links), inline=False)
+
+            ids = ",".join([c for c in comments])
+            link_to_history = f'https://api.pushshift.io/reddit/search/comment/?ids={ids}&fields=author,body,score,full_link'
+            embed.add_field("Comments", f"[{ids}]({link_to_history})", inline=False)
 
             msg = await self.report_channel.send(embed=embed)
             await self.add_reactions_to_discord_message(msg)
