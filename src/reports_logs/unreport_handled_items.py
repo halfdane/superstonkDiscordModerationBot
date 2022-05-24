@@ -12,20 +12,15 @@ class HandledItemsUnreporter:
 
     async def on_ready(self, scheduler, **kwargs):
         self._logger.info(f"Scheduling cleanup of handled reports")
-        # scheduler.add_job(self.unreport_items, "cron", minute="3-59/10")
         scheduler.add_job(self.unreport_items, "cron", minute="*")
 
     async def unreport_items(self):
-        self._logger.info(f"Removing handled reports")
-
         unreport_actions = ['spamlink', 'removelink', 'approvelink', 'spamcomment', 'removecomment', 'approvecomment']
         handled_urls = [permalink(log.target_permalink) async for log in self.superstonk_subreddit.mod.log(limit=100)
                         if log.action in unreport_actions]
         async for message in self.report_channel \
                 .history(limit=200) \
                 .filter(lambda r: len(getattr(r, 'embeds', [])) > 0 and r.embeds[0].url in handled_urls):
-            self._logger.info(f'removing report for {message.embeds[0].url}')
             await message.delete()
-
-        self._logger.info("done")
+            self._logger.info(f'removed report for {message.embeds[0].url}')
 
