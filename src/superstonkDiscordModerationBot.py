@@ -30,6 +30,7 @@ from posts.post_statistics import CalculatePostStatistics
 from redditItemHandler.reddit_item_reader import RedditItemReader
 from reports_logs.important_reports_handler import ImportantReports
 from reports_logs.report_repository import Reports
+from reports_logs.unreport_handled_items import HandledItemsUnreporter
 
 
 class SuperstonkModerationBot(Bot):
@@ -102,8 +103,10 @@ class SuperstonkModerationBot(Bot):
         await self.component("post_repo", Posts())
         await self.component("comment_repo", Comments())
         await self.component("report_repo", Reports())
+
         await self.component("calculate_post_statistics", CalculatePostStatistics(**self.COMPONENTS))
         await self.component("comment_based_troll_identifier", CommentBasedTrollIdentifier(**self.COMPONENTS))
+        await self.component("handled_items_unreporter", HandledItemsUnreporter(**self.COMPONENTS))
 
         hanami = Hanami(**self.COMPONENTS)
         await self.component("hanami", hanami)
