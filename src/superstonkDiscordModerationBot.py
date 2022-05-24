@@ -27,7 +27,7 @@ from helper.redditor_extractor import extract_redditor
 from posts.post_count_limiter import PostCountLimiter
 from posts.post_repository import Posts
 from posts.post_statistics import CalculatePostStatistics
-from redditItemHandler.reddit_item_reader import RedditItemReader
+from reddit_item_reader import RedditItemReader
 from reports_logs.important_reports_handler import ImportantReports
 from reports_logs.report_repository import Reports
 from reports_logs.unreport_handled_items import HandledItemsUnreporter
