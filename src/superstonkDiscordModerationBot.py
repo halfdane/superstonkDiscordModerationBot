@@ -13,6 +13,10 @@ from disnake.ext.commands import Bot
 from cogs.hanami_mail_responder import Hanami
 from cogs.modqueue_cog import ModQueueCog
 from cogs.user_cog import UserCog
+from comments.comment_based_troll_identifier import CommentBasedTrollIdentifier
+from comments.comment_repository import Comments
+from comments.flairy import Flairy
+from comments.front_desk_sticky import FrontDeskSticky
 from discordReaction.delete_reaction import DeleteReaction
 from discordReaction.help_reaction import HelpReaction
 from discordReaction.modnote_reaction import ModNoteReaction
@@ -20,16 +24,12 @@ from discordReaction.user_history_reaction import UserHistoryReaction
 from discordReaction.wip_reaction import WipReaction
 from discord_output_logger import DiscordOutputLogger
 from helper.redditor_extractor import extract_redditor
-from loops.comment_based_troll_identifier import CommentBasedTrollIdentifier
-from loops.post_statistics import CalculatePostStatistics
-from persistence.comments import Comments
-from persistence.posts import Posts
-from persistence.reports import Reports
-from redditItemHandler.flairy import Flairy
-from redditItemHandler.front_desk_sticky import FrontDeskSticky
-from redditItemHandler.important_reports import ImportantReports
-from redditItemHandler.post_count_limiter import PostCountLimiter
+from posts.post_count_limiter import PostCountLimiter
+from posts.post_repository import Posts
+from posts.post_statistics import CalculatePostStatistics
 from redditItemHandler.reddit_item_reader import RedditItemReader
+from reports_logs.important_reports_handler import ImportantReports
+from reports_logs.report_repository import Reports
 
 
 class SuperstonkModerationBot(Bot):
@@ -142,7 +142,7 @@ class SuperstonkModerationBot(Bot):
         await self.component("posts_reader",
                              RedditItemReader(
                                  name="Posts",
-                                 item_fetch_function=superstonk_subreddit.submissions,
+                                 item_fetch_function=superstonk_subreddit.new,
                                  item_repository=self.COMPONENTS['post_repo'],
                                  handlers=[PostCountLimiter(**self.COMPONENTS), FrontDeskSticky()]))
 

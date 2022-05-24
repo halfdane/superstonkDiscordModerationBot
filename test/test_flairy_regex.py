@@ -1,4 +1,4 @@
-from redditItemHandler.flairy import Flairy
+from comments.flairy import Flairy
 
 
 def EQUALS(x, y):

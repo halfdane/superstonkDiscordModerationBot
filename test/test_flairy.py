@@ -2,7 +2,7 @@ from unittest.mock import patch, AsyncMock, MagicMock
 
 import pytest
 
-from redditItemHandler.flairy import Flairy
+from comments.flairy import Flairy
 
 
 def default_bot():

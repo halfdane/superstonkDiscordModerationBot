@@ -3,7 +3,7 @@ from unittest.mock import patch, AsyncMock, MagicMock
 
 import pytest
 
-from redditItemHandler.post_count_limiter import PostCountLimiter
+from posts.post_count_limiter import PostCountLimiter
 
 FakePost = namedtuple("Post", "permalink author id count_to_limit")
 

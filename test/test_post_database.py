@@ -6,7 +6,7 @@ import aiosqlite
 import pytest
 import pytest_asyncio
 
-from persistence.posts import Posts
+from posts.post_repository import Posts
 
 test_db = f"some_post_test_db.db"
 

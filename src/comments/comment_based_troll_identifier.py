@@ -4,7 +4,7 @@ from datetime import timedelta, datetime
 import disnake
 
 from helper.links import permalink
-from persistence.comments import Comments
+from comments.comment_repository import Comments
 
 
 class CommentBasedTrollIdentifier:

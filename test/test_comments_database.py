@@ -7,7 +7,7 @@ import pytest
 import pytest_asyncio
 from freezegun import freeze_time
 
-from persistence.comments import Comments
+from comments.comment_repository import Comments
 
 test_db = f"some_comment_test_db.db"
 

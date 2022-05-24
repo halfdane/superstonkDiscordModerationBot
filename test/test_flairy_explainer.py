@@ -1,7 +1,7 @@
 from unittest.mock import patch, AsyncMock, MagicMock
 import asyncpraw
 import pytest
-from redditItemHandler.flairy import FlairyExplainerCommand, Flairy
+from comments.flairy import FlairyExplainerCommand, Flairy
 
 
 class TestFlairyExplainer:
