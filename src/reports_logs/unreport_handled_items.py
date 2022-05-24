@@ -34,16 +34,17 @@ class HandledItemsUnreporter:
             confirmed = '✅' in additional_reactions
             return bot_message and confirmed
 
-        run_once_more = True
-        while run_once_more:
-            run_once_more = False
+        removed_count = 1_000
+        while removed_count > 0:
+            removed_count = 0
             async for message in self.report_channel \
                     .history(limit=200) \
                     .filter(__was_confirmed):
                 await message.delete()
-                run_once_more = True
+                removed_count += 1
                 self._logger.info(f'removed report for {message.embeds[0].url}')
 
+            self._logger.info(f'removed {removed_count} reports')
         self._logger.info("Cleaned up channel")
 
 
