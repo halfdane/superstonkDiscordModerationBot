@@ -11,20 +11,20 @@ from posts.post_repository import Posts
 test_db = f"some_post_test_db.db"
 
 
-def a_post(num, id=None, author=None, flair=None, created=None, title=None, score=None, counts=None):
+def a_post(num, id=None, author=None, flair=None, created=None, score=None, counts=None, available=1):
     return id if id else f"id{num}", \
            author if author else f"auth{num}", \
            flair if flair else f"flair{num}", \
            created if created else f"date{num}", \
-           title if title else f"title{num}", \
            score if score else f"score{num}", \
-           counts if counts else f"cnt{num}",
+           counts if counts else f"cnt{num}", \
+           available
 
 
 async def add_test_data(posts):
     async with aiosqlite.connect(test_db) as db:
         await db.executemany('''
-                            INSERT INTO POSTS(id, author, flair, created_utc, title, score, count_to_limit) 
+                            INSERT INTO POSTS(id, author, flair, created_utc, score, count_to_limit, available) 
                             VALUES (?, ?, ?, ?, ?, ?, ?)''', posts)
         await db.commit()
 
@@ -57,19 +57,19 @@ class TestPostDatabaseIntegration:
             async with db.execute("select sql from sqlite_master where type = 'table' and name = 'POSTS';") as cursor:
                 rows = [row[0] async for row in cursor]
                 assert rows == [
-                    'CREATE TABLE POSTS (id PRIMARY KEY, author, flair, created_utc, title, score, count_to_limit)']
+                    'CREATE TABLE POSTS (id PRIMARY KEY, author, flair, created_utc, score, count_to_limit, available)']
 
     @pytest.mark.asyncio
     async def test_store(self):
         # given
         Author = namedtuple("Author", "name")
-        PostWithLimit = namedtuple("Post", "id author link_flair_text created_utc title score count_to_limit")
-        PostWithoutLimit = namedtuple("Post", "id author link_flair_text created_utc title score")
+        PostWithLimit = namedtuple("Post", "id author link_flair_text created_utc score count_to_limit available")
+        PostWithoutLimit = namedtuple("Post", "id author link_flair_text created_utc score available")
 
         store_posts = [
-            PostWithLimit("id1", Author("auth1"), "flair1", "date1", "title1", "score1", "cnt1"),
-            PostWithoutLimit("id2", Author("auth2"), "flair2", "date2", "title2", "score2"),
-            PostWithLimit("id3", Author("auth3"), "flair3", "date3", "title3", "score3", "cnt3"),
+            PostWithLimit("id1", Author("auth1"), "flair1", "date1", "score1", "cnt1", True),
+            PostWithoutLimit("id2", Author("auth2"), "flair2", "date2", "score2", False),
+            PostWithLimit("id3", Author("auth3"), "flair3", "date3", "score3", "cnt3", False),
         ]
 
         # when
@@ -82,8 +82,8 @@ class TestPostDatabaseIntegration:
                 rows = [row async for row in cursor]
                 assert len(rows) == 3
                 assert a_post(1) in rows
-                assert a_post(2, counts=True) in rows
-                assert a_post(3) in rows
+                assert a_post(2, counts=1, available=0) in rows
+                assert a_post(3, available=0) in rows
 
     @pytest.mark.asyncio
     async def test_read_all(self):
@@ -101,9 +101,9 @@ class TestPostDatabaseIntegration:
             assert posts[i].author.name == f"auth{i + 1}"
             assert posts[i].link_flair_text == f"flair{i + 1}"
             assert posts[i].created_utc == f"date{i + 1}"
-            assert posts[i].title == f"title{i + 1}"
             assert posts[i].score == f"score{i + 1}"
             assert posts[i].count_to_limit == f"cnt{i + 1}"
+            assert posts[i].available is True
 
     @pytest.mark.asyncio
     async def test_read_from_user(self):

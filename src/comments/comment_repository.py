@@ -77,7 +77,6 @@ class Comments:
         async with aiosqlite.connect(self.database) as db:
             statement = 'select id from COMMENTS where created_utc >:since;'
             timestamp = since.timestamp()
-            print(f"parameter is {timestamp} of type {type(timestamp)}")
             async with db.execute(statement, {'since': timestamp}) as cursor:
                 return [row[0] async for row in cursor]
 

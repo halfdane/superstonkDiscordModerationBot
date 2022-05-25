@@ -17,7 +17,7 @@ class Posts:
     async def on_ready(self, **_):
         async with aiosqlite.connect(self.database) as db:
             await db.execute('CREATE TABLE if not exists '
-                             'POSTS (id PRIMARY KEY, author, flair, created_utc, title, score, count_to_limit);')
+                             'POSTS (id PRIMARY KEY, author, flair, created_utc, score, count_to_limit, available);')
 
     async def store(self, posts):
         def __post_to_db(post):
@@ -27,9 +27,9 @@ class Posts:
                     getattr(post.author, 'name', str(post.author)),
                     getattr(post, 'link_flair_text', "NONE"),
                     post.created_utc,
-                    post.title[:50],
                     post.score,
-                    getattr(post, 'count_to_limit', True)
+                    getattr(post, 'count_to_limit', True),
+                    getattr(post, 'available', True)
                 )
             except AttributeError as e:
                 self._logger.exception(f'this caused a problem: [{post}]')
@@ -39,7 +39,7 @@ class Posts:
 
         async with aiosqlite.connect(self.database) as db:
             await db.executemany('''
-                    INSERT INTO POSTS(id, author, flair, created_utc, title, score, count_to_limit) 
+                    INSERT INTO POSTS(id, author, flair, created_utc, score, count_to_limit, available) 
                     VALUES (?, ?, ?, ?, ?, ?, ?)
                     ON CONFLICT(id) DO UPDATE SET score=excluded.score
                     ''', posts)
@@ -47,7 +47,7 @@ class Posts:
 
     async def fetch(self, author=None, since: datetime = None, only_counting_to_limit=False):
         async with aiosqlite.connect(self.database) as db:
-            statement = 'select id, author, flair, created_utc, title, score, count_to_limit from POSTS'
+            statement = 'select id, author, flair, created_utc, score, count_to_limit, available from POSTS'
             condition_statements = []
             condition_parameters = {}
             if author is not None:
@@ -65,9 +65,9 @@ class Posts:
                 statement = f'{statement} where {" and ".join(condition_statements)};'
 
             Author = namedtuple("Author", "name")
-            Post = namedtuple("Post", "id author link_flair_text created_utc title score count_to_limit")
+            Post = namedtuple("Post", "id author link_flair_text created_utc score count_to_limit available")
             async with db.execute(statement, condition_parameters) as cursor:
-                return [Post(row[0], Author(row[1]), row[2], row[3], row[4], row[5], row[6]) async for row in cursor]
+                return [Post(row[0], Author(row[1]), row[2], row[3], row[4], row[5], row[6]!='0') async for row in cursor]
 
     async def contains(self, post):
         async with aiosqlite.connect(self.database) as db:
