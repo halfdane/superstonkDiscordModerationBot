@@ -67,7 +67,8 @@ class Posts:
             Author = namedtuple("Author", "name")
             Post = namedtuple("Post", "id author link_flair_text created_utc score count_to_limit available")
             async with db.execute(statement, condition_parameters) as cursor:
-                return [Post(row[0], Author(row[1]), row[2], row[3], row[4], row[5], row[6]!='0') async for row in cursor]
+                return [Post(row[0], Author(row[1]), row[2], row[3], row[4], row[5], row[6] != '0') async for row in
+                        cursor]
 
     async def contains(self, post):
         async with aiosqlite.connect(self.database) as db:
@@ -75,6 +76,36 @@ class Posts:
                                   {'id': post.id}) as cursor:
                 rows = [row async for row in cursor]
                 return rows[0][0] >= 1
+
+    async def count(self, since, until):
+        async with aiosqlite.connect(self.database) as db:
+            async with db.execute('select count(*) from POSTS where created_utc >:since and created_utc <:until',
+                                  {'since': since.timestamp(), 'until': until.timestamp()}) as cursor:
+                rows = [row async for row in cursor]
+                return rows[0][0]
+
+    async def top(self, since, until):
+        async with aiosqlite.connect(self.database) as db:
+            async with db.execute('''
+                    select id from POSTS 
+                    where created_utc >:since and created_utc <:until
+                    order by score desc limit 10;''',
+                                  {'since': since.timestamp(), 'until': until.timestamp()}) as cursor:
+                return [row[0] async for row in cursor]
+
+    async def oldest(self):
+        async with aiosqlite.connect(self.database) as db:
+            async with db.execute('select created_utc from POSTS ORDER by created_utc limit 1') as cursor:
+                return [row[0] async for row in cursor][0]
+
+    async def flairs(self, since, until):
+        async with aiosqlite.connect(self.database) as db:
+            async with db.execute('''
+                    select flair, count(*) as cnt From POSTS  
+                    where created_utc >:since and created_utc <:until
+                    group by trim(flair) order by cnt desc;''',
+                                  {'since': since.timestamp(), 'until': until.timestamp()}) as cursor:
+                return [(row[0], row[1]) async for row in cursor]
 
     async def do_not_count_to_limit(self, post):
         async with aiosqlite.connect(self.database) as db:

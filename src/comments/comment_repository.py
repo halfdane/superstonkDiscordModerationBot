@@ -109,25 +109,24 @@ class Comments:
                 rows = [row async for row in cursor]
                 return rows[0][0] >= 1
 
+    async def count(self, since, until):
+        async with aiosqlite.connect(self.database) as db:
+            async with db.execute('select count(*) from COMMENTS where created_utc >:since and created_utc <:until',
+                                  {'since': since.timestamp(), 'until': until.timestamp()}) as cursor:
+                rows = [row async for row in cursor]
+                return rows[0][0]
 
-t = '''
-drop table SCORES;
+    async def top(self, since, until):
+        async with aiosqlite.connect(self.database) as db:
+            async with db.execute('''
+                    select distinct c.id from COMMENTS as c left join scores as s on c.id == s.id 
+                    where created_utc >:since and created_utc <:until
+                    order by score desc limit 10;''',
+                                  {'since': since.timestamp(), 'until': until.timestamp()}) as cursor:
+                return [row[0] async for row in cursor]
 
-CREATE TABLE if not exists 
- SCORES(id NOT NULL , updated_utc real NOT NULL , score INT, PRIMARY KEY (id, updated_utc));
-
-insert into SCORES 
-WITH RECURSIVE split(eid, label, str) AS (
-    SELECT id, '', score||' ' FROM COMMENTS
-    UNION ALL SELECT
-    eid,
-    substr(str, 0, instr(str, ' ')),
-    substr(str, instr(str, ' ')+1)
-    FROM split WHERE str!=''
-) 
-SELECT eid as id, cast(substr(label, 0, instr(label, ':')) as real) as updated_utc, cast(substr(label, instr(label, ':')+1) as integer) as score
-FROM split
-WHERE label!='';
-
-'''
+    async def oldest(self):
+        async with aiosqlite.connect(self.database) as db:
+            async with db.execute('select created_utc from COMMENTS ORDER by created_utc limit 1') as cursor:
+                return [row[0] async for row in cursor][0]
 

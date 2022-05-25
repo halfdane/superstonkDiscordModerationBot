@@ -3,7 +3,6 @@ from datetime import timedelta, datetime
 
 import disnake
 
-from helper.links import permalink
 from comments.comment_repository import Comments
 
 
@@ -26,9 +25,9 @@ class CommentBasedTrollIdentifier:
     async def update_comments(self):
         now = datetime.utcnow()
         last_hour = now - timedelta(hours=1)
-        self._logger.info(f"Fetching ids of comments from the last hour")
+        self._logger.debug(f"Fetching ids of comments from the last hour")
         comment_ids_of_last_hour = [f"t1_{c}" for c in await self.persist_comments.ids(last_hour)]
-        self._logger.info(f"Fetching comment information from the last hour")
+        self._logger.debug(f"Fetching comment information from the last hour")
         comments_of_last_hour = [c async for c in self.readonly_reddit.info(comment_ids_of_last_hour)]
         self._logger.info(f"Storing updated info for {len(comments_of_last_hour)} comments from the last hour")
         await self.persist_comments.store(comments_of_last_hour)
@@ -55,7 +54,7 @@ class CommentBasedTrollIdentifier:
             authors[author] = comments_of_author
 
         sus = {k: v for k, v in authors.items() if len(v) > 3}
-        self._logger.info(f"These are the suspicious ones: {sus}")
+        self._logger.debug(f"These are the suspicious ones: {sus}")
         for author, comments in sus.items():
             embed = disnake.Embed(colour=disnake.Colour(0).from_rgb(207, 206, 255))
             embed.description = message
