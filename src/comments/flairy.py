@@ -260,7 +260,6 @@ class WrongColorCommand:
                           f"you have to summon me again."
                 self._logger.info(f"Wrong color: {permalink(comment)}")
                 await comment_from_flairies_view.reply(message)
-                return True
 
         return False
 
