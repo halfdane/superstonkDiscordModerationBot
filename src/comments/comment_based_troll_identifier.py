@@ -74,7 +74,7 @@ class CommentBasedTrollIdentifier:
         now = datetime.utcnow()
         since = now - timedelta(hours=1)
         self._logger.info(f"checking database for heavily downvoted comments since {since} ({since.timestamp()})")
-        downvoted_ids = await self.persist_comments.heavily_downvoted_comments(since=since, limit=-10)
+        downvoted_ids = [f"t1_{c}" for c in await self.persist_comments.heavily_downvoted_comments(since=since, limit=-10)]
 
         downvoted_comments = [c async for c in self.readonly_reddit.info(downvoted_ids)]
         for comment in downvoted_comments:
