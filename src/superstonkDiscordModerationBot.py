@@ -87,6 +87,9 @@ class SuperstonkModerationBot(Bot):
         await self.component("report_channel", self.get_channel(REPORTING_CHANNEL))
         self.logger.info(f"{REPORTING_CHANNEL}: discord channel for reports")
 
+        await self.component("report_comments_channel", self.get_channel(REPORTING_COMMENTS_CHANNEL))
+        self.logger.info(f"{REPORTING_COMMENTS_CHANNEL}: discord channel for reports")
+
         await self.component("flairy_channel", self.get_channel(FLAIRY_CHANNEL))
         self.logger.info(f"{FLAIRY_CHANNEL}: discord channel for flairy")
 
@@ -217,6 +220,7 @@ if __name__ == "__main__":
 
     DISCORD_BOT_TOKEN = config("discord_bot_token")
     REPORTING_CHANNEL = int(config("REPORTING_CHANNEL"))
+    REPORTING_COMMENTS_CHANNEL = int(config("REPORTING_COMMENTS_CHANNEL"))
     FLAIRY_CHANNEL = int(config("FLAIRY_CHANNEL"))
     LOG_OUTPUT_CHANNEL = int(config("LOG_OUTPUT_CHANNEL"))
     USER_INVESTIGATION_CHANNELS = int(config("USER_INVESTIGATION_CHANNELS"))

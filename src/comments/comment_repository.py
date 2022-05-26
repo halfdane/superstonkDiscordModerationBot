@@ -84,7 +84,7 @@ class Comments:
         statement = """
             select distinct c.author, c.id, min(s.score) 
             from COMMENTS as c left join SCORES as s on c.id == s.id 
-            where s.score<0 and c.deleted is not NULL and c.deleted>:since
+            where s.score<0 and c.deleted is not NULL and c.created_utc>:since
             group by c.id order by c.author, c.deleted;
             """
         async with aiosqlite.connect(self.database) as db:
@@ -95,12 +95,23 @@ class Comments:
         statement = """
             select distinct c.author, c.id, min(s.score), count(*)
             from COMMENTS as c left join SCORES as s on c.id == s.id 
-            where s.score<:limit and s.created_utc>:since
+            where s.score<:limit and c.created_utc>:since
             group by c.id order by c.author, c.deleted;
             """
         async with aiosqlite.connect(self.database) as db:
             async with db.execute(statement, {'since': since.timestamp(), 'limit': limit}) as cursor:
                 return [(row[0], row[1], row[2]) async for row in cursor]
+
+    async def heavily_downvoted_comments(self, limit, since: datetime):
+        statement = """
+            select distinct c.id
+            from COMMENTS as c left join SCORES as s on c.id == s.id 
+            where s.score<:limit and c.created_utc>:since and c.deleted is NULL
+            group by c.id order by c.author, c.deleted;
+            """
+        async with aiosqlite.connect(self.database) as db:
+            async with db.execute(statement, {'since': since.timestamp(), 'limit': limit}) as cursor:
+                return [row[0] async for row in cursor]
 
     async def contains(self, comment):
         async with aiosqlite.connect(self.database) as db:

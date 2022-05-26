@@ -42,6 +42,7 @@ jobs:
           
           export GUILD="${{ secrets.GUILD }}"
           export REPORTING_CHANNEL="${{ secrets.REPORTING_CHANNEL }}"
+          export REPORTING_COMMENTS_CHANNEL="${{ secrets.REPORTING_COMMENTS_CHANNEL }}"
           export FLAIRY_CHANNEL="${{ secrets.FLAIRY_CHANNEL }}"
           export USER_INVESTIGATION_CHANNELS="${{ secrets.USER_INVESTIGATION_CHANNELS }}"
           export LOG_OUTPUT_CHANNEL="${{ secrets.LOG_OUTPUT_CHANNEL }}"
