@@ -24,7 +24,7 @@ class CalculatePostStatistics:
         scheduler.add_job(self.update_posts("hour"), "cron", hour="*",
                           next_run_time=datetime.now() + timedelta(minutes=1))
         scheduler.add_job(self.update_posts("day"), "cron", day="*", next_run_time=datetime.now())
-        scheduler.add_job(self.calculate_statistics, "cron", day="*", next_run_time=datetime.now())
+        # scheduler.add_job(self.calculate_statistics, "cron", day="*", next_run_time=datetime.now())
 
     def update_posts(self, interval):
         async def update_posts_for_interval():
