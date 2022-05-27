@@ -1,5 +1,13 @@
 name: test, deploy and run
-on: [push, workflow_dispatch]
+on:
+# run with every push
+  push:
+# run if manually triggered
+  workflow_dispatch:
+# deploy on a recurring schedule to avoid OOM problems
+  schedule:
+    - cron: '15 00 * * *'
+
 jobs:
   test:
     runs-on: ubuntu-latest
