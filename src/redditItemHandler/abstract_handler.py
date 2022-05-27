@@ -9,6 +9,6 @@ class Handler:
     async def take(self, item):
         pass
 
-    async def on_ready(self):
+    async def on_ready(self, **kwargs):
         pass
 
