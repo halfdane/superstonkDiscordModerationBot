@@ -16,7 +16,7 @@ class RedditItemReader:
         for handler in self.handlers:
             await handler.on_ready()
         self._logger.info(f"Ready to fetch {self.name} every few seconds")
-        scheduler.add_job(self._stream, "cron", second="*/10")
+        scheduler.add_job(self._stream, "cron", second="*/30")
 
     async def _stream(self):
         async for item in self.item_fetch_function():
