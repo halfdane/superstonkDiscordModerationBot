@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 # deploy on a recurring schedule to avoid OOM problems
   schedule:
-    - cron: '15 00 * * *'
+    - cron: '15 */6 * * *'
 
 jobs:
   test:
