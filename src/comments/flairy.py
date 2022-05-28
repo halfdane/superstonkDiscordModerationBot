@@ -8,12 +8,9 @@ from disnake.utils import escape_markdown
 from discordReaction.abstract_reaction import Reaction
 from discordReaction.wip_reaction import WipReaction
 from helper.links import permalink
-from redditItemHandler import Handler
 
 
-class Flairy(Handler, Reaction):
-    emoji = '🧚'
-
+class Flairy(Reaction):
     _templates = {"red": "0446bc04-91c0-11ec-8118-ce042afdde96",
                   "blue": "6e40ab4c-f3cd-11eb-889e-ae4cdf00ff3b",
                   "pink": "6de5f58e-f3ce-11eb-af43-eae78a59944d",
@@ -24,8 +21,8 @@ class Flairy(Handler, Reaction):
     _default_color = "black"
 
     def __init__(self, superstonk_moderators=[], flairy_channel=None, flairy_reddit=None,
-                 is_forbidden_comment_message=None, add_reactions_to_discord_message=None, **kwargs):
-        Handler.__init__(self)
+                 is_forbidden_comment_message=None, add_reactions_to_discord_message=None,
+                 environment=None, **kwargs):
         Reaction.__init__(self)
 
         self.superstonk_moderators = superstonk_moderators
@@ -57,9 +54,10 @@ class Flairy(Handler, Reaction):
             WrongColorCommand(flairy_reddit, flair_command, regex_flags, colors),
             FlairTooLongCommand(self.flairy_detect_user_flair_change, flairy_reddit),
             FlairContainsForbiddenPhraseCommand(is_forbidden_comment_message, self.flairy_detect_user_flair_change),
-            SendFlairToDiscordCommand(self.flairy_detect_user_flair_change, flairy_channel,
-                                      add_reactions_to_discord_message)
+            ApprovingFlairRequestCommand(self.flairy_detect_user_flair_change, flairy_channel,
+                                         add_reactions_to_discord_message, self.flair_user)
         ]
+        self.environment = environment
 
     async def on_ready(self):
         self._logger.info("Ready to handle flair requests")
@@ -81,19 +79,6 @@ class Flairy(Handler, Reaction):
                 if await command.handled(body, comment, is_mod):
                     return
 
-    async def handle_reaction(self, message, user):
-        if not message.embeds or len(message.embeds) == 0:
-            return
-
-        comment = await self.flairy_reddit.comment(url=message.embeds[0].url)
-        body = getattr(comment, 'body', "")
-        flairy = self.flairy_detect_user_flair_change.match(body)
-        if flairy is not None:
-            await self.flair_user(comment=comment, flair_text=flairy.group(1), flair_color=flairy.group(2))
-        else:
-            await message.edit(content="Flair request was removed in the meantime")
-        await WipReaction.handle_reaction(None, message, None)
-
     async def flair_user(self, comment, flair_text, flair_color=None, template=None, message=""):
         flair_text = flair_text.strip()
         color = (flair_color or self._default_color).lower().strip()
@@ -101,15 +86,17 @@ class Flairy(Handler, Reaction):
         previous_flair = getattr(comment, 'author_flair_text', "")
         log_message = f"[{previous_flair}] => [{flair_text}] with template {template} for the color {color}"
         subreddit_from_flairies_view = await self.flairy_reddit.subreddit("Superstonk")
-        await subreddit_from_flairies_view.flair.set(
-            redditor=comment.author,
-            text=flair_text,
-            flair_template_id=template)
-        message += rf'(✿\^‿\^)━☆ﾟ.*･｡ﾟ {flair_text}'
-        self._logger.info(log_message)
-        comment_from_flairies_view = await self.flairy_reddit.comment(comment.id, fetch=False)
-        await comment_from_flairies_view.upvote()
-        await comment_from_flairies_view.reply(message)
+
+        if self.environment == "live":
+            await subreddit_from_flairies_view.flair.set(
+                redditor=comment.author,
+                text=flair_text,
+                flair_template_id=template)
+            message += rf'(✿\^‿\^)━☆ﾟ.*･｡ﾟ {flair_text}'
+            self._logger.info(log_message)
+            comment_from_flairies_view = await self.flairy_reddit.comment(comment.id, fetch=False)
+            await comment_from_flairies_view.upvote()
+            await comment_from_flairies_view.reply(message)
 
     @staticmethod
     def description():
@@ -334,12 +321,14 @@ Other available commands:
         return False
 
 
-class SendFlairToDiscordCommand:
-    def __init__(self, flairy_detect_user_flair_change, flairy_channel, add_reactions_to_discord_message):
+class ApprovingFlairRequestCommand:
+    def __init__(self, flairy_detect_user_flair_change, flairy_channel, add_reactions_to_discord_message,
+                 flair_user_function):
         self._logger = logging.getLogger(self.__class__.__name__)
         self.flairy_detect_user_flair_change = flairy_detect_user_flair_change
         self.flairy_channel = flairy_channel
         self.add_reactions_to_discord_message = add_reactions_to_discord_message
+        self.flair_user_function = flair_user_function
 
     async def handled(self, body, comment, is_mod):
         if is_mod:
@@ -353,9 +342,15 @@ class SendFlairToDiscordCommand:
         e = disnake.Embed(
             url=url,
             colour=disnake.Colour(0).from_rgb(207, 206, 255))
-        e.description = f"[Flair Request: {escape_markdown(comment.body)}]({url})"
+        e.description = f"[Already appproved flair Request: {escape_markdown(comment.body)}]({url})"
         e.add_field("Redditor", f"[{comment.author}](https://www.reddit.com/u/{comment.author})", inline=False)
-        msg = await self.flairy_channel.send(embed=e)
-        await msg.add_reaction(Flairy.emoji)
-        await self.add_reactions_to_discord_message(msg)
-        return True
+        message = await self.flairy_channel.send(embed=e)
+        await self.add_reactions_to_discord_message(message)
+
+        if flairy is not None:
+            await self.flair_user_function(comment=comment, flair_text=flairy.group(1), flair_color=flairy.group(2))
+        else:
+            await message.edit(content="Flair request was removed in the meantime")
+        await WipReaction.handle_reaction(None, message, None)
+
+        return False

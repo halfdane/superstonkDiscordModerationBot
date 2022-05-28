@@ -41,7 +41,6 @@ class SuperstonkModerationBot(Bot):
 
     GENERIC_REACTIONS = None
     USER_REACTIONS = None
-    FLAIR_REACTIONS = None
     ALL_REACTIONS = None
 
     def __init__(self, readonly_reddit, flairy_reddit, qvbot_reddit, **options):
@@ -127,9 +126,8 @@ class SuperstonkModerationBot(Bot):
         self.GENERIC_REACTIONS = (
             HelpReaction(**self.COMPONENTS), WipReaction(**self.COMPONENTS), DeleteReaction(**self.COMPONENTS))
         self.USER_REACTIONS = (ModNoteReaction(**self.COMPONENTS), UserHistoryReaction(**self.COMPONENTS))
-        self.FLAIR_REACTIONS = (flairy,)
 
-        self.ALL_REACTIONS = self.GENERIC_REACTIONS + self.USER_REACTIONS + self.FLAIR_REACTIONS
+        self.ALL_REACTIONS = self.GENERIC_REACTIONS + self.USER_REACTIONS
 
         await self.component("comments_reader",
                              RedditItemReader(
