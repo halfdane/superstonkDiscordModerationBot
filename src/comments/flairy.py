@@ -66,13 +66,13 @@ class Flairy(Reaction):
         body = getattr(comment, 'body', "")
         author = getattr(getattr(comment, "author", None), "name", None)
         if author == "Superstonk-Flairy":
-            self._logger.info(f"Not answering to myself: {permalink(comment)}")
+            self._logger.debug(f"Not answering to myself: {permalink(comment)}")
             return
 
         if self.detect_flairy_command.search(body):
             is_mod = author in self.superstonk_moderators + ["Roid_Rage_Smurf"]
 
-            self._logger.info(
+            self._logger.debug(
                 f"seems to be a flairy command from {author}. Treat like mod? {is_mod} {permalink(comment)}")
 
             for command in self._commands:

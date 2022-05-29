@@ -28,8 +28,7 @@ class WipReaction(Reaction):
 
     async def handle_reaction(self, message: Message, user):
         for embed in message.embeds:
-            lines = embed.description.split("\n")
-            embed.description = "\n".join([strikethrough(line) for line in lines])
+            embed.description = strikethrough(embed.description)
             for num, field in enumerate(embed.fields):
                 embed.set_field_at(index=num,
                                    name=strikethrough(field.name),
@@ -40,8 +39,7 @@ class WipReaction(Reaction):
 
     async def unhandle_reaction(self, message, user):
         for embed in message.embeds:
-            lines = embed.description.split("\n")
-            embed.description = "\n".join([un_strikethrough(line) for line in lines])
+            embed.description = un_strikethrough(embed.description)
             for num, field in enumerate(embed.fields):
                 embed.set_field_at(index=num,
                                    name=un_strikethrough(field.name),

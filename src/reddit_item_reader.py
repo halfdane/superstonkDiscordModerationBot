@@ -4,7 +4,7 @@ from datetime import datetime
 
 from asyncpraw.exceptions import AsyncPRAWException
 
-THREE_HOURS = 3 * 60 * 60
+AN_HOUR = 60 * 60
 TEN_SECONDS = 10
 
 
@@ -21,12 +21,12 @@ class RedditItemReader:
         for handler in self.handlers:
             await handler.on_ready()
         self._logger.info(f"Ready to fetch {self.name} every few seconds")
-        scheduler.add_job(self._stream_until_timeout, 'interval', seconds=THREE_HOURS + TEN_SECONDS, next_run_time=datetime.now())
+        scheduler.add_job(self._stream_until_timeout, 'interval', seconds=AN_HOUR + TEN_SECONDS, next_run_time=datetime.now())
 
     async def _stream_until_timeout(self):
         self._logger.info(f"Streaming")
         try:
-            await asyncio.wait_for(self._stream(), timeout=THREE_HOURS)
+            await asyncio.wait_for(self._stream(), timeout=AN_HOUR)
         except asyncio.TimeoutError:
             self._logger.info(f"Aborting")
 
