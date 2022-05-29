@@ -15,7 +15,7 @@ from cogs.modqueue_cog import ModQueueCog
 from cogs.user_cog import UserCog
 from comments.comment_based_troll_identifier import CommentBasedTrollIdentifier
 from comments.comment_repository import Comments
-from comments.comment_updater import CommentUpdater
+from comments.comment_repository_updater import CommentRepositoryUpdater
 from comments.flairy import Flairy
 from comments.front_desk_sticky import FrontDeskSticky
 from discordReaction.delete_reaction import DeleteReaction
@@ -27,6 +27,7 @@ from discord_output_logger import DiscordOutputLogger
 from helper.redditor_extractor import extract_redditor
 from posts.post_count_limiter import PostCountLimiter
 from posts.post_repository import Posts
+from posts.post_repository_updater import PostRepositoryUpdater
 from posts.post_statistics import CalculatePostStatistics
 from reddit_item_reader import RedditItemReader
 from reports_logs.important_reports_handler import ImportantReports
@@ -110,7 +111,8 @@ class SuperstonkModerationBot(Bot):
 
         await self.component("calculate_post_statistics", CalculatePostStatistics(**self.COMPONENTS))
         await self.component("comment_based_troll_identifier", CommentBasedTrollIdentifier(**self.COMPONENTS))
-        await self.component("comment_updater", CommentUpdater(**self.COMPONENTS))
+        await self.component("comment_repository_updater", CommentRepositoryUpdater(**self.COMPONENTS))
+        await self.component("post_repository_updater", PostRepositoryUpdater(**self.COMPONENTS))
         await self.component("handled_items_unreporter", HandledItemsUnreporter(**self.COMPONENTS))
 
         hanami = Hanami(**self.COMPONENTS)

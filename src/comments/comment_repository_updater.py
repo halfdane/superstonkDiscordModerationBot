@@ -1,13 +1,10 @@
 import logging
 from datetime import timedelta, datetime
 
-import disnake
-
 from comments.comment_repository import Comments
-from helper.links import permalink
 
 
-class CommentUpdater:
+class CommentRepositoryUpdater:
 
     def __init__(self, comment_repo: Comments = None, readonly_reddit=None, report_channel=None, report_comments_channel=None,
                  add_reactions_to_discord_message=None, **kwargs):
