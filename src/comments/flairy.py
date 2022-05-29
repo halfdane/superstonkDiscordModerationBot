@@ -337,7 +337,8 @@ class ApprovingFlairRequestCommand:
             url=url,
             colour=disnake.Colour(0).from_rgb(207, 206, 255))
         e.description = f"[{make_safe(flair_text)}]({url})"
-        e.add_field("Redditor", f"[{make_safe(comment.author)}](https://www.reddit.com/u/{comment.author})", inline=False)
+        author_name = comment.author.name
+        e.add_field("Redditor", f"[{make_safe(author_name)}](https://www.reddit.com/u/{author_name})", inline=False)
         message = await self.flairy_channel.send(embed=e)
         await self.add_reactions_to_discord_message(message)
 
