@@ -19,18 +19,20 @@ class QualityVoteBot(Handler):
         self.superstonk_subreddit = superstonk_subreddit
         self.comment_repo = comment_repo
         self.config = None
+        self.active = False
 
     async def on_ready(self, scheduler, **kwargs):
         self._logger.info(f"Ready to add QV comments to every post")
         scheduler.add_job(self.fetch_config_from_wiki, "cron", minute="3-59/10", next_run_time=datetime.now())
-        scheduler.add_job(self.check_recent_comments, "cron", minute="4-59/10", next_run_time=datetime.now() + timedelta(minutes=1))
+        scheduler.add_job(self.check_recent_comments, "cron", minute="4-59/10",
+                          next_run_time=datetime.now()+timedelta(minutes=1))
 
     async def take(self, submission):
         if not self.__has_stickied_comment(submission) \
                 and submission.link_flair_template_id not in self.config['ignore_flairs']:
-            self._logger.info(f"qv: https://www.reddit.com{submission.permalink}")
+            self._logger.info(f"https://www.reddit.com{submission.permalink}")
 
-            if self.is_live_environment:
+            if self.is_live_environment and self.active:
                 sticky = await submission.reply(self.config['vote_comment'])
                 await sticky.mod.distinguish(how="yes", sticky=True)
                 await sticky.mod.ignore_reports()
@@ -43,15 +45,16 @@ class QualityVoteBot(Handler):
         yesterday = now - timedelta(hours=24)
 
         qv_user = await self.qvbot_reddit.user.me()
-        c_ids = await self.comment_repo.fetch(since=yesterday, author=qv_user.name)
-        c_fids = [f"t1_{_id}" for _id in c_ids]
+        comments = await self.comment_repo.fetch(since=yesterday, author=qv_user.name)
+        c_fids = [f"t1_{c.id}" for c in comments]
 
         async for comment in self.qvbot_reddit.info(c_fids):
-            if self.post_is_available(comment.parent()) and comment.score <= self.config['report_threshold']:
+            comment_parent = await comment.parent()
+            if (await self.post_is_available(comment_parent)) and comment.score <= self.config['report_threshold']:
                 model: dict = self.config.copy()
-                model.update(comment.parent().__dict__)
+                model.update(comment_parent.__dict__)
                 self._logger.debug(f"{comment.score} https://www.reddit.com{comment.parent().permalink}")
-                comment.parent().report(chevron.render(self.config['report_reason'], model))
+                await comment_parent.report(chevron.render(self.config['report_reason'], model))
 
         self._logger.info(f"looked at {len(c_fids)} comments between {yesterday} and {now}")
 
@@ -69,9 +72,6 @@ class QualityVoteBot(Handler):
     def __has_stickied_comment(self, submission):
         return len(submission.comments) > 0 and submission.comments[0].stickied
 
-    def post_is_available(self, post):
-        try:
-            self._logger.debug(f"Forcing eager fetch of {post.title}")
-        except:
-            logging.info(f"ignoring problems with fetching info for {post.permalink}")
+    async def post_is_available(self, post):
+        await post.load()
         return getattr(post, 'removed_by_category', None) is None

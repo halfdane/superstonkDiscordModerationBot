@@ -156,7 +156,7 @@ class SuperstonkModerationBot(Bot):
                                  name="Posts",
                                  item_fetch_function=superstonk_subreddit.stream.submissions,
                                  item_repository=self.COMPONENTS['post_repo'],
-                                 handlers=[PostCountLimiter(**self.COMPONENTS), FrontDeskSticky()]))
+                                 handlers=[PostCountLimiter(**self.COMPONENTS), FrontDeskSticky(), QualityVoteBot(**self.COMPONENTS)]))
 
         automod_config = await superstonk_subreddit.wiki.get_page("config/automoderator")
         for rule in automod_config.content_md.split("---"):
