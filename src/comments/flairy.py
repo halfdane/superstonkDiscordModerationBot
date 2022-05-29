@@ -337,12 +337,11 @@ class ApprovingFlairRequestCommand:
         flairy = self.flairy_detect_user_flair_change.match(body)
         flair_text = flairy.group(1)
 
-        self._logger.info(f"Sending flair request {comment} {flair_text}")
         url = permalink(comment)
         e = disnake.Embed(
             url=url,
             colour=disnake.Colour(0).from_rgb(207, 206, 255))
-        e.description = f"[Already appproved flair Request: {make_safe(comment.body)}]({url})"
+        e.description = f"[{make_safe(flair_text)}]({url})"
         e.add_field("Redditor", f"[{make_safe(comment.author)}](https://www.reddit.com/u/{comment.author})", inline=False)
         message = await self.flairy_channel.send(embed=e)
         await self.add_reactions_to_discord_message(message)
