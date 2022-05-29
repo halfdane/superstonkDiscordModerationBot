@@ -3,14 +3,13 @@ import random
 import re
 
 import disnake
-from disnake.utils import escape_markdown
 
-from discordReaction.abstract_reaction import Reaction
 from discordReaction.wip_reaction import WipReaction
 from helper.links import permalink, make_safe
+from redditItemHandler import Handler
 
 
-class Flairy(Reaction):
+class Flairy(Handler):
     _templates = {"red": "0446bc04-91c0-11ec-8118-ce042afdde96",
                   "blue": "6e40ab4c-f3cd-11eb-889e-ae4cdf00ff3b",
                   "pink": "6de5f58e-f3ce-11eb-af43-eae78a59944d",
@@ -23,7 +22,7 @@ class Flairy(Reaction):
     def __init__(self, superstonk_moderators=[], flairy_channel=None, flairy_reddit=None,
                  is_forbidden_comment_message=None, add_reactions_to_discord_message=None,
                  is_live_environment=False, **kwargs):
-        Reaction.__init__(self)
+        Handler.__init__(self)
 
         self.superstonk_moderators = superstonk_moderators
         self.flairy_channel = flairy_channel
@@ -84,7 +83,7 @@ class Flairy(Reaction):
         color = (flair_color or self._default_color).lower().strip()
         template = (template or self._templates[color])
         previous_flair = getattr(comment, 'author_flair_text', "")
-        log_message = f"[{previous_flair}] => [{flair_text}] with template {template} for the color {color}"
+        log_message = f"[{make_safe(comment.author)}] [{make_safe(previous_flair)}] => [{make_safe(flair_text)}] in {color}"
         subreddit_from_flairies_view = await self.flairy_reddit.subreddit("Superstonk")
 
         if self.is_live_environment:
@@ -97,10 +96,6 @@ class Flairy(Reaction):
             comment_from_flairies_view = await self.flairy_reddit.comment(comment.id, fetch=False)
             await comment_from_flairies_view.upvote()
             await comment_from_flairies_view.reply(message)
-
-    @staticmethod
-    def description():
-        return "Accept the flair request. The flairy will take care of the rest."
 
 
 class CommentAlreadyHasAResponse:
