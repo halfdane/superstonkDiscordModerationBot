@@ -20,20 +20,9 @@ class CommentBasedTrollIdentifier:
 
     async def on_ready(self, scheduler, **kwargs):
         self._logger.info(f"Ready to identify possible trolls from comments")
-        scheduler.add_job(self.update_comments, "cron", minute="*/10")
         # scheduler.add_job(self.identify_comment_removers, "cron", minute="1-59/10")
         # scheduler.add_job(self.identify_mass_downvoted_authors, "cron", day="*")
         scheduler.add_job(self.identify_heavily_downvoted_comments, "cron", hour="*", next_run_time=datetime.now())
-
-    async def update_comments(self):
-        now = datetime.utcnow()
-        last_hour = now - timedelta(hours=1)
-        self._logger.debug(f"Fetching ids of comments from the last hour")
-        comment_ids_of_last_hour = [f"t1_{c}" for c in await self.persist_comments.ids(last_hour)]
-        self._logger.debug(f"Fetching comment information from the last hour")
-        comments_of_last_hour = [c async for c in self.readonly_reddit.info(comment_ids_of_last_hour)]
-        self._logger.info(f"Storing updated info for {len(comments_of_last_hour)} comments from the last hour")
-        await self.persist_comments.store(comments_of_last_hour)
 
     async def identify_comment_removers(self):
         self._logger.info(f"checking database for people who have lots of downvoted comments that are then removed")

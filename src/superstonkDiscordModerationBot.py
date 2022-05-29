@@ -15,6 +15,7 @@ from cogs.modqueue_cog import ModQueueCog
 from cogs.user_cog import UserCog
 from comments.comment_based_troll_identifier import CommentBasedTrollIdentifier
 from comments.comment_repository import Comments
+from comments.comment_updater import CommentUpdater
 from comments.flairy import Flairy
 from comments.front_desk_sticky import FrontDeskSticky
 from discordReaction.delete_reaction import DeleteReaction
@@ -109,6 +110,7 @@ class SuperstonkModerationBot(Bot):
 
         await self.component("calculate_post_statistics", CalculatePostStatistics(**self.COMPONENTS))
         await self.component("comment_based_troll_identifier", CommentBasedTrollIdentifier(**self.COMPONENTS))
+        await self.component("comment_updater", CommentUpdater(**self.COMPONENTS))
         await self.component("handled_items_unreporter", HandledItemsUnreporter(**self.COMPONENTS))
 
         hanami = Hanami(**self.COMPONENTS)
