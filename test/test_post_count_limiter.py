@@ -22,7 +22,7 @@ class TestPostCountLimiter:
 
         mock_reddit = AsyncMock()
 
-        testee = PostCountLimiter(post_repo=mock_post_repo, qvbot_reddit=mock_reddit, environment="live")
+        testee = PostCountLimiter(post_repo=mock_post_repo, qvbot_reddit=mock_reddit, is_live_environment=True)
 
         # when
         await testee.take(fake_post())
@@ -40,7 +40,7 @@ class TestPostCountLimiter:
 
         mock_reddit = AsyncMock()
 
-        testee = PostCountLimiter(post_repo=mock_post_repo, qvbot_reddit=mock_reddit, environment="live")
+        testee = PostCountLimiter(post_repo=mock_post_repo, qvbot_reddit=mock_reddit, is_live_environment=True)
 
         # when
         await testee.take(fake_post())
@@ -64,9 +64,8 @@ class TestPostCountLimiter:
 
         mock_report_channel = AsyncMock()
 
-        environment = "live"
         testee = PostCountLimiter(post_repo=mock_post_repo, qvbot_reddit=mock_reddit,
-                                  report_channel=mock_report_channel, environment=environment,
+                                  report_channel=mock_report_channel, is_live_environment=True,
                                   add_reactions_to_discord_message=AsyncMock())
 
         # when

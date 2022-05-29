@@ -22,7 +22,7 @@ class Flairy(Reaction):
 
     def __init__(self, superstonk_moderators=[], flairy_channel=None, flairy_reddit=None,
                  is_forbidden_comment_message=None, add_reactions_to_discord_message=None,
-                 environment=None, **kwargs):
+                 is_live_environment=False, **kwargs):
         Reaction.__init__(self)
 
         self.superstonk_moderators = superstonk_moderators
@@ -57,7 +57,7 @@ class Flairy(Reaction):
             ApprovingFlairRequestCommand(self.flairy_detect_user_flair_change, flairy_channel,
                                          add_reactions_to_discord_message, self.flair_user)
         ]
-        self.environment = environment
+        self.is_live_environment = is_live_environment
 
     async def on_ready(self):
         self._logger.info("Ready to handle flair requests")
@@ -87,7 +87,7 @@ class Flairy(Reaction):
         log_message = f"[{previous_flair}] => [{flair_text}] with template {template} for the color {color}"
         subreddit_from_flairies_view = await self.flairy_reddit.subreddit("Superstonk")
 
-        if self.environment == "live":
+        if self.is_live_environment:
             await subreddit_from_flairies_view.flair.set(
                 redditor=comment.author,
                 text=flair_text,

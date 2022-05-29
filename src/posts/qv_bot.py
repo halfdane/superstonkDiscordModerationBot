@@ -11,11 +11,11 @@ class QualityVoteBot(Handler):
         'report_reason': 'Score of stickied comment has dropped below threshold',
     }
 
-    def __init__(self, qvbot_reddit, superstonk_subreddit, environment):
+    def __init__(self, qvbot_reddit, superstonk_subreddit, is_live_environment):
         super().__init__()
         self._logger = logging.getLogger(self.__class__.__name__)
         self.qvbot_reddit = qvbot_reddit
-        self.environment = environment
+        self.is_live_environment = is_live_environment
         self.superstonk_subreddit = superstonk_subreddit
         self.config = None
 
@@ -29,7 +29,7 @@ class QualityVoteBot(Handler):
                 and submission.link_flair_template_id not in self.config['ignore_flairs']:
             self._logger.info(f"qv: https://www.reddit.com{submission.permalink}")
 
-            if self.environment == 'live':
+            if self.is_live_environment:
                 sticky = await submission.reply(self.config['vote_comment'])
                 await sticky.mod.distinguish(how="yes", sticky=True)
                 await sticky.mod.ignore_reports()

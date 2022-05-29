@@ -101,6 +101,7 @@ class SuperstonkModerationBot(Bot):
         await self.component("is_forbidden_comment_message", self.is_forbidden_comment_message)
         await self.component("discord_bot_user", self.user)
         await self.component("environment", ENVIRONMENT)
+        await self.component("is_live_environment", ENVIRONMENT=='live')
 
         await self.component("post_repo", Posts())
         await self.component("comment_repo", Comments())
@@ -132,21 +133,21 @@ class SuperstonkModerationBot(Bot):
         await self.component("comments_reader",
                              RedditItemReader(
                                  name="Comments",
-                                 item_fetch_function=superstonk_subreddit.comments,
+                                 item_fetch_function=superstonk_subreddit.stream.comments,
                                  item_repository=self.COMPONENTS['comment_repo'],
                                  handlers=[flairy]))
 
         await self.component("reports_reader",
                              RedditItemReader(
                                  name="Reports",
-                                 item_fetch_function=superstonk_subreddit.mod.reports,
+                                 item_fetch_function=superstonk_subreddit.mod.stream.reports,
                                  item_repository=self.COMPONENTS['report_repo'],
                                  handlers=[ImportantReports(**self.COMPONENTS)]))
 
         await self.component("posts_reader",
                              RedditItemReader(
                                  name="Posts",
-                                 item_fetch_function=superstonk_subreddit.new,
+                                 item_fetch_function=superstonk_subreddit.stream.submissions,
                                  item_repository=self.COMPONENTS['post_repo'],
                                  handlers=[PostCountLimiter(**self.COMPONENTS), FrontDeskSticky()]))
 

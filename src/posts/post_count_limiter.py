@@ -25,13 +25,13 @@ Thanks for being a member of r/Superstonk 💎🙌🚀
 class PostCountLimiter(Handler):
     _interval = timedelta(hours=24)
 
-    def __init__(self, add_reactions_to_discord_message=None, post_repo=None, qvbot_reddit=None, report_channel=None, environment=None, **kwargs):
+    def __init__(self, add_reactions_to_discord_message=None, post_repo=None, qvbot_reddit=None, report_channel=None, is_live_environment=None, **kwargs):
         super().__init__()
         self.post_repo = post_repo
         self.qvbot_reddit = qvbot_reddit
         self.report_channel = report_channel
         self.add_reactions_to_discord_message = add_reactions_to_discord_message
-        self.environment = environment
+        self.is_live_environment = is_live_environment
 
     async def on_ready(self):
         self._logger.info("Ready to limit post count")
@@ -46,7 +46,7 @@ class PostCountLimiter(Handler):
             self._logger.info(f"Oops, looks like {author_name} is posting a lot: {posts}")
             item_from_qvbot_view = await self.qvbot_reddit.submission(item.id, fetch=False)
 
-            if self.environment == 'live':
+            if self.is_live_environment:
                 sticky = await item_from_qvbot_view.reply(REMOVAL_COMMENT)
                 await sticky.mod.distinguish(how="yes", sticky=True)
                 await sticky.mod.ignore_reports()
