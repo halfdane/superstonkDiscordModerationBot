@@ -83,12 +83,13 @@ class Flairy(Handler):
         color = (flair_color or self._default_color).lower().strip()
         template = (template or self._templates[color])
         previous_flair = getattr(comment, 'author_flair_text', "")
-        log_message = f"[{make_safe(comment.author)}] [{make_safe(previous_flair)}] => [{make_safe(flair_text)}] in {color}"
+        author_name = comment.author.name
+        log_message = f"[{make_safe(author_name)}] [{make_safe(previous_flair)}] => [{make_safe(flair_text)}] in {color}"
         subreddit_from_flairies_view = await self.flairy_reddit.subreddit("Superstonk")
 
         if self.is_live_environment:
             await subreddit_from_flairies_view.flair.set(
-                redditor=comment.author,
+                redditor=author_name,
                 text=flair_text,
                 flair_template_id=template)
             message += rf'(✿\^‿\^)━☆ﾟ.*･｡ﾟ {flair_text}'
