@@ -29,6 +29,7 @@ from posts.post_count_limiter import PostCountLimiter
 from posts.post_repository import Posts
 from posts.post_repository_updater import PostRepositoryUpdater
 from posts.post_statistics import CalculatePostStatistics
+from posts.qv_bot import QualityVoteBot
 from reddit_item_reader import RedditItemReader
 from reports_logs.important_reports_handler import ImportantReports
 from reports_logs.report_repository import Reports
@@ -65,12 +66,22 @@ class SuperstonkModerationBot(Bot):
         return self.COMPONENTS[name]
 
     async def on_ready(self):
-        logging.getLogger('apscheduler').setLevel(logging.WARN)
-        scheduler = AsyncIOScheduler()
-        scheduler.start()
+        # CONFIGURATION VALUES
+        await self.component("environment", ENVIRONMENT)
+        await self.component("is_live_environment", ENVIRONMENT == 'live')
 
-        await self.component("scheduler", scheduler)
+        self.logger.info(f"{REPORTING_CHANNEL}: discord channel for reports")
+        self.logger.info(f"{REPORTING_COMMENTS_CHANNEL}: discord channel for reports")
+        self.logger.info(f"{FLAIRY_CHANNEL}: discord channel for flairy")
+        self.logger.info(f"{LOG_OUTPUT_CHANNEL}: discord channel for debugging messages")
+        self.logger.info(f"{USER_INVESTIGATION_CHANNELS}: discord channel to listen for users")
 
+        await self.component("report_channel", self.get_channel(REPORTING_CHANNEL))
+        await self.component("report_comments_channel", self.get_channel(REPORTING_COMMENTS_CHANNEL))
+        await self.component("flairy_channel", self.get_channel(FLAIRY_CHANNEL))
+        await self.component("logging_output_channel", self.get_channel(LOG_OUTPUT_CHANNEL))
+
+        # ALREADY EXISTING OBJECTS
         await self.component("discord_bot_user", self.user)
         self.logger.info(
             f"{self.COMPONENTS['discord_bot_user']} with id {self.COMPONENTS['discord_bot_user'].id} is the discord user")
@@ -79,67 +90,59 @@ class SuperstonkModerationBot(Bot):
         self.logger.info(f"{await self.COMPONENTS['flairy_reddit'].user.me()}: handling flair requests on reddit")
         self.logger.info(f"{await self.COMPONENTS['qvbot_reddit'].user.me()}: handling QV bot business on reddit")
 
-        superstonk_subreddit = await self.COMPONENTS["readonly_reddit"].subreddit("Superstonk")
-        testsubsuperstonk = await self.COMPONENTS["readonly_reddit"].subreddit("testsubsuperstonk")
-        await self.component("superstonk_subreddit", superstonk_subreddit)
-        await self.component("superstonk_moderators", [m async for m in superstonk_subreddit.moderator])
-        await self.component("superstonk_TEST_subreddit", testsubsuperstonk)
-
-        await self.component("report_channel", self.get_channel(REPORTING_CHANNEL))
-        self.logger.info(f"{REPORTING_CHANNEL}: discord channel for reports")
-
-        await self.component("report_comments_channel", self.get_channel(REPORTING_COMMENTS_CHANNEL))
-        self.logger.info(f"{REPORTING_COMMENTS_CHANNEL}: discord channel for reports")
-
-        await self.component("flairy_channel", self.get_channel(FLAIRY_CHANNEL))
-        self.logger.info(f"{FLAIRY_CHANNEL}: discord channel for flairy")
-
-        await self.component("logging_output_channel", self.get_channel(LOG_OUTPUT_CHANNEL))
-        self.logger.info(f"{LOG_OUTPUT_CHANNEL}: discord channel for debugging messages")
-
         await self.component("asyncio_loop", self.loop)
+
+        # FUNCTION COMPONENTS
         await self.component("add_reactions_to_discord_message", self.add_reactions)
         await self.component("get_discord_cogs", lambda: self.cogs)
         await self.component("is_forbidden_comment_message", self.is_forbidden_comment_message)
-        await self.component("discord_bot_user", self.user)
-        await self.component("environment", ENVIRONMENT)
-        await self.component("is_live_environment", ENVIRONMENT=='live')
 
+        # FUNDAMENTAL COMPONENTS WITHOUT DEPENDENCIES
+        logging.getLogger('apscheduler').setLevel(logging.WARN)
+        scheduler = AsyncIOScheduler()
+        scheduler.start()
+        await self.component("scheduler", scheduler)
+
+        superstonk_subreddit = await self.COMPONENTS["readonly_reddit"].subreddit("Superstonk")
+        await self.component("superstonk_subreddit", superstonk_subreddit)
+        await self.component("superstonk_moderators", [m async for m in superstonk_subreddit.moderator])
+
+        testsubsuperstonk = await self.COMPONENTS["readonly_reddit"].subreddit("testsubsuperstonk")
+        await self.component("superstonk_TEST_subreddit", testsubsuperstonk)
+
+        # DATABASE
         await self.component("post_repo", Posts())
         await self.component("comment_repo", Comments())
         await self.component("report_repo", Reports())
 
+        # SCHEDULED COMPONENTS
         await self.component("calculate_post_statistics", CalculatePostStatistics(**self.COMPONENTS))
         await self.component("comment_based_troll_identifier", CommentBasedTrollIdentifier(**self.COMPONENTS))
         await self.component("comment_repository_updater", CommentRepositoryUpdater(**self.COMPONENTS))
         await self.component("post_repository_updater", PostRepositoryUpdater(**self.COMPONENTS))
         await self.component("handled_items_unreporter", HandledItemsUnreporter(**self.COMPONENTS))
+        await self.component("discord_output_logging_handler", discord_output_logging_handler)
 
+        # COGS
         hanami = Hanami(**self.COMPONENTS)
         await self.component("hanami", hanami)
         super().add_cog(hanami)
-
         super().add_cog(UserCog(**self.COMPONENTS))
         super().add_cog(ModQueueCog(**self.COMPONENTS))
 
-        await self.component("discord_output_logging_handler", discord_output_logging_handler)
-
-        self.logger.info(f"{USER_INVESTIGATION_CHANNELS}: discord channel to listen for users")
-
-        flairy = Flairy(**self.COMPONENTS)
-
+        # REACTIONS
         self.GENERIC_REACTIONS = (
             HelpReaction(**self.COMPONENTS), WipReaction(**self.COMPONENTS), DeleteReaction(**self.COMPONENTS))
         self.USER_REACTIONS = (ModNoteReaction(**self.COMPONENTS), UserHistoryReaction(**self.COMPONENTS))
-
         self.ALL_REACTIONS = self.GENERIC_REACTIONS + self.USER_REACTIONS
 
+        # STREAMING REDDIT ITEMS INTO HANDLERS
         await self.component("comments_reader",
                              RedditItemReader(
                                  name="Comments",
                                  item_fetch_function=superstonk_subreddit.stream.comments,
                                  item_repository=self.COMPONENTS['comment_repo'],
-                                 handlers=[flairy]))
+                                 handlers=[(Flairy(**self.COMPONENTS))]))
 
         await self.component("reports_reader",
                              RedditItemReader(
@@ -153,7 +156,7 @@ class SuperstonkModerationBot(Bot):
                                  name="Posts",
                                  item_fetch_function=superstonk_subreddit.stream.submissions,
                                  item_repository=self.COMPONENTS['post_repo'],
-                                 handlers=[PostCountLimiter(**self.COMPONENTS), FrontDeskSticky()]))
+                                 handlers=[PostCountLimiter(**self.COMPONENTS), FrontDeskSticky(), QualityVoteBot(**self.COMPONENTS)]))
 
         automod_config = await superstonk_subreddit.wiki.get_page("config/automoderator")
         for rule in automod_config.content_md.split("---"):

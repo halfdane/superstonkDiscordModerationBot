@@ -19,7 +19,7 @@ class ImportantReports(Handler):
         self.readonly_reddit = readonly_reddit
         self.discord_bot_user = discord_bot_user
 
-    async def on_ready(self):
+    async def on_ready(self, **kwargs):
         self._logger.info("Ready to handle important reports")
 
     async def take(self, item):

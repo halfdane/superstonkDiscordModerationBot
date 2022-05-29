@@ -33,7 +33,7 @@ class PostCountLimiter(Handler):
         self.add_reactions_to_discord_message = add_reactions_to_discord_message
         self.is_live_environment = is_live_environment
 
-    async def on_ready(self):
+    async def on_ready(self, **kwargs):
         self._logger.info("Ready to limit post count")
 
     async def take(self, item):

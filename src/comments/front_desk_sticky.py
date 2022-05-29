@@ -23,7 +23,7 @@ We have received several reports of people who lost money to someone who claimed
     def __init__(self, **kwargs):
         super().__init__()
 
-    async def on_ready(self):
+    async def on_ready(self, **kwargs):
         self._logger.info("Ready to create a fresh Front Desk")
 
     async def take(self, item):

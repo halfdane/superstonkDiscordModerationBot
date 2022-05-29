@@ -58,7 +58,7 @@ class Flairy(Handler):
         ]
         self.is_live_environment = is_live_environment
 
-    async def on_ready(self):
+    async def on_ready(self, **kwargs):
         self._logger.info("Ready to handle flair requests")
 
     async def take(self, comment):

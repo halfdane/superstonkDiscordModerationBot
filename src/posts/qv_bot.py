@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from redditItemHandler import Handler
 import chevron
@@ -11,18 +11,20 @@ class QualityVoteBot(Handler):
         'report_reason': 'Score of stickied comment has dropped below threshold',
     }
 
-    def __init__(self, qvbot_reddit, superstonk_subreddit, is_live_environment):
+    def __init__(self, qvbot_reddit, superstonk_subreddit, is_live_environment, comment_repo, **kwargs):
         super().__init__()
         self._logger = logging.getLogger(self.__class__.__name__)
         self.qvbot_reddit = qvbot_reddit
         self.is_live_environment = is_live_environment
         self.superstonk_subreddit = superstonk_subreddit
+        self.comment_repo = comment_repo
         self.config = None
 
     async def on_ready(self, scheduler, **kwargs):
-        self._logger.info(f"Ready to add QV comments to every post")
-        scheduler.add_job(self.fetch_config_from_wiki, "cron", minute="3-59/10", next_run_time=datetime.now())
-        scheduler.add_job(self.check_recent_comments, "cron", minute="4-59/10", next_run_time=datetime.now())
+        # self._logger.info(f"Ready to add QV comments to every post")
+        # scheduler.add_job(self.fetch_config_from_wiki, "cron", minute="3-59/10", next_run_time=datetime.now())
+        # scheduler.add_job(self.check_recent_comments, "cron", minute="4-59/10", next_run_time=datetime.now() + timedelta(minutes=1))
+        pass
 
     async def take(self, submission):
         if not self.__has_stickied_comment(submission) \
@@ -36,28 +38,27 @@ class QualityVoteBot(Handler):
         else:
             self._logger.info(f"NO QV: https://www.reddit.com{submission.permalink}")
 
-    def check_recent_comments(self, ):
+    async def check_recent_comments(self, ):
         self._logger.info("checking comments")
-        count = 0
-        first = None
-        last = None
-        for comment in self.qvbot_reddit.user.me().comments.new(limit=None):
-            if first is None:
-                first = comment.created_utc
-            last = comment.created_utc
-            count += 1
+        now = datetime.utcnow()
+        yesterday = now - timedelta(hours=24)
+
+        qv_user = await self.qvbot_reddit.user.me()
+        c_ids = await self.comment_repo.fetch(since=yesterday, author=qv_user.name)
+        c_fids = [f"t1_{_id}" for _id in c_ids]
+
+        async for comment in self.qvbot_reddit.info(c_fids):
             if self.post_is_available(comment.parent()) and comment.score <= self.config['report_threshold']:
                 model: dict = self.config.copy()
                 model.update(comment.parent().__dict__)
                 self._logger.debug(f"{comment.score} https://www.reddit.com{comment.parent().permalink}")
                 comment.parent().report(chevron.render(self.config['report_reason'], model))
 
-        self._logger.info(f"looked at {count} comments "
-                          f"between {datetime.utcfromtimestamp(last).strftime('%Y-%m-%d %H:%M:%S')} "
-                          f"and {datetime.utcfromtimestamp(first).strftime('%Y-%m-%d %H:%M:%S')}")
+        self._logger.info(f"looked at {len(c_fids)} comments between {yesterday} and {now}")
 
-    def fetch_config_from_wiki(self):
-        wiki_config_text = self.superstonk_subreddit.wiki['qualityvote'].content_md
+    async def fetch_config_from_wiki(self):
+        wiki_page = await self.superstonk_subreddit.wiki.get_page("qualityvote")
+        wiki_config_text = wiki_page.content_md
         wiki_config = yaml.safe_load(wiki_config_text)
         updated_config: dict = self.default_config.copy()
         updated_config.update(wiki_config)

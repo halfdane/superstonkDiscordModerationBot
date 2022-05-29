@@ -20,8 +20,8 @@ class CommentBasedTrollIdentifier:
 
     async def on_ready(self, scheduler, **kwargs):
         self._logger.info(f"Ready to identify possible trolls from comments")
-        # scheduler.add_job(self.identify_comment_removers, "cron", minute="1-59/10")
-        # scheduler.add_job(self.identify_mass_downvoted_authors, "cron", day="*")
+        scheduler.add_job(self.identify_comment_removers, "cron", minute="1-59/10")
+        scheduler.add_job(self.identify_mass_downvoted_authors, "cron", day="*")
         scheduler.add_job(self.identify_heavily_downvoted_comments, "cron", hour="*", next_run_time=datetime.now())
 
     async def identify_comment_removers(self):
