@@ -83,13 +83,12 @@ class Flairy(Handler):
         color = (flair_color or self._default_color).lower().strip()
         template = (template or self._templates[color])
         previous_flair = getattr(comment, 'author_flair_text', "")
-        author_name = comment.author.name
-        log_message = f"[{make_safe(author_name)}] [{make_safe(previous_flair)}] => [{make_safe(flair_text)}] in {color}"
+        log_message = f"[{make_safe(comment.author)}] [{make_safe(previous_flair)}] => [{make_safe(flair_text)}] in {color}"
         subreddit_from_flairies_view = await self.flairy_reddit.subreddit("Superstonk")
 
         if self.is_live_environment:
             await subreddit_from_flairies_view.flair.set(
-                redditor=author_name,
+                redditor=comment.author,
                 text=flair_text,
                 flair_template_id=template)
             message += rf'(✿\^‿\^)━☆ﾟ.*･｡ﾟ {flair_text}'
@@ -338,8 +337,7 @@ class ApprovingFlairRequestCommand:
             url=url,
             colour=disnake.Colour(0).from_rgb(207, 206, 255))
         e.description = f"[{make_safe(flair_text)}]({url})"
-        author_name = comment.author.name
-        e.add_field("Redditor", f"[{make_safe(author_name)}](https://www.reddit.com/u/{author_name})", inline=False)
+        e.add_field("Redditor", f"[{make_safe(comment.author)}](https://www.reddit.com/u/{comment.author})", inline=False)
         message = await self.flairy_channel.send(embed=e)
         await self.add_reactions_to_discord_message(message)
 
