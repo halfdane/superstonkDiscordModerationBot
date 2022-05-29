@@ -7,7 +7,7 @@ from disnake.utils import escape_markdown
 
 from discordReaction.abstract_reaction import Reaction
 from discordReaction.wip_reaction import WipReaction
-from helper.links import permalink
+from helper.links import permalink, make_safe
 
 
 class Flairy(Reaction):
@@ -342,8 +342,8 @@ class ApprovingFlairRequestCommand:
         e = disnake.Embed(
             url=url,
             colour=disnake.Colour(0).from_rgb(207, 206, 255))
-        e.description = f"[Already appproved flair Request: {escape_markdown(comment.body)}]({url})"
-        e.add_field("Redditor", f"[{comment.author}](https://www.reddit.com/u/{comment.author})", inline=False)
+        e.description = f"[Already appproved flair Request: {make_safe(comment.body)}]({url})"
+        e.add_field("Redditor", f"[{make_safe(comment.author)}](https://www.reddit.com/u/{comment.author})", inline=False)
         message = await self.flairy_channel.send(embed=e)
         await self.add_reactions_to_discord_message(message)
 
