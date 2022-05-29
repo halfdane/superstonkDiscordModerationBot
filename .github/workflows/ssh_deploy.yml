@@ -5,8 +5,8 @@ on:
 # run if manually triggered
   workflow_dispatch:
 # deploy on a recurring schedule to avoid OOM problems
-  schedule:
-    - cron: '15 */6 * * *'
+#  schedule:
+#    - cron: '15 */6 * * *'
 
 jobs:
   test:

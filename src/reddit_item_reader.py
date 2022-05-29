@@ -1,5 +1,6 @@
 import asyncio
 import logging
+from datetime import datetime
 
 from asyncpraw.exceptions import AsyncPRAWException
 
@@ -20,9 +21,10 @@ class RedditItemReader:
         for handler in self.handlers:
             await handler.on_ready()
         self._logger.info(f"Ready to fetch {self.name} every few seconds")
-        scheduler.add_job(self._stream_until_timeout, 'interval', seconds=THREE_HOURS + TEN_SECONDS)
+        scheduler.add_job(self._stream_until_timeout, 'interval', seconds=THREE_HOURS + TEN_SECONDS, next_run_time=datetime.now())
 
     async def _stream_until_timeout(self):
+        self._logger.info(f"Streaming")
         try:
             await asyncio.wait_for(self._stream(), timeout=THREE_HOURS)
         except asyncio.TimeoutError:
