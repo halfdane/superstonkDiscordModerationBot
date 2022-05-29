@@ -21,10 +21,9 @@ class QualityVoteBot(Handler):
         self.config = None
 
     async def on_ready(self, scheduler, **kwargs):
-        # self._logger.info(f"Ready to add QV comments to every post")
-        # scheduler.add_job(self.fetch_config_from_wiki, "cron", minute="3-59/10", next_run_time=datetime.now())
-        # scheduler.add_job(self.check_recent_comments, "cron", minute="4-59/10", next_run_time=datetime.now() + timedelta(minutes=1))
-        pass
+        self._logger.info(f"Ready to add QV comments to every post")
+        scheduler.add_job(self.fetch_config_from_wiki, "cron", minute="3-59/10", next_run_time=datetime.now())
+        scheduler.add_job(self.check_recent_comments, "cron", minute="4-59/10", next_run_time=datetime.now() + timedelta(minutes=1))
 
     async def take(self, submission):
         if not self.__has_stickied_comment(submission) \
