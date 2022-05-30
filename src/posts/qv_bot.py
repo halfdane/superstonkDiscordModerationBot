@@ -19,7 +19,6 @@ class QualityVoteBot(Handler):
         self.superstonk_subreddit = superstonk_subreddit
         self.comment_repo = comment_repo
         self.config = None
-        self.active = False
 
     async def on_ready(self, scheduler, **kwargs):
         self._logger.info(f"Ready to add QV comments to every post")
@@ -32,7 +31,7 @@ class QualityVoteBot(Handler):
                 and submission.link_flair_template_id not in self.config['ignore_flairs']:
             self._logger.info(f"https://www.reddit.com{submission.permalink}")
 
-            if self.is_live_environment and self.active:
+            if self.is_live_environment:
                 sticky = await submission.reply(self.config['vote_comment'])
                 await sticky.mod.distinguish(how="yes", sticky=True)
                 await sticky.mod.ignore_reports()
