@@ -53,7 +53,7 @@ class QualityVoteBot(Handler):
             if (await self.post_is_available(comment_parent)) and comment.score <= self.config['report_threshold']:
                 model: dict = self.config.copy()
                 model.update(comment_parent.__dict__)
-                self._logger.debug(f"{comment.score} https://www.reddit.com{comment.parent().permalink}")
+                self._logger.debug(f"{comment.score} https://www.reddit.com{comment_parent.permalink}")
                 await comment_parent.report(chevron.render(self.config['report_reason'], model))
 
         self._logger.info(f"looked at {len(c_fids)} comments between {yesterday} and {now}")
