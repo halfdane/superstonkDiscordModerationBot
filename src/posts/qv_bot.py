@@ -32,7 +32,9 @@ class QualityVoteBot(Handler):
             self._logger.info(f"https://www.reddit.com{submission.permalink}")
 
             if self.is_live_environment:
-                sticky = await submission.reply(self.config['vote_comment'])
+                post_from_qbots_view = await self.qvbot_reddit.comment(submission.id, fetch=False)
+
+                sticky = await post_from_qbots_view.reply(self.config['vote_comment'])
                 await sticky.mod.distinguish(how="yes", sticky=True)
                 await sticky.mod.ignore_reports()
         else:
