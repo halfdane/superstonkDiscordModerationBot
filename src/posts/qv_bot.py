@@ -29,14 +29,15 @@ class QualityVoteBot(Handler):
     async def take(self, submission):
         if not self.__has_stickied_comment(submission) \
                 and submission.link_flair_template_id not in self.config['ignore_flairs']:
-            self._logger.info(f"https://www.reddit.com{submission.permalink}")
 
             if self.is_live_environment:
                 post_from_qbots_view = await self.qvbot_reddit.comment(submission.id, fetch=False)
 
+                self._logger.info(f"adding qv comment to https://www.reddit.com{submission.permalink}")
                 sticky = await post_from_qbots_view.reply(self.config['vote_comment'])
                 await sticky.mod.distinguish(how="yes", sticky=True)
                 await sticky.mod.ignore_reports()
+                self._logger.info(f"DONE adding qv comment to https://www.reddit.com{submission.permalink}")
         else:
             self._logger.info(f"NO QV: https://www.reddit.com{submission.permalink}")
 
