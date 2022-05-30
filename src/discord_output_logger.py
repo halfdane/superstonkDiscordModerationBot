@@ -29,7 +29,7 @@ class DiscordOutputLogger(logging.Handler):
         message = ""
         for line in lines:
             # Add the line to the message if it doesn't make it to large
-            if len(message) + len(line) + 4 > 2000:
+            if len(message) + len(line) + 4 > 1800:
                 yield message
                 message = ""
             message += line + '\n   '
