@@ -38,7 +38,6 @@ class QualityVoteBot(Handler):
                 sticky = await post_from_qbots_view.reply(self.config['vote_comment'])
                 await sticky.mod.distinguish(how="yes", sticky=True)
                 await sticky.mod.ignore_reports()
-                self._logger.info(f"DONE adding qv comment to https://www.reddit.com{submission.permalink}")
         else:
             self._logger.info(f"NO QV: https://www.reddit.com{submission.permalink}")
 
