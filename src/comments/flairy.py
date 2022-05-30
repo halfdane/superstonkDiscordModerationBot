@@ -181,7 +181,7 @@ class SealmeCommand:
             return False
 
         if self._sealme_command.match(body):
-            current_flair = getattr(comment, 'author_flair_text', "")
+            current_flair = getattr(comment, 'author_flair_text', "") or ""
             current_template = getattr(comment, 'author_flair_template_id', self._default_template)
             message = 'Witness meee /u/Justind123  \n\n'
             await self.flair_user_function(
