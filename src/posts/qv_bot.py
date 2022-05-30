@@ -31,9 +31,10 @@ class QualityVoteBot(Handler):
                 and submission.link_flair_template_id not in self.config['ignore_flairs']:
 
             if self.is_live_environment:
-                post_from_qbots_view = await self.qvbot_reddit.comment(submission.id, fetch=False)
+                qv_user = await self.qvbot_reddit.user.me()
+                post_from_qbots_view = await self.qvbot_reddit.submission(submission.id, fetch=False)
 
-                self._logger.info(f"adding qv comment to https://www.reddit.com{submission.permalink}")
+                self._logger.info(f"adding {qv_user} comment to https://www.reddit.com{submission.permalink}")
                 sticky = await post_from_qbots_view.reply(self.config['vote_comment'])
                 await sticky.mod.distinguish(how="yes", sticky=True)
                 await sticky.mod.ignore_reports()
