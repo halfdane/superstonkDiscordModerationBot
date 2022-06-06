@@ -56,7 +56,7 @@ class CommentBasedTrollIdentifier:
             link_to_history = f'https://api.pushshift.io/reddit/search/comment/?ids={ids}&fields=author,body,score,full_link'
             embed.add_field("Comments", f"[{ids}]({link_to_history})", inline=False)
 
-            msg = await self.report_comments_channel.send(embed=embed)
+            msg = await self.report_channel.send(embed=embed)
             await self.add_reactions_to_discord_message(msg)
 
     async def identify_heavily_downvoted_comments(self):

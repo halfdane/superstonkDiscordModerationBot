@@ -6,14 +6,10 @@ from comments.comment_repository import Comments
 
 class CommentRepositoryUpdater:
 
-    def __init__(self, comment_repo: Comments = None, readonly_reddit=None, report_channel=None, report_comments_channel=None,
-                 add_reactions_to_discord_message=None, **kwargs):
+    def __init__(self, comment_repo: Comments = None, readonly_reddit=None, **kwargs):
         self._logger = logging.getLogger(self.__class__.__name__)
         self.persist_comments = comment_repo
         self.readonly_reddit = readonly_reddit
-        self.report_channel = report_channel
-        self.report_comments_channel = report_comments_channel
-        self.add_reactions_to_discord_message = add_reactions_to_discord_message
 
     async def on_ready(self, scheduler, **kwargs):
         self._logger.info(f"Ready to update comments")
