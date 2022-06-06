@@ -33,6 +33,7 @@ from posts.post_repository_updater import PostRepositoryUpdater
 from posts.post_statistics import CalculatePostStatistics
 from posts.qv_bot import QualityVoteBot
 from posts.r_all_sticky_creator import RAllStickyCreator
+from random_stuff.gme_ticker import GmeTickerAsUserName
 from reddit_item_reader import RedditItemReader
 from reports_logs.important_reports_handler import ImportantReports
 from reports_logs.report_repository import Reports
@@ -69,6 +70,8 @@ class SuperstonkModerationBot(Bot):
         return self.COMPONENTS[name]
 
     async def on_ready(self):
+        self.COMPONENTS['superstonk_discord_moderation_bot'] = self
+
         # CONFIGURATION VALUES
         await self.component("environment", ENVIRONMENT)
         await self.component("is_live_environment", ENVIRONMENT == 'live')
@@ -102,7 +105,7 @@ class SuperstonkModerationBot(Bot):
 
         # FUNDAMENTAL COMPONENTS WITHOUT DEPENDENCIES
         logging.getLogger('apscheduler').setLevel(logging.WARN)
-        scheduler = AsyncIOScheduler()
+        scheduler = AsyncIOScheduler(timezone='UTC')
         scheduler.start()
         await self.component("scheduler", scheduler)
 
@@ -129,6 +132,7 @@ class SuperstonkModerationBot(Bot):
         await self.component("handled_items_unreporter", HandledItemsUnreporter(**self.COMPONENTS))
         await self.component("discord_output_logging_handler", discord_output_logging_handler)
         await self.component("flairy_report", FlairyReport(**self.COMPONENTS))
+        await self.component("gme_ticker_as_user_name", GmeTickerAsUserName(**self.COMPONENTS))
 
         # COGS
         hanami = Hanami(**self.COMPONENTS)

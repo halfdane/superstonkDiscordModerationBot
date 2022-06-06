@@ -11,3 +11,6 @@ apscheduler
 pytest
 pytest-asyncio
 freezegun
+
+yahoo_fin
+millify
