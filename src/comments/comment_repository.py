@@ -3,9 +3,9 @@ from collections import namedtuple
 from datetime import datetime
 from os.path import expanduser
 from typing import List
-from asyncpraw.models.reddit.comment import Comment
 
 import aiosqlite
+from asyncpraw.models.reddit.comment import Comment
 
 home = expanduser("~")
 COMMENTS_DB = f"{home}/comments.db"

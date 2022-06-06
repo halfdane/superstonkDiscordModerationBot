@@ -2,12 +2,10 @@ from datetime import datetime, timedelta
 
 import disnake
 import yaml
-import chevron
-
 from disnake import Embed
 
 from helper.links import permalink, make_safe
-from redditItemHandler import Handler
+from reddit_item_handler import Handler
 
 
 class RAllStickyCreator(Handler):

@@ -2,8 +2,6 @@ import asyncio
 import logging
 from datetime import datetime
 
-from asyncpraw.exceptions import AsyncPRAWException
-
 TEN_MINUTES = 10 * 60
 TEN_SECONDS = 10
 

@@ -1,9 +1,5 @@
 import logging
-from collections import namedtuple
-from datetime import datetime
 from os.path import expanduser
-from typing import List
-from asyncpraw.models.reddit.comment import Comment
 
 import aiosqlite
 

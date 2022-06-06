@@ -2,7 +2,7 @@ import disnake
 from disnake import Message
 from disnake.utils import escape_markdown
 
-from discordReaction.abstract_reaction import Reaction
+from discord_reaction_handler import Reaction
 from helper.mod_notes import fetch_modnotes
 from helper.redditor_extractor import extract_redditor
 

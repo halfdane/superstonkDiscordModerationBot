@@ -1,13 +1,12 @@
 import logging
 import re
 
+import disnake
+import nltk
 import yaml
+from disnake.ext import commands
 from nltk import word_tokenize
 from nltk.stem import WordNetLemmatizer
-
-import disnake
-from disnake.ext import commands
-import nltk
 
 nltk.download('punkt')
 nltk.download('wordnet')

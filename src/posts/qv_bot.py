@@ -1,9 +1,10 @@
 import logging
 from datetime import datetime, timedelta
 
-from redditItemHandler import Handler
 import chevron
 import yaml
+
+from reddit_item_handler import Handler
 
 
 class QualityVoteBot(Handler):

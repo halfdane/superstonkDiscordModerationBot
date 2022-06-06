@@ -1,7 +1,7 @@
 import logging
 
 from helper.links import permalink
-from redditItemHandler import Handler
+from reddit_item_handler import Handler
 
 
 class RestickyQualityVoteBot(Handler):

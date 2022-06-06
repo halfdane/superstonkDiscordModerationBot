@@ -2,10 +2,6 @@ import logging
 from datetime import datetime, timedelta
 
 import asyncpraw
-from disnake.utils import escape_markdown
-import disnake
-
-from helper.links import permalink
 
 
 class PostRepositoryUpdater:

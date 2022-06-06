@@ -1,5 +1,6 @@
 from disnake import Message
-from discordReaction.abstract_reaction import Reaction
+
+from discord_reaction_handler import Reaction
 
 
 class HelpReaction(Reaction):

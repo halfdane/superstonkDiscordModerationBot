@@ -3,7 +3,7 @@ import random
 import re
 
 from helper.links import permalink, make_safe
-from redditItemHandler import Handler
+from reddit_item_handler import Handler
 
 
 class Flairy(Handler):

@@ -4,7 +4,7 @@ import disnake
 from disnake import Embed
 
 from helper.links import permalink
-from redditItemHandler import Handler
+from reddit_item_handler import Handler
 
 REMOVAL_COMMENT = """
 Your post was removed by a moderator because you have reached the limit of posts per user in 24 hours.

@@ -1,8 +1,8 @@
 import asyncio
 from random import randint
 
-from redditItemHandler import Handler
 from helper.links import permalink
+from reddit_item_handler import Handler
 
 
 class FrontDeskSticky(Handler):

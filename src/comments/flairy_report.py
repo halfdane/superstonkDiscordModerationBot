@@ -1,21 +1,16 @@
 import logging
-import random
-import re
 from datetime import datetime, timedelta
 
 import disnake
 
-from discordReaction.wip_reaction import WipReaction
 from helper.links import permalink, make_safe
-from redditItemHandler import Handler
 
 
-class FlairyReport(Handler):
+class FlairyReport:
     def __init__(self, flairy_reddit=None,
                  add_reactions_to_discord_message=None,
                  report_channel=None, comment_repo=None, **kwargs):
-        Handler.__init__(self)
-
+        self._logger = logging.getLogger(self.__class__.__name__)
         self.flairy_reddit = flairy_reddit
 
         self.report_channel = report_channel

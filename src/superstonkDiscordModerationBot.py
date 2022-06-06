@@ -19,11 +19,12 @@ from comments.comment_repository_updater import CommentRepositoryUpdater
 from comments.flairy import Flairy
 from comments.flairy_report import FlairyReport
 from comments.front_desk_sticky import FrontDeskSticky
-from discordReaction.delete_reaction import DeleteReaction
-from discordReaction.help_reaction import HelpReaction
-from discordReaction.modnote_reaction import ModNoteReaction
-from discordReaction.user_history_reaction import UserHistoryReaction
-from discordReaction.wip_reaction import WipReaction
+from comments.resticky_qv_bot import RestickyQualityVoteBot
+from discordReactionHandlers.delete_reaction import DeleteReaction
+from discordReactionHandlers.help_reaction import HelpReaction
+from discordReactionHandlers.modnote_reaction import ModNoteReaction
+from discordReactionHandlers.user_history_reaction import UserHistoryReaction
+from discordReactionHandlers.wip_reaction import WipReaction
 from discord_output_logger import DiscordOutputLogger
 from helper.redditor_extractor import extract_redditor
 from posts.post_count_limiter import PostCountLimiter
@@ -32,7 +33,6 @@ from posts.post_repository_updater import PostRepositoryUpdater
 from posts.post_statistics import CalculatePostStatistics
 from posts.qv_bot import QualityVoteBot
 from posts.r_all_sticky_creator import RAllStickyCreator
-from posts.resticky_qv_bot import RestickyQualityVoteBot
 from reddit_item_reader import RedditItemReader
 from reports_logs.important_reports_handler import ImportantReports
 from reports_logs.report_repository import Reports
@@ -74,7 +74,7 @@ class SuperstonkModerationBot(Bot):
         await self.component("is_live_environment", ENVIRONMENT == 'live')
 
         self.logger.info(f"{REPORTING_CHANNEL}: discord channel for reports")
-        self.logger.info(f"{REPORTING_COMMENTS_CHANNEL}: discord channel for reports")
+        self.logger.info(f"{REPORTING_COMMENTS_CHANNEL}: discord channel for experimental comment reports")
         self.logger.info(f"{FLAIRY_CHANNEL}: discord channel for flairy")
         self.logger.info(f"{LOG_OUTPUT_CHANNEL}: discord channel for debugging messages")
         self.logger.info(f"{USER_INVESTIGATION_CHANNELS}: discord channel to listen for users")

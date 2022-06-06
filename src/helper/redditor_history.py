@@ -1,5 +1,6 @@
+from pprint import pformat
+
 from asyncpraw.models.reddit.redditor import Redditor
-from pprint import pprint, pformat
 
 
 class BagOfStuff:

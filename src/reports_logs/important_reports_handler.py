@@ -3,9 +3,9 @@ import re
 
 from disnake import Embed
 
-from helper.mod_notes import fetch_modnotes
-from redditItemHandler import Handler
 from helper.links import permalink
+from helper.mod_notes import fetch_modnotes
+from reddit_item_handler import Handler
 
 RULE_1 = re.compile(r"rule\s*1", re.IGNORECASE)
 
