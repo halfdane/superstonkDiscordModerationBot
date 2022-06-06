@@ -32,6 +32,7 @@ from posts.post_repository_updater import PostRepositoryUpdater
 from posts.post_statistics import CalculatePostStatistics
 from posts.qv_bot import QualityVoteBot
 from posts.r_all_sticky_creator import RAllStickyCreator
+from posts.resticky_qv_bot import RestickyQualityVoteBot
 from reddit_item_reader import RedditItemReader
 from reports_logs.important_reports_handler import ImportantReports
 from reports_logs.report_repository import Reports
@@ -148,7 +149,7 @@ class SuperstonkModerationBot(Bot):
                                  name="Comments",
                                  item_fetch_function=superstonk_subreddit.stream.comments,
                                  item_repository=self.COMPONENTS['comment_repo'],
-                                 handlers=[(Flairy(**self.COMPONENTS))]))
+                                 handlers=[Flairy(**self.COMPONENTS), RestickyQualityVoteBot(**self.COMPONENTS)]))
 
         await self.component("reports_reader",
                              RedditItemReader(
