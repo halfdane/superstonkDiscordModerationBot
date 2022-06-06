@@ -38,11 +38,11 @@ class FlairyReport(Handler):
             comment_parent = await comment.parent()
             await comment_parent.load()
             message += f"\n- [{comment_parent.author}: {make_safe(comment_parent.body)}]({permalink(comment_parent)})"
-            if len(message) > 5000:
+            if len(message) > 3000:
                 e = disnake.Embed(colour=disnake.Colour(0).from_rgb(207, 206, 255), description=message)
                 m = await self.report_channel.send(embed=e)
                 await self.add_reactions_to_discord_message(m)
-                message = ""
+                message = f"**MORE** comments the flairy reacted to since {yesterday}:  \n"
 
         if len(message) > 0:
             e = disnake.Embed(colour=disnake.Colour(0).from_rgb(207, 206, 255), description=message)
