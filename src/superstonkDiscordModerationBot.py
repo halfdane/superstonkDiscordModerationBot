@@ -31,6 +31,7 @@ from posts.post_repository import Posts
 from posts.post_repository_updater import PostRepositoryUpdater
 from posts.post_statistics import CalculatePostStatistics
 from posts.qv_bot import QualityVoteBot
+from posts.r_all_sticky_creator import RAllStickyCreator
 from reddit_item_reader import RedditItemReader
 from reports_logs.important_reports_handler import ImportantReports
 from reports_logs.report_repository import Reports
@@ -108,6 +109,9 @@ class SuperstonkModerationBot(Bot):
         await self.component("superstonk_subreddit", superstonk_subreddit)
         await self.component("superstonk_moderators", [m async for m in superstonk_subreddit.moderator])
 
+        r_all_subreddit = await self.COMPONENTS["readonly_reddit"].subreddit("all")
+        await self.component("r_all_subreddit", r_all_subreddit)
+
         testsubsuperstonk = await self.COMPONENTS["readonly_reddit"].subreddit("testsubsuperstonk")
         await self.component("superstonk_TEST_subreddit", testsubsuperstonk)
 
@@ -162,6 +166,13 @@ class SuperstonkModerationBot(Bot):
                                      PostCountLimiter(**self.COMPONENTS),
                                      FrontDeskSticky(),
                                      QualityVoteBot(**self.COMPONENTS)]))
+
+        await self.component("r_all_reader",
+                             RedditItemReader(
+                                 name="r/all-Posts",
+                                 item_fetch_function=lambda: r_all_subreddit.hot(limit=100),
+                                 item_repository=None,
+                                 handlers=[RAllStickyCreator(**self.COMPONENTS)]))
 
         automod_config = await superstonk_subreddit.wiki.get_page("config/automoderator")
         for rule in automod_config.content_md.split("---"):

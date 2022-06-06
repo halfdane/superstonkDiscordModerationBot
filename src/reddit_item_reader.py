@@ -24,18 +24,20 @@ class RedditItemReader:
         scheduler.add_job(self._stream_until_timeout, 'interval', seconds=TEN_MINUTES + TEN_SECONDS, next_run_time=datetime.now())
 
     async def _stream_until_timeout(self):
-        self._logger.info(f"Streaming")
         try:
             await asyncio.wait_for(self._stream(), timeout=TEN_MINUTES)
         except asyncio.TimeoutError:
-            self._logger.info(f"Aborting")
+            pass
 
     async def _stream(self):
         async for item in self.item_fetch_function():
-            if not (await self.item_repository.contains(item)):
+
+            needs_handling = (self.item_repository is None) or (not (await self.item_repository.contains(item)))
+            if needs_handling:
                 for handler in self.handlers:
                     try:
                         await handler.take(item)
                     except Exception:
                         self._logger.exception(f"Caught an exception in {handler}:")
-            await self.item_repository.store([item])
+            if self.item_repository is not None:
+                await self.item_repository.store([item])
