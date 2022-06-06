@@ -37,7 +37,7 @@ class ImportantReports(Handler):
             await self.__send_ban_list(mods_reporting_rule_1, item)
         elif user_report_count >= lots_of_reports or mod_report_count > 0:
             await item.load()
-            self._logger.info(f"Sending reported item {permalink(item)}")
+            self._logger.debug(f"Sending reported item {permalink(item)}")
             embed = Embed.from_dict(self.__create_embed(item))
             msg = await self.report_channel.send(embed=embed)
             await self.add_reactions_to_discord_message(msg)

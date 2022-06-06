@@ -25,7 +25,7 @@ class HandledItemsUnreporter:
                 .history(limit=200) \
                 .filter(lambda r: len(getattr(r, 'embeds', [])) > 0 and r.embeds[0].url in handled_urls):
             await message.delete()
-            self._logger.info(f'removed report for {message.embeds[0].url}')
+            self._logger.debug(f'removed report for {message.embeds[0].url}')
 
     async def remove_handled_items(self):
         def __was_confirmed(message):
@@ -42,9 +42,9 @@ class HandledItemsUnreporter:
                     .filter(__was_confirmed):
                 await message.delete()
                 removed_count += 1
-                self._logger.info(f'removed report for {message.embeds[0].url}')
+                self._logger.debug(f'removed report for {message.embeds[0].url}')
 
-            self._logger.info(f'removed {removed_count} reports')
+            self._logger.debug(f'removed {removed_count} reports')
         self._logger.info("Cleaned up channel")
 
 
