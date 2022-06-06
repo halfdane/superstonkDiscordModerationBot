@@ -34,7 +34,7 @@ class RAllStickyCreator(Handler):
             await self.report_r_all_was_hit(item)
             post_from_qbots_view = await self.qvbot_reddit.submission(item.id, fetch=False)
 
-            if self.is_live_environment and self.active:
+            if self.is_live_environment:
                 self._logger.info(f"adding r/all comment to {permalink(item)}")
                 sticky = await post_from_qbots_view.reply(self.r_all_comment)
                 await sticky.mod.distinguish(how="yes", sticky=True)
