@@ -63,7 +63,7 @@ class CommentBasedTrollIdentifier:
         now = datetime.utcnow()
         since = now - timedelta(hours=1)
         self._logger.info(f"checking database for heavily downvoted comments since {since} ({since.timestamp()})")
-        downvoted_ids = [f"t1_{c}" for c in await self.persist_comments.heavily_downvoted_comments(since=since, limit=-10)]
+        downvoted_ids = [f"t1_{c}" for c in await self.persist_comments.heavily_downvoted_comments(since=since, limit=-20)]
 
         downvoted_comments = [c async for c in self.readonly_reddit.info(downvoted_ids)]
         for comment in downvoted_comments:
@@ -73,6 +73,13 @@ class CommentBasedTrollIdentifier:
             embed.add_field("Redditor", f"[{author}](https://www.reddit.com/u/{author})", inline=False)
             embed.add_field("Comment", f"[{comment.body[:50]}]({permalink(comment)})", inline=False)
             embed.add_field("Score", f"{comment.score}", inline=False)
+            user_reports = "\n".join(f"{r[1]} {r[0]}" for r in comment.user_reports)
+            if user_reports:
+                embed.add_field("User Reports", user_reports, inline=False)
+
+            mod_reports = "\n".join(f"{r[1]} {r[0]}" for r in comment.mod_reports)
+            if mod_reports:
+                embed.add_field("Mod Reports", mod_reports, inline=False)
 
             msg = await self.report_comments_channel.send(embed=embed)
             await self.add_reactions_to_discord_message(msg)
