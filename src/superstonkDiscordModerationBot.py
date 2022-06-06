@@ -17,6 +17,7 @@ from comments.comment_based_troll_identifier import CommentBasedTrollIdentifier
 from comments.comment_repository import Comments
 from comments.comment_repository_updater import CommentRepositoryUpdater
 from comments.flairy import Flairy
+from comments.flairy_report import FlairyReport
 from comments.front_desk_sticky import FrontDeskSticky
 from discordReaction.delete_reaction import DeleteReaction
 from discordReaction.help_reaction import HelpReaction
@@ -122,6 +123,7 @@ class SuperstonkModerationBot(Bot):
         await self.component("post_repository_updater", PostRepositoryUpdater(**self.COMPONENTS))
         await self.component("handled_items_unreporter", HandledItemsUnreporter(**self.COMPONENTS))
         await self.component("discord_output_logging_handler", discord_output_logging_handler)
+        await self.component("flairy_report", FlairyReport(**self.COMPONENTS))
 
         # COGS
         hanami = Hanami(**self.COMPONENTS)

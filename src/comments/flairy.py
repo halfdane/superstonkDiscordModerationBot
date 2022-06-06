@@ -2,9 +2,6 @@ import logging
 import random
 import re
 
-import disnake
-
-from discordReaction.wip_reaction import WipReaction
 from helper.links import permalink, make_safe
 from redditItemHandler import Handler
 
@@ -19,13 +16,11 @@ class Flairy(Handler):
 
     _default_color = "black"
 
-    def __init__(self, superstonk_moderators=[], flairy_channel=None, flairy_reddit=None,
-                 is_forbidden_comment_message=None, add_reactions_to_discord_message=None,
-                 is_live_environment=False, **kwargs):
+    def __init__(self, superstonk_moderators=[], flairy_reddit=None,
+                 is_forbidden_comment_message=None, is_live_environment=False, **kwargs):
         Handler.__init__(self)
 
         self.superstonk_moderators = superstonk_moderators
-        self.flairy_channel = flairy_channel
         self.flairy_reddit = flairy_reddit
 
         flairy_command_detection = r".*!\s*FL?AIRY"
@@ -53,8 +48,7 @@ class Flairy(Handler):
             WrongColorCommand(flairy_reddit, flair_command, regex_flags, colors),
             FlairTooLongCommand(self.flairy_detect_user_flair_change, flairy_reddit),
             FlairContainsForbiddenPhraseCommand(is_forbidden_comment_message, self.flairy_detect_user_flair_change),
-            ApprovingFlairRequestCommand(self.flairy_detect_user_flair_change, flairy_channel,
-                                         add_reactions_to_discord_message, self.flair_user)
+            ApplyFlairCommand(self.flairy_detect_user_flair_change, self.flair_user)
         ]
         self.is_live_environment = is_live_environment
 
@@ -316,13 +310,10 @@ Other available commands:
         return False
 
 
-class ApprovingFlairRequestCommand:
-    def __init__(self, flairy_detect_user_flair_change, flairy_channel, add_reactions_to_discord_message,
-                 flair_user_function):
+class ApplyFlairCommand:
+    def __init__(self, flairy_detect_user_flair_change, flair_user_function):
         self._logger = logging.getLogger(self.__class__.__name__)
         self.flairy_detect_user_flair_change = flairy_detect_user_flair_change
-        self.flairy_channel = flairy_channel
-        self.add_reactions_to_discord_message = add_reactions_to_discord_message
         self.flair_user_function = flair_user_function
 
     async def handled(self, body, comment, is_mod):
@@ -330,21 +321,9 @@ class ApprovingFlairRequestCommand:
             return False
 
         flairy = self.flairy_detect_user_flair_change.match(body)
-        flair_text = flairy.group(1)
-
-        url = permalink(comment)
-        e = disnake.Embed(
-            url=url,
-            colour=disnake.Colour(0).from_rgb(207, 206, 255))
-        e.description = f"[{make_safe(flair_text)}]({url})"
-        e.add_field("Redditor", f"[{make_safe(comment.author)}](https://www.reddit.com/u/{comment.author})", inline=False)
-        message = await self.flairy_channel.send(embed=e)
-        await self.add_reactions_to_discord_message(message)
 
         if flairy is not None:
             await self.flair_user_function(comment=comment, flair_text=flairy.group(1), flair_color=flairy.group(2))
-        else:
-            await message.edit(content="Flair request was removed in the meantime")
-        await WipReaction.handle_reaction(None, message, None)
+            return True
 
         return False

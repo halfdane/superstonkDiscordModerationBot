@@ -7,6 +7,6 @@ def permalink(item):
 
 def make_safe(maybe_string):
     string = str(maybe_string)
-    clipped = str(string[:50])
-    clipped += '...' if len(string) > 50 else ''
+    clipped = str(string[:100])
+    clipped += '...' if len(string) > 100 else ''
     return escape_markdown(clipped).replace('\n', ' ')

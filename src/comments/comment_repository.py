@@ -64,7 +64,7 @@ class Comments:
 
             if author is not None:
                 condition_statements.append('author = :author')
-                condition_parameters['author'] = author
+                condition_parameters['author'] = str(author)
 
             if deleted_not_removed:
                 condition_statements.append('deleted is not NULL and mod_removed is NULL')
