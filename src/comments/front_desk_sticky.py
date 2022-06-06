@@ -10,14 +10,6 @@ class FrontDeskSticky(Handler):
 
 # The Front Desk is open!
 
-[Computershare Megathread](https://www.reddit.com/r/Superstonk/comments/ugnqsg/drscomputershare_megathread_052022) || 
-[Join our Superstonk Discord](https://discord.gg/superstonk) || 
-[Voting Megathread](https://www.reddit.com/r/Superstonk/comments/uddedr)
-
-# [SUPPORT FOR THE GAMESTOP WALLET](https://support.blockchain.gamestop.com/hc/en-us/sections/4412111751955-Getting-Started) 
-
-*Please don't just blindly trust people that approach you in DMs*! 
-We have received several reports of people who lost money to someone who claimed to help!
 """
 
     def __init__(self, **kwargs):
