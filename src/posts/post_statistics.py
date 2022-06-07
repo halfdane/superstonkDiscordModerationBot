@@ -57,20 +57,22 @@ class CalculatePostStatistics:
              p_ids])
         result += f"\n\nTop 10 posts:   \n\n"
         result += top_posts
+        await self.report_channel.send(embed=(
+            disnake.Embed(colour=disnake.Colour(0).from_rgb(207, 206, 255), description=result)))
 
         top_comments = "\n".join(
             [f"- {items[_id].score}: [{make_safe(items[_id].body)}]({permalink(items[_id])})" for _id in
              c_ids])
-        result += f"\n\nTop 10 comments:  \n\n"
+        result = f"\n\nTop 10 comments:  \n\n"
         result += top_comments
+        await self.report_channel.send(embed=(
+            disnake.Embed(colour=disnake.Colour(0).from_rgb(207, 206, 255), description=result)))
 
         flairs = await self.persist_posts.flairs(since=start, until=end)
         counted_flairs = sum([cnt for flair, cnt in flairs])
         flairs = "\n".join([f"- **{cnt}**: {flair}" for flair, cnt in flairs])
-        result += f"\n\nPost flair distribution (for {counted_flairs} posts)   \n\n"
+        result = f"\n\nPost flair distribution (for {counted_flairs} posts)   \n\n"
         result += flairs
 
-        embed = disnake.Embed(colour=disnake.Colour(0).from_rgb(207, 206, 255))
-        embed.description = result
-
-        await self.report_channel.send(embed=embed)
+        await self.report_channel.send(embed=(
+            disnake.Embed(colour=disnake.Colour(0).from_rgb(207, 206, 255), description=result)))
