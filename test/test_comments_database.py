@@ -14,26 +14,20 @@ test_db = f"some_comment_test_db.db"
 a_timestamp = 1653125353.78856
 
 
-def a_comment(num, id=None, author=None, created=None, deleted=None, mod_removed=None):
+def a_comment(num, id=None, author=None, created=None, deleted=None, mod_removed=None, updated_utc=None, score=None):
     return id if id is not None else f"id_{num}", \
            author if author is not None else f"auth{num}", \
            created if created is not None else f"date{num}", \
            deleted, \
-           mod_removed,
+           mod_removed, \
+           updated_utc, \
+           score if score is not None else f"score{num}"
 
 
-def a_score(num, id=None, updated=None, score=None):
-    return id if id is not None else f"id_{num}", \
-           updated if updated is not None else a_timestamp, \
-           score if score is not None else num
-
-
-async def add_test_data(comments, scores):
+async def add_test_data(comments):
     async with aiosqlite.connect(test_db) as db:
-        await db.executemany('''INSERT INTO COMMENTS(id, author, created_utc, deleted, mod_removed) 
-                    VALUES (?, ?, ?, ?, ?)''', comments)
-        await db.executemany('''INSERT INTO SCORES(id, updated_utc, score) 
-                    VALUES (?, ?, ?)''', scores)
+        await db.executemany('''INSERT INTO COMMENTS(id, author, created_utc, deleted, mod_removed, updated_utc, score) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?)''', comments)
         await db.commit()
 
 
@@ -60,18 +54,13 @@ class TestCommentDatabaseIntegration:
         async with aiosqlite.connect(test_db) as db:
             async with db.execute("select name from sqlite_master where type = 'table';") as cursor:
                 rows = [row[0] async for row in cursor]
-                assert rows == ['COMMENTS', 'SCORES']
+                assert rows == ['COMMENTS']
 
             async with db.execute(
                     "select sql from sqlite_master where type = 'table' and name = 'COMMENTS';") as cursor:
                 rows = [row[0] async for row in cursor]
                 assert rows == [
-                    'CREATE TABLE COMMENTS (id PRIMARY KEY, author, created_utc, deleted, mod_removed)']
-            async with db.execute(
-                    "select sql from sqlite_master where type = 'table' and name = 'SCORES';") as cursor:
-                rows = [row[0] async for row in cursor]
-                assert rows == [
-                    'CREATE TABLE SCORES(id NOT NULL , updated_utc real NOT NULL , score INT, PRIMARY KEY (id, updated_utc))']
+                    'CREATE TABLE COMMENTS (id PRIMARY KEY, author, created_utc, deleted, mod_removed, updated_utc, score)']
 
     @pytest.mark.asyncio
     async def test_store(self):
@@ -79,11 +68,11 @@ class TestCommentDatabaseIntegration:
         testee = Comments(test_db)
 
         Author = namedtuple("Author", "name")
-        Comment = namedtuple("Commment", "id author created_utc body score removed")
+        Comment = namedtuple("Commment", "id author created_utc body score removed updated_utc")
         store_posts = [
-            Comment("id_1", Author("auth1"), "date1", "[deleted]", "score1", False),
-            Comment("id_2", Author("auth2"), "date2", "body2", "score2", True),
-            Comment("id_3", Author("auth3"), "date3", "body3", "score3", False),
+            Comment("id_1", Author("auth1"), "date1", "[deleted]", "score1", False, 'updated1'),
+            Comment("id_2", Author("auth2"), "date2", "body2", "score2", True, 'updated2'),
+            Comment("id_3", Author("auth3"), "date3", "body3", "score3", False, 'updated3'),
         ]
 
         # when
@@ -96,21 +85,14 @@ class TestCommentDatabaseIntegration:
             async with db.execute("select * from COMMENTS") as cursor:
                 rows = [row async for row in cursor]
                 assert len(rows) == 3
-                assert a_comment(1, deleted=update_timestamp.timestamp(), mod_removed=None) in rows
-                assert a_comment(2, deleted=None, mod_removed=update_timestamp.timestamp()) in rows
-                assert a_comment(3, deleted=None, mod_removed=None) in rows
-
-            async with db.execute("select * from SCORES") as cursor:
-                rows = [row async for row in cursor]
-                assert len(rows) == 3
-                assert a_score(1, updated=update_timestamp.timestamp(), score="score1") in rows
-                assert a_score(2, updated=update_timestamp.timestamp(), score="score2") in rows
-                assert a_score(3, updated=update_timestamp.timestamp(), score="score3") in rows
+                assert a_comment(1, deleted=update_timestamp.timestamp(), mod_removed=None, updated_utc=update_timestamp.timestamp()) in rows
+                assert a_comment(2, deleted=None, mod_removed=update_timestamp.timestamp(), updated_utc=update_timestamp.timestamp()) in rows
+                assert a_comment(3, deleted=None, mod_removed=None, updated_utc=update_timestamp.timestamp()) in rows
 
     @pytest.mark.asyncio
     async def test_read_all(self):
         # given
-        await add_test_data([a_comment(1), a_comment(2), a_comment(3)], [a_score(1), a_score(2), a_score(3)])
+        await add_test_data([a_comment(1), a_comment(2), a_comment(3)])
 
         # when
         testee = Comments(test_db)
@@ -124,11 +106,13 @@ class TestCommentDatabaseIntegration:
             assert comments[i].created_utc == f"date{i + 1}"
             assert comments[i].deleted is None
             assert comments[i].mod_removed is None
+            assert comments[i].updated_utc is None
+            assert comments[i].score == f"score{i+1}"
 
     @pytest.mark.asyncio
     async def test_read_with_multiple_scores(self):
         # given
-        await add_test_data([a_comment(1)], [a_score(1, updated=1653118753.0, score=2), a_score(1, updated=1653118802.0, score=6)])
+        await add_test_data([a_comment(1, updated_utc=1653118753.0, score=6)])
 
         # when
         testee = Comments(test_db)
@@ -141,6 +125,9 @@ class TestCommentDatabaseIntegration:
         assert comments[0].created_utc == f"date1"
         assert comments[0].deleted is None
         assert comments[0].mod_removed is None
+        assert comments[0].updated_utc == 1653118753.0
+        assert comments[0].score == 6
+
 
     @pytest.mark.asyncio
     async def test_read_after(self):
@@ -152,8 +139,7 @@ class TestCommentDatabaseIntegration:
 
         await add_test_data([a_comment(1, created=three_days_ago.timestamp()),
                              a_comment(2, created=last_week.timestamp(), id='old'),
-                             a_comment(3, created=two_days_ago.timestamp())],
-                            [])
+                             a_comment(3, created=two_days_ago.timestamp())])
 
         # when
         four_days_ago = now - timedelta(days=4)
@@ -169,7 +155,7 @@ class TestCommentDatabaseIntegration:
     async def test_database_contains(self):
         # given
         testee = Comments(test_db)
-        await add_test_data([a_comment(1), a_comment(2), a_comment(3), a_comment(4)], [])
+        await add_test_data([a_comment(1), a_comment(2), a_comment(3), a_comment(4)])
 
         # when / then
         CommentWithId = namedtuple("Comment", "id")
@@ -201,11 +187,7 @@ class TestCommentDatabaseIntegration:
         async with aiosqlite.connect(test_db) as db:
             async with db.execute("select * from COMMENTS where id='id_1';") as cursor:
                 rows = [row async for row in cursor]
-                assert rows == [a_comment(1, deleted=None, mod_removed=updated.timestamp())]
-            async with db.execute("select * from SCORES where id='id_1';") as cursor:
-                rows = [row async for row in cursor]
-                assert rows == [a_score(1, updated=created.timestamp(), score="score1"),
-                                a_score(1, updated=updated.timestamp(), score="score_new")]
+                assert rows == [a_comment(1, deleted=None, mod_removed=updated.timestamp(), updated_utc=updated.timestamp())]
 
     @pytest.mark.asyncio
     async def test_fetch_ids(self):
@@ -217,8 +199,7 @@ class TestCommentDatabaseIntegration:
 
         await add_test_data([a_comment(1, created=three_days_ago.timestamp()),
                              a_comment(2, created=last_week.timestamp(), id='old'),
-                             a_comment(3, created=two_days_ago.timestamp())],
-                            [])
+                             a_comment(3, created=two_days_ago.timestamp())])
 
         # when
         four_days_ago = now - timedelta(days=4)

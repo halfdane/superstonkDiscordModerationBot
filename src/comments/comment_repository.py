@@ -19,9 +19,7 @@ class Comments:
     async def on_ready(self, **_):
         async with aiosqlite.connect(self.database) as db:
             await db.execute('CREATE TABLE if not exists '
-                             'COMMENTS (id PRIMARY KEY, author, created_utc, deleted, mod_removed);')
-            await db.execute('CREATE TABLE if not exists '
-                             'SCORES(id NOT NULL , updated_utc real NOT NULL , score INT, PRIMARY KEY (id, updated_utc));')
+                             'COMMENTS (id PRIMARY KEY, author, created_utc, deleted, mod_removed, updated_utc, score);')
 
     async def store(self, comments: List[Comment]):
         now = datetime.utcnow().timestamp()
@@ -34,28 +32,25 @@ class Comments:
                 comment.created_utc,
                 now if comment.body == '[deleted]' else None,
                 now if mod_removed else None,
+                now,
+                comment.score
             )
 
-        def __score_to_db(item):
-            return item.id, now, item.score
-
-        db_scores = [__score_to_db(item) for item in comments]
         db_comments = [__comment_to_db(item) for item in comments]
         async with aiosqlite.connect(self.database) as db:
             await db.executemany('''
-                    INSERT INTO COMMENTS(id, author, created_utc, deleted, mod_removed) 
-                    VALUES (?, ?, ?, ?, ?)
+                    INSERT INTO COMMENTS(id, author, created_utc, deleted, mod_removed, updated_utc, score) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
                     ON CONFLICT(id) DO UPDATE SET 
                     deleted=excluded.deleted, 
-                    mod_removed=excluded.mod_removed
+                    mod_removed=excluded.mod_removed,
+                    updated_utc=excluded.updated_utc
                     ''', db_comments)
-            await db.executemany('INSERT INTO SCORES(id, updated_utc, score) VALUES (?, ?, ?)', db_scores)
-
             await db.commit()
 
     async def fetch(self, since: datetime = None, deleted_not_removed=False, author=None):
         async with aiosqlite.connect(self.database) as db:
-            statement = 'select id, author, created_utc, deleted, mod_removed from COMMENTS'
+            statement = 'select id, author, created_utc, deleted, mod_removed, updated_utc, score from COMMENTS'
             condition_statements = []
             condition_parameters = {}
             if since is not None:
@@ -73,9 +68,9 @@ class Comments:
                 statement = f'{statement} where {" and ".join(condition_statements)};'
 
             Author = namedtuple("Author", "name")
-            Comment = namedtuple("Comment", "id author created_utc deleted mod_removed")
+            Comment = namedtuple("Comment", "id author created_utc deleted mod_removed updated_utc score")
             async with db.execute(statement, condition_parameters) as cursor:
-                return [Comment(row[0], Author(row[1]), row[2], row[3], row[4]) async for row in cursor]
+                return [Comment(row[0], Author(row[1]), row[2], row[3], row[4], row[5], row[6]) async for row in cursor]
 
     async def ids(self, since: datetime):
         async with aiosqlite.connect(self.database) as db:
@@ -86,10 +81,10 @@ class Comments:
 
     async def find_authors_with_removed_negative_comments(self, since: datetime):
         statement = """
-            select distinct c.author, c.id, min(s.score) 
-            from COMMENTS as c left join SCORES as s on c.id == s.id 
-            where s.score<0 and c.deleted is not NULL and c.created_utc>:since
-            group by c.id order by c.author, c.deleted;
+            select distinct author, id, score 
+            from COMMENTS  
+            where score<0 and deleted is not NULL and created_utc>:since
+            order by author, deleted;
             """
         async with aiosqlite.connect(self.database) as db:
             async with db.execute(statement, {'since': since.timestamp()}) as cursor:
@@ -97,10 +92,10 @@ class Comments:
 
     async def find_authors_with_negative_comments(self, limit, since: datetime):
         statement = """
-            select distinct c.author, c.id, min(s.score), count(*)
-            from COMMENTS as c left join SCORES as s on c.id == s.id 
-            where s.score<:limit and c.created_utc>:since
-            group by c.id order by c.author, c.deleted;
+            select distinct author, id, score
+            from COMMENTS 
+            where score<:limit and created_utc>:since
+            order by author, deleted;
             """
         async with aiosqlite.connect(self.database) as db:
             async with db.execute(statement, {'since': since.timestamp(), 'limit': limit}) as cursor:
@@ -108,7 +103,7 @@ class Comments:
 
     async def heavily_downvoted_comments(self, limit, since: datetime):
         statement = """
-            select distinct c.id
+            select id
             from COMMENTS as c left join SCORES as s on c.id == s.id 
             where s.score<:limit and c.created_utc>:since and c.deleted is NULL
             group by c.id order by c.author, c.deleted;
@@ -145,3 +140,13 @@ class Comments:
             async with db.execute('select created_utc from COMMENTS ORDER by created_utc limit 1') as cursor:
                 return [row[0] async for row in cursor][0]
 
+
+"""
+CREATE TABLE new_comments (id PRIMARY KEY, author, created_utc, deleted, mod_removed, updated_utc, score);
+INSERT INTO new_comments SELECT c.id, c.author, c.created_utc, m.updated_utc, m.score, c.deleted, c.mod_removed from comments c inner join (select id, max(updated_utc) updated_utc, score from scores GROUP BY id) m on c.id = m.id;
+Drop table COMMENTS;
+CREATE TABLE  COMMENTS (id PRIMARY KEY, author, created_utc, deleted, mod_removed, updated_utc, score);
+INSERT INTO COMMENTS SELECT id, author, created_utc, deleted, mod_removed, updated_utc, score from new_comments;
+drop table new_comments;
+drop table scores;
+"""
