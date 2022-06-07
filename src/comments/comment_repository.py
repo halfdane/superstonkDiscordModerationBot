@@ -104,9 +104,8 @@ class Comments:
     async def heavily_downvoted_comments(self, limit, since: datetime):
         statement = """
             select id
-            from COMMENTS as c left join SCORES as s on c.id == s.id 
-            where s.score<:limit and c.created_utc>:since and c.deleted is NULL
-            group by c.id order by c.author, c.deleted;
+            from COMMENTS  
+            where score<:limit and created_utc>:since and deleted is NULL;
             """
         async with aiosqlite.connect(self.database) as db:
             async with db.execute(statement, {'since': since.timestamp(), 'limit': limit}) as cursor:
@@ -129,7 +128,7 @@ class Comments:
     async def top(self, since, until):
         async with aiosqlite.connect(self.database) as db:
             async with db.execute('''
-                    select distinct c.id from COMMENTS as c left join scores as s on c.id == s.id 
+                    select id from COMMENTS  
                     where created_utc >:since and created_utc <:until
                     order by score desc limit 10;''',
                                   {'since': since.timestamp(), 'until': until.timestamp()}) as cursor:
