@@ -27,7 +27,7 @@ class FrontDeskSticky(Handler):
 
     async def needs_front_desk(self, item):
         if getattr(getattr(item, "author", None), "name", None) == "AutoModerator" and \
-                item.title == "| $GME Daily Discussion | New to the sub? Start here!":
+                "$GME Daily Directory" in item.title:
             self._logger.info(f"Found the daily: {permalink(item)}")
             await item.load()
             for c in item.comments:
