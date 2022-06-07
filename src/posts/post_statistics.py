@@ -19,7 +19,8 @@ class CalculatePostStatistics:
 
     async def on_ready(self, scheduler, **kwargs):
         self._logger.info(f"Scheduling statistics calculation")
-        scheduler.add_job(self.calculate_statistics, "cron", hour="12", day_of_week="0")
+        scheduler.add_job(self.calculate_statistics, "cron", hour="12", day_of_week="0",
+                          next_run_time=datetime.now())
 
     async def calculate_statistics(self):
         self._logger.info(f"Performing statistics calculation")
