@@ -10,13 +10,15 @@ from millify import millify
 
 class GmeTickerAsUserName:
 
-    def __init__(self, superstonk_discord_moderation_bot, **kwargs):
+    def __init__(self, superstonk_discord_moderation_bot, is_live_environment, **kwargs):
         self._logger = logging.getLogger(self.__class__.__name__)
         self.superstonk_discord_moderation_bot = superstonk_discord_moderation_bot
+        self.is_live_environment = is_live_environment
 
     async def on_ready(self, scheduler, **kwargs):
         self._logger.info("Scheduling gamestop ticker ")
-        scheduler.add_job(self.change_name_to_market_data_with_timeout, "cron", second="*/10")
+        if self.is_live_environment:
+            scheduler.add_job(self.change_name_to_market_data_with_timeout, "cron", second="*/10")
 
     async def change_name_to_market_data_with_timeout(self):
         try:

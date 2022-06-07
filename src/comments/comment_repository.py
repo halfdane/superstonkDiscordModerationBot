@@ -127,11 +127,13 @@ class Comments:
 
     async def top(self, since, until):
         async with aiosqlite.connect(self.database) as db:
-            async with db.execute('''
+            statement = '''
                     select id from COMMENTS  
                     where created_utc >:since and created_utc <:until
-                    order by score desc limit 10;''',
-                                  {'since': since.timestamp(), 'until': until.timestamp()}) as cursor:
+                    order by score desc limit 10;'''
+            params = {'since': since.timestamp(), 'until': until.timestamp()}
+            self._logger.info(f"executing {statement} with params {params}")
+            async with db.execute(statement, params) as cursor:
                 return [row[0] async for row in cursor]
 
     async def oldest(self):
@@ -141,11 +143,22 @@ class Comments:
 
 
 """
-CREATE TABLE new_comments (id PRIMARY KEY, author, created_utc, deleted, mod_removed, updated_utc, score);
-INSERT INTO new_comments SELECT c.id, c.author, c.created_utc, m.updated_utc, m.score, c.deleted, c.mod_removed from comments c inner join (select id, max(updated_utc) updated_utc, score from scores GROUP BY id) m on c.id = m.id;
+CREATE TABLE new_comments       (id,    author,   created_utc,   deleted,     mod_removed, updated_utc, score);
+INSERT INTO new_comments SELECT c.id, c.author, c.created_utc, m.updated_utc, m.score,     c.deleted,   c.mod_removed from comments c inner join (select id, max(updated_utc) updated_utc, score from scores GROUP BY id) m on c.id = m.id;
 Drop table COMMENTS;
 CREATE TABLE  COMMENTS (id PRIMARY KEY, author, created_utc, deleted, mod_removed, updated_utc, score);
 INSERT INTO COMMENTS SELECT id, author, created_utc, deleted, mod_removed, updated_utc, score from new_comments;
 drop table new_comments;
 drop table scores;
+
+
+ALTER TABLE COMMENTS RENAME COLUMN deleted TO t_updated_utc;
+ALTER TABLE COMMENTS RENAME COLUMN updated_utc TO deleted;
+ALTER TABLE COMMENTS RENAME COLUMN t_updated_utc TO updated_utc;
+
+ALTER TABLE COMMENTS RENAME COLUMN mod_removed TO t_score;
+ALTER TABLE COMMENTS RENAME COLUMN score TO mod_removed;
+ALTER TABLE COMMENTS RENAME COLUMN t_score TO score;
+
+
 """

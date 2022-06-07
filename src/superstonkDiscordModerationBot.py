@@ -74,7 +74,8 @@ class SuperstonkModerationBot(Bot):
 
         # CONFIGURATION VALUES
         await self.component("environment", ENVIRONMENT)
-        await self.component("is_live_environment", ENVIRONMENT == 'live')
+        is_live_environment = (ENVIRONMENT == 'live')
+        await self.component("is_live_environment", is_live_environment)
 
         self.logger.info(f"{REPORTING_CHANNEL}: discord channel for reports")
         self.logger.info(f"{REPORTING_COMMENTS_CHANNEL}: discord channel for experimental comment reports")
