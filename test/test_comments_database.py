@@ -187,7 +187,10 @@ class TestCommentDatabaseIntegration:
         async with aiosqlite.connect(test_db) as db:
             async with db.execute("select * from COMMENTS where id='id_1';") as cursor:
                 rows = [row async for row in cursor]
-                assert rows == [a_comment(1, deleted=None, mod_removed=updated.timestamp(), updated_utc=updated.timestamp())]
+                assert rows == [a_comment(1, deleted=None,
+                                          mod_removed=updated.timestamp(),
+                                          updated_utc=updated.timestamp(),
+                                          score='score_new')]
 
     @pytest.mark.asyncio
     async def test_fetch_ids(self):
