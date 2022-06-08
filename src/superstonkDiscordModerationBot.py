@@ -106,7 +106,11 @@ class SuperstonkModerationBot(Bot):
 
         # FUNDAMENTAL COMPONENTS WITHOUT DEPENDENCIES
         logging.getLogger('apscheduler').setLevel(logging.WARN)
-        scheduler = AsyncIOScheduler(timezone='UTC')
+
+        scheduler_timezone={}
+        if is_live_environment:
+            scheduler_timezone = {'timezone': 'UTC'}
+        scheduler = AsyncIOScheduler(**scheduler_timezone)
         scheduler.start()
         await self.component("scheduler", scheduler)
 

@@ -1,16 +1,19 @@
 import logging
 from datetime import datetime
 
+from asyncpraw.exceptions import InvalidURL
+
 from helper.links import permalink
 
 
 class HandledItemsUnreporter:
 
-    def __init__(self, superstonk_subreddit=None, report_channel=None, discord_bot_user=None, **kwargs):
+    def __init__(self, superstonk_subreddit, report_channel, discord_bot_user, readonly_reddit, **kwargs):
         self._logger = logging.getLogger(self.__class__.__name__)
         self.superstonk_subreddit = superstonk_subreddit
         self.report_channel = report_channel
         self.discord_bot_user = discord_bot_user
+        self.readonly_reddit = readonly_reddit
 
     async def on_ready(self, scheduler, **kwargs):
         self._logger.info(f"Scheduling cleanup of handled reports")
@@ -34,15 +37,31 @@ class HandledItemsUnreporter:
             confirmed = '✅' in additional_reactions
             return bot_message and confirmed
 
+        async def __was_removed(message):
+            url = message.embeds[0].url if len(getattr(message, 'embeds', [])) > 0 else None
+            was_removed = False
+
+            if url:
+                try:
+                    comment = await self.readonly_reddit.comment(url=url)
+                    was_removed = (comment.body == '[deleted]') or comment.removed or (getattr(comment, "ban_note", None) is not None)
+                except InvalidURL:
+                    try:
+                        submission = await self.readonly_reddit.submission(url=url)
+                        was_removed = getattr(submission, 'removed_by_category', None) is not None
+                    except InvalidURL:
+                        pass
+            return was_removed
+
         removed_count = 1_000
         while removed_count > 0:
             removed_count = 0
             async for message in self.report_channel \
-                    .history(limit=200) \
-                    .filter(__was_confirmed):
-                await message.delete()
-                removed_count += 1
-                self._logger.debug(f'removed report for {message.embeds[0].url}')
+                    .history(limit=200):
+                if __was_confirmed(message) or (await __was_removed(message)):
+                    await message.delete()
+                    removed_count += 1
+                    self._logger.debug(f'removed report for {message.embeds[0].url}')
 
             self._logger.debug(f'removed {removed_count} reports')
         self._logger.info("Cleaned up channel")

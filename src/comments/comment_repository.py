@@ -132,7 +132,7 @@ class Comments:
                     where created_utc >:since and created_utc <:until
                     order by score desc limit 10;'''
             params = {'since': since.timestamp(), 'until': until.timestamp()}
-            self._logger.info(f"executing {statement} with params {params}")
+            self._logger.debug(f"executing {statement} with params {params}")
             async with db.execute(statement, params) as cursor:
                 return [row[0] async for row in cursor]
 
