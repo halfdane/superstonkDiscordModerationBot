@@ -18,7 +18,7 @@ class CommentRepositoryUpdater:
 
     async def on_ready(self, scheduler, **kwargs):
         self._logger.info(f"Ready to update comments")
-        scheduler.add_job(self.update_comments, "cron", minute="*/10")
+        scheduler.add_job(self.update_comments, "cron", minute="*/10", next_run_time=datetime.now())
 
     async def update_comments(self):
         now = datetime.utcnow()
