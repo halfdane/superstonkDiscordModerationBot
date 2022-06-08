@@ -3,6 +3,9 @@ from datetime import datetime, timedelta
 import disnake
 from disnake import Embed
 
+import yaml
+import chevron
+
 from helper.links import permalink
 from reddit_item_handler import Handler
 
@@ -25,16 +28,21 @@ Thanks for being a member of r/Superstonk 💎🙌🚀
 class PostCountLimiter(Handler):
     _interval = timedelta(hours=24)
 
-    def __init__(self, add_reactions_to_discord_message=None, post_repo=None, qvbot_reddit=None, report_channel=None, is_live_environment=None, **kwargs):
+    def __init__(self, add_reactions_to_discord_message, post_repo, qvbot_reddit,
+                 report_channel, is_live_environment,
+                 superstonk_subreddit, **kwargs):
         super().__init__()
         self.post_repo = post_repo
         self.qvbot_reddit = qvbot_reddit
         self.report_channel = report_channel
         self.add_reactions_to_discord_message = add_reactions_to_discord_message
         self.is_live_environment = is_live_environment
+        self.superstonk_subreddit = superstonk_subreddit
+        self.post_limit_reached_comment = REMOVAL_COMMENT
 
-    async def on_ready(self, **kwargs):
+    async def on_ready(self, scheduler, **kwargs):
         self._logger.info("Ready to limit post count")
+        scheduler.add_job(self.fetch_config_from_wiki, "cron", minute="6-59/10", next_run_time=datetime.now())
 
     async def take(self, item):
         author_name = getattr(item.author, 'name', str(item.author))
@@ -43,11 +51,18 @@ class PostCountLimiter(Handler):
         posts_that_count = list(filter(lambda p: p.count_to_limit, posts))
 
         if len(posts_that_count) > 7:
-            self._logger.info(f"Oops, looks like {author_name} is posting a lot: {posts}")
-            item_from_qvbot_view = await self.qvbot_reddit.submission(item.id, fetch=False)
+
+            list_of_posts = "    \n".join([f"- **{post['created_utc']}**: {permalink(post)}"
+                for post in sorted(posts_that_count, key=lambda v: v['created_utc'])])
+
+            model = {'list_of_posts': list_of_posts}
+            removal_comment = chevron.render(self.post_limit_reached_comment, model)
+
+            self._logger.info(f"Oops, looks like {author_name} is posting a lot: {removal_comment}")
 
             if self.is_live_environment:
-                sticky = await item_from_qvbot_view.reply(REMOVAL_COMMENT)
+                item_from_qvbot_view = await self.qvbot_reddit.submission(item.id, fetch=False)
+                sticky = await item_from_qvbot_view.reply(removal_comment)
                 await sticky.mod.distinguish(how="yes", sticky=True)
                 await sticky.mod.ignore_reports()
                 await item_from_qvbot_view.mod.remove(spam=False, mod_note="post count limit reached")
@@ -62,3 +77,10 @@ class PostCountLimiter(Handler):
 
         msg = await self.report_channel.send(embed=embed)
         await self.add_reactions_to_discord_message(msg)
+
+    async def fetch_config_from_wiki(self):
+        wiki_page = await self.superstonk_subreddit.wiki.get_page("qualityvote")
+        wiki_config_text = wiki_page.content_md
+        wiki_config = yaml.safe_load(wiki_config_text)
+        self.post_limit_reached_comment = wiki_config['post_limit_reached_comment']
+
