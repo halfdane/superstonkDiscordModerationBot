@@ -31,7 +31,7 @@ class CommentRepositoryUpdater:
         await self.persist_comments.store(comments_of_last_hour)
 
         avg_score = sum([c.score for c in comments_of_last_hour]) / len([comments_of_last_hour])
-        message = f"average score of {len(comments_of_last_hour)} in last hour: {avg_score}"
-        await self.report_comments_channel.send(embed=(
-            disnake.Embed(colour=disnake.Colour(0).from_rgb(207, 206, 255), description=result)))
+        m = f"average score of {len(comments_of_last_hour)} in last hour: {avg_score}"
+        message = await self.report_comments_channel.send(embed=(
+            disnake.Embed(colour=disnake.Colour(0).from_rgb(207, 206, 255), description=m)))
         await self.add_reactions_to_discord_message(message)
