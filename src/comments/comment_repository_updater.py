@@ -18,7 +18,7 @@ class CommentRepositoryUpdater:
 
     async def on_ready(self, scheduler, **kwargs):
         self._logger.info(f"Ready to update comments")
-        scheduler.add_job(self.update_comments, "cron", minute="*/10", next_run_time=datetime.now())
+        scheduler.add_job(self.update_comments, "cron", minute="*/10")
 
 
     async def update_comments(self):
@@ -31,8 +31,3 @@ class CommentRepositoryUpdater:
         self._logger.info(f"Storing updated info for {len(comments_of_last_hour)} comments from the last hour")
         await self.persist_comments.store(comments_of_last_hour)
 
-        avg_score = sum([c.score for c in comments_of_last_hour]) / len(comments_of_last_hour)
-        m = f"{len(comments_of_last_hour)} comments \n sum {sum([c.score for c in comments_of_last_hour])} in last hour: {avg_score}"
-        message = await self.report_comments_channel.send(embed=(
-            disnake.Embed(colour=disnake.Colour(0).from_rgb(207, 206, 255), description=m)))
-        await self.add_reactions_to_discord_message(message)
