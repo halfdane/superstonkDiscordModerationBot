@@ -137,13 +137,6 @@ class Comments:
             async with db.execute(statement, params) as cursor:
                 return [row[0] async for row in cursor]
 
-    async def wrong_score(self):
-        async with aiosqlite.connect(self.database) as db:
-            statement = '''select id from COMMENTS where score > 11146.0'''
-            async with db.execute(statement) as cursor:
-                return [row[0] async for row in cursor]
-
-
     async def oldest(self):
         async with aiosqlite.connect(self.database) as db:
             async with db.execute('select created_utc from COMMENTS ORDER by created_utc limit 1') as cursor:
