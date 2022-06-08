@@ -20,6 +20,12 @@ class CommentRepositoryUpdater:
         self._logger.info(f"Ready to update comments")
         scheduler.add_job(self.update_comments, "cron", minute="*/10", next_run_time=datetime.now())
 
+        comment_ids_with_wrong_score = [f"t1_{c}" for c in await self.persist_comments.wrong_score()]
+        comments_with_wrong_score = [c async for c in self.readonly_reddit.info(comment_ids_with_wrong_score)]
+        await self.persist_comments.store(comments_with_wrong_score)
+        self._logger.info(f"Fixed comments with wrong score")
+
+
     async def update_comments(self):
         now = datetime.utcnow()
         last_hour = now - timedelta(hours=1)
@@ -31,7 +37,7 @@ class CommentRepositoryUpdater:
         await self.persist_comments.store(comments_of_last_hour)
 
         avg_score = sum([c.score for c in comments_of_last_hour]) / len([comments_of_last_hour])
-        m = f"average score of {len(comments_of_last_hour)} in last hour: {avg_score}"
+        m = f"{len(comments_of_last_hour)} comments \n sum {sum([c.score for c in comments_of_last_hour])} in last hour: {avg_score}"
         message = await self.report_comments_channel.send(embed=(
             disnake.Embed(colour=disnake.Colour(0).from_rgb(207, 206, 255), description=m)))
         await self.add_reactions_to_discord_message(message)

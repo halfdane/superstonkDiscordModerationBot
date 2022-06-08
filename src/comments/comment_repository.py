@@ -44,7 +44,8 @@ class Comments:
                     ON CONFLICT(id) DO UPDATE SET 
                     deleted=excluded.deleted, 
                     mod_removed=excluded.mod_removed,
-                    updated_utc=excluded.updated_utc
+                    updated_utc=excluded.updated_utc,
+                    score = excluded.score
                     ''', db_comments)
             await db.commit()
 
@@ -135,6 +136,13 @@ class Comments:
             self._logger.debug(f"executing {statement} with params {params}")
             async with db.execute(statement, params) as cursor:
                 return [row[0] async for row in cursor]
+
+    async def wrong_score(self):
+        async with aiosqlite.connect(self.database) as db:
+            statement = '''select id from COMMENTS where score > 11146.0'''
+            async with db.execute(statement) as cursor:
+                return [row[0] async for row in cursor]
+
 
     async def oldest(self):
         async with aiosqlite.connect(self.database) as db:
