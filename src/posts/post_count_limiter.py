@@ -25,8 +25,8 @@ Thanks for being a member of r/Superstonk 💎🙌🚀
 """
 
 
-def _post_to_string(post, reddit):
-    reddit_post = reddit.post(id=post.id, fetch=False)
+async def _post_to_string(post, reddit):
+    reddit_post = await reddit.post(id=post.id, fetch=False)
     url = permalink(reddit_post)
     return f"- **{reddit_post.created_utc}**: {url}"
 
@@ -60,8 +60,8 @@ class PostCountLimiter(Handler):
         if len(posts_that_count) > 7:
             sorted_posts = sorted(posts_that_count, key=lambda v: v.created_utc)
             model = {
-                'list_of_posts': "    \n".join([_post_to_string(post) for post in sorted_posts]),
-                'ignored_posts': "    \n".join([_post_to_string(post) for post in posts_that_dont_count]),
+                'list_of_posts': "    \n".join([await _post_to_string(post, self.qvbot_reddit) for post in sorted_posts]),
+                'ignored_posts': "    \n".join([await _post_to_string(post, self.qvbot_reddit) for post in posts_that_dont_count]),
             }
             removal_comment = chevron.render(self.post_limit_reached_comment, model)
 
