@@ -5,11 +5,11 @@ import pytest
 
 from posts.post_count_limiter import PostCountLimiter
 
-FakePost = namedtuple("Post", "permalink author id count_to_limit")
+FakePost = namedtuple("Post", "permalink author id count_to_limit created_utc")
 
 
-def fake_post(permalink="some_permalink", author="some_author", the_id="some_id", count_to_limit=True):
-    return FakePost(permalink, author, the_id, count_to_limit)
+def fake_post(permalink="some_permalink", author="some_author", the_id="some_id", count_to_limit=True, created_utc=3):
+    return FakePost(permalink, author, the_id, count_to_limit, created_utc)
 
 
 class TestPostCountLimiter:
@@ -22,7 +22,9 @@ class TestPostCountLimiter:
 
         mock_reddit = AsyncMock()
 
-        testee = PostCountLimiter(post_repo=mock_post_repo, qvbot_reddit=mock_reddit, is_live_environment=True)
+        testee = PostCountLimiter(post_repo=mock_post_repo, qvbot_reddit=mock_reddit, is_live_environment=True,
+                                  superstonk_subreddit=None, add_reactions_to_discord_message=None,
+                                  report_channel=None)
 
         # when
         await testee.take(fake_post())
@@ -40,7 +42,9 @@ class TestPostCountLimiter:
 
         mock_reddit = AsyncMock()
 
-        testee = PostCountLimiter(post_repo=mock_post_repo, qvbot_reddit=mock_reddit, is_live_environment=True)
+        testee = PostCountLimiter(post_repo=mock_post_repo, qvbot_reddit=mock_reddit, is_live_environment=True,
+                                  superstonk_subreddit=None, add_reactions_to_discord_message=None,
+                                  report_channel=None)
 
         # when
         await testee.take(fake_post())
@@ -58,7 +62,7 @@ class TestPostCountLimiter:
         # given
         mock_post_repo = AsyncMock()
         mock_post_repo.contains.return_value = False
-        mock_post_repo.fetch.return_value = [fake_post(f'{i}') for i in range(8)]
+        mock_post_repo.fetch.return_value = [fake_post(f'{i}', created_utc=i) for i in range(8)]
 
         mock_reddit = AsyncMock()
 
@@ -66,7 +70,8 @@ class TestPostCountLimiter:
 
         testee = PostCountLimiter(post_repo=mock_post_repo, qvbot_reddit=mock_reddit,
                                   report_channel=mock_report_channel, is_live_environment=True,
-                                  add_reactions_to_discord_message=AsyncMock())
+                                  add_reactions_to_discord_message=AsyncMock(),
+                                  superstonk_subreddit=None)
 
         # when
         a_fake_post = fake_post()
@@ -96,8 +101,9 @@ class TestPostCountLimiter:
 
         local = "local"
         testee = PostCountLimiter(post_repo=mock_post_repo, qvbot_reddit=mock_reddit,
-                                  report_channel=AsyncMock(), environment=local,
-                                  add_reactions_to_discord_message=AsyncMock())
+                                  report_channel=AsyncMock(), is_live_environment=False,
+                                  add_reactions_to_discord_message=AsyncMock(),
+                                  superstonk_subreddit=None)
         # when
         await testee.take(fake_post())
 

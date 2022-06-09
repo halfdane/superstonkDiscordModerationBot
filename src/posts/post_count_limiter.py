@@ -51,9 +51,10 @@ class PostCountLimiter(Handler):
         posts_that_count = list(filter(lambda p: p.count_to_limit, posts))
 
         if len(posts_that_count) > 7:
+            sorted_posts = sorted(posts_that_count, key=lambda v: v.created_utc)
 
-            list_of_posts = "    \n".join([f"- **{post['created_utc']}**: {permalink(post)}"
-                for post in sorted(posts_that_count, key=lambda v: v['created_utc'])])
+            list_of_posts = "    \n".join([f"- **{post.created_utc}**: {permalink(post)}"
+                                           for post in sorted_posts])
 
             model = {'list_of_posts': list_of_posts}
             removal_comment = chevron.render(self.post_limit_reached_comment, model)
@@ -83,4 +84,3 @@ class PostCountLimiter(Handler):
         wiki_config_text = wiki_page.content_md
         wiki_config = yaml.safe_load(wiki_config_text)
         self.post_limit_reached_comment = wiki_config['post_limit_reached_comment']
-
