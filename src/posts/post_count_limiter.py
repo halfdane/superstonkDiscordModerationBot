@@ -25,11 +25,9 @@ Thanks for being a member of r/Superstonk 💎🙌🚀
 """
 
 
-async def _post_to_string(post, reddit):
-    reddit_post = await reddit.submission(id=post.id)
-    url = permalink(reddit_post)
-    created_utc = datetime.utcfromtimestamp(reddit_post.created_utc).strftime("%m/%d/%Y, %H:%M:%S")
-    return f"- **{created_utc}**: {url}"
+async def _post_to_string(post):
+    created_utc = datetime.utcfromtimestamp(post.created_utc).strftime("%m/%d/%Y, %H:%M:%S")
+    return f"- **{created_utc}**: https://www.reddit.com/r/Superstonk/comments/{post.id}"
 
 class PostCountLimiter(Handler):
     _interval = timedelta(hours=24)
@@ -60,8 +58,8 @@ class PostCountLimiter(Handler):
         if len(posts_that_count) > 7:
             sorted_posts = sorted(posts_that_count, key=lambda v: v.created_utc)
             model = {
-                'list_of_posts': "    \n".join([await _post_to_string(post, self.qvbot_reddit) for post in sorted_posts]),
-                'ignored_posts': "    \n".join([await _post_to_string(post, self.qvbot_reddit) for post in posts_that_dont_count]),
+                'list_of_posts': "    \n".join([await _post_to_string(post) for post in sorted_posts]),
+                'ignored_posts': "    \n".join([await _post_to_string(post) for post in posts_that_dont_count]),
             }
             removal_comment = chevron.render(self.post_limit_reached_comment, model)
 

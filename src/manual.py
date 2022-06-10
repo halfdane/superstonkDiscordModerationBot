@@ -59,11 +59,9 @@ If you feel this removal was unwarranted, please contact us via Mod Mail: https:
 Thanks for being a member of r/Superstonk 💎🙌🚀
 """
 
-async def _post_to_string(post, reddit):
-    reddit_post = await reddit.submission(id=post.id)
-    url = permalink(reddit_post)
-    created_utc = datetime.utcfromtimestamp(reddit_post.created_utc).strftime("%m/%d/%Y, %H:%M:%S")
-    return f"- **{created_utc}**: {url}"
+async def _post_to_string(post):
+    created_utc = datetime.utcfromtimestamp(post.created_utc).strftime("%m/%d/%Y, %H:%M:%S")
+    return f"- **{created_utc}**: https://www.reddit.com/r/Superstonk/comments/{post.id}"
 
 async def main():
     async with asyncreddit as readonly_reddit:
@@ -80,8 +78,8 @@ async def main():
 
         sorted_posts = sorted(posts_that_count, key=lambda v: v.created_utc)
         model = {
-            'list_of_posts': "    \n".join([await _post_to_string(post, readonly_reddit) for post in sorted_posts]),
-            'ignored_posts': "    \n".join([await _post_to_string(post, readonly_reddit) for post in posts_that_dont_count]),
+            'list_of_posts': "    \n".join([await _post_to_string(post) for post in sorted_posts]),
+            'ignored_posts': "    \n".join([await _post_to_string(post) for post in posts_that_dont_count]),
         }
         removal_comment = chevron.render(post_limit_reached_comment, model)
 
