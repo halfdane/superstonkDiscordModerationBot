@@ -5,6 +5,7 @@ import asyncpraw
 import disnake
 import yaml
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from decouple import config
 from disnake import Message
 from disnake.ext import commands
 from disnake.ext.commands import Bot
@@ -84,6 +85,7 @@ class SuperstonkModerationBot(Bot):
         # CONFIGURATION VALUES
         await self.component(**self.moderation_bot_configuration)
 
+
         # CHANNELS
         self.logger.info(f"{self.COMPONENTS['report_channel_id']}: discord channel for reports")
         await self.component(report_channel=self.get_channel(self.COMPONENTS['report_channel_id']))
@@ -108,6 +110,7 @@ class SuperstonkModerationBot(Bot):
         self.logger.info(f"{await self.COMPONENTS['readonly_reddit'].user.me()}: listening for reports on reddit")
         self.logger.info(f"{await self.COMPONENTS['flairy_reddit'].user.me()}: handling flair requests on reddit")
         self.logger.info(f"{await self.COMPONENTS['qvbot_reddit'].user.me()}: handling QV bot business on reddit")
+
 
         await self.component(asyncio_loop=self.loop)
 
