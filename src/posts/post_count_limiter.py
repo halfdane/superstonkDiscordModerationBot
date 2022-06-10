@@ -26,10 +26,10 @@ Thanks for being a member of r/Superstonk 💎🙌🚀
 
 
 async def _post_to_string(post, reddit):
-    reddit_post = await reddit.post(id=post.id, fetch=False)
+    reddit_post = await reddit.submission(id=post.id)
     url = permalink(reddit_post)
-    return f"- **{reddit_post.created_utc}**: {url}"
-
+    created_utc = datetime.utcfromtimestamp(reddit_post.created_utc).strftime("%m/%d/%Y, %H:%M:%S")
+    return f"- **{created_utc}**: {url}"
 
 class PostCountLimiter(Handler):
     _interval = timedelta(hours=24)
