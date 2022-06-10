@@ -28,6 +28,7 @@ class ModerationBotConfiguration(dict):
         self.flairy_reddit_settings = self.__reddit_settings('flairy')
 
     def remove_secrets(self):
+        del self['discord_bot_token']
         for prefix in ['reddit', 'qvbot', 'flairy']:
             for key in ['username', 'password', 'client_id', 'client_secret']:
                 del self[f"{prefix}_{key}"],
