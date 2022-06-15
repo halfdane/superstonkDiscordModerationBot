@@ -27,7 +27,7 @@ async def _post_to_string(post):
     return f"- **{created_utc}**: https://www.reddit.com/r/Superstonk/comments/{post.id}"
 
 
-class PostUrlLimiter(Handler):
+class UrlPostLimiter(Handler):
     _interval = timedelta(hours=24)
 
     def __init__(self, add_reactions_to_discord_message, post_repo, url_post_repo, qvbot_reddit,
@@ -66,7 +66,7 @@ class PostUrlLimiter(Handler):
 
             self._logger.info(f"The URL is posted a lot: {removal_comment}")
 
-            if self.is_live_environment:
+            if self.is_live_environment and self.active:
                 item_from_qvbot_view = await self.qvbot_reddit.submission(item.id, fetch=False)
                 sticky = await item_from_qvbot_view.reply(removal_comment)
                 await sticky.mod.distinguish(how="yes", sticky=True)
@@ -75,7 +75,7 @@ class PostUrlLimiter(Handler):
             await self.report_infraction(url, item)
 
         else:
-            self.url_post_repo.store(item)
+            await self.url_post_repo.store(item)
 
     async def report_infraction(self, url, item):
         author = getattr(item.author, 'name', str(item.author))

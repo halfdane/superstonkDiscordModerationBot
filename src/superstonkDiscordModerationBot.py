@@ -32,8 +32,10 @@ from posts.post_count_limiter import PostCountLimiter
 from posts.post_repository import Posts
 from posts.post_repository_updater import PostRepositoryUpdater
 from posts.post_statistics import CalculatePostStatistics
+from posts.post_url_limiter import UrlPostLimiter
 from posts.qv_bot import QualityVoteBot
 from posts.r_all_sticky_creator import RAllStickyCreator
+from posts.url_post_repository import UrlPosts
 from random_stuff.gme_ticker import GmeTickerAsUserName
 from reddit_item_reader import RedditItemReader
 from reports_logs.important_reports_handler import ImportantReports
@@ -140,8 +142,10 @@ class SuperstonkModerationBot(Bot):
 
         # DATABASE
         await self.component(post_repo=Posts())
+        await self.component(url_post_repo=UrlPosts())
         await self.component(comment_repo=Comments())
         await self.component(report_repo=Reports())
+
 
         # SCHEDULED COMPONENTS
         await self.component(calculate_post_statistics=CalculatePostStatistics(**self.COMPONENTS))
@@ -185,8 +189,10 @@ class SuperstonkModerationBot(Bot):
             item_repository=self.COMPONENTS['post_repo'],
             handlers=[
                 PostCountLimiter(**self.COMPONENTS),
+                UrlPostLimiter(**self.COMPONENTS),
                 FrontDeskSticky(),
-                QualityVoteBot(**self.COMPONENTS)]))
+                QualityVoteBot(**self.COMPONENTS),
+            ]))
 
         await self.component(r_all_reader=RedditItemReader(
             name="r/all-Posts",
