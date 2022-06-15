@@ -28,6 +28,8 @@ class QualityVoteBot(Handler):
                           next_run_time=datetime.now()+timedelta(minutes=1))
 
     async def take(self, submission):
+        self._logger.info(f"checking comment to https://www.reddit.com{submission.permalink}")
+
         if not self.__has_stickied_comment(submission) \
                 and submission.link_flair_template_id not in self.config['ignore_flairs']:
 
