@@ -26,7 +26,7 @@ from discordReactionHandlers.modnote_reaction import ModNoteReaction
 from discordReactionHandlers.user_history_reaction import UserHistoryReaction
 from discordReactionHandlers.wip_reaction import WipReaction
 from discord_output_logger import DiscordOutputLogger
-from helper.moderation_bot_configuration import ModerationBotConfiguration
+from helper.moderation_bot_configuration import ModerationBotConfiguration, CONFIG_HOME
 from helper.redditor_extractor import extract_redditor
 from posts.post_count_limiter import PostCountLimiter
 from posts.post_repository import Posts
@@ -103,6 +103,8 @@ class SuperstonkModerationBot(Bot):
         await self.component(logging_output_channel=self.get_channel(self.COMPONENTS['logging_output_channel_id']))
 
         self.logger.info(f"{self.COMPONENTS['user_investigation_channel_id']}: discord channel to listen for users")
+
+        self.logger.info(f"Reading configuration from {CONFIG_HOME}")
 
         # ALREADY EXISTING OBJECTS
         await self.component(discord_bot_user=self.user)
