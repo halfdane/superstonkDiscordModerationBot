@@ -1,12 +1,10 @@
 import logging
-from collections import namedtuple
-from datetime import datetime
-from os.path import expanduser
 
 import aiosqlite
 
-home = expanduser("~")
-POSTS_DB = f"{home}/url_posts.db"
+from helper.moderation_bot_configuration import CONFIG_HOME
+
+POSTS_DB = f"{CONFIG_HOME}/url_posts.db"
 
 
 class UrlPosts:

@@ -1,10 +1,10 @@
 import logging
-from os.path import expanduser
 
 import aiosqlite
 
-home = expanduser("~")
-COMMENTS_DB = f"{home}/reports.db"
+from helper.moderation_bot_configuration import CONFIG_HOME
+
+COMMENTS_DB = f"{CONFIG_HOME}/reports.db"
 
 
 class Reports:

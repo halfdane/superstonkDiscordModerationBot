@@ -1,14 +1,14 @@
 import logging
 from collections import namedtuple
 from datetime import datetime
-from os.path import expanduser
 from typing import List
 
 import aiosqlite
 from asyncpraw.models.reddit.comment import Comment
 
-home = expanduser("~")
-COMMENTS_DB = f"{home}/comments.db"
+from helper.moderation_bot_configuration import CONFIG_HOME
+
+COMMENTS_DB = f"{CONFIG_HOME}/comments.db"
 
 
 class Comments:

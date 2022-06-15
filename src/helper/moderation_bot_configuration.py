@@ -1,9 +1,9 @@
-import logging
-from os.path import expanduser
+import os
 import sqlite3
+import sys
 
-home = expanduser("~")
-CONFIG_DB = f"{home}/config.db"
+CONFIG_HOME = os.path.dirname(os.path.realpath(sys.path[0]))
+CONFIG_DB = f"{CONFIG_HOME}/config.db"
 
 
 class ModerationBotConfiguration(dict):
@@ -43,5 +43,3 @@ class ModerationBotConfiguration(dict):
 
     def __as_int(self, key):
         self[key] = int(self[key])
-
-
