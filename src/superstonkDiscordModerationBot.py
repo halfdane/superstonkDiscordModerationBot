@@ -5,7 +5,7 @@ import asyncpraw
 import disnake
 import yaml
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from decouple import config
+
 from disnake import Message
 from disnake.ext import commands
 from disnake.ext.commands import Bot
@@ -26,6 +26,7 @@ from discordReactionHandlers.modnote_reaction import ModNoteReaction
 from discordReactionHandlers.user_history_reaction import UserHistoryReaction
 from discordReactionHandlers.wip_reaction import WipReaction
 from discord_output_logger import DiscordOutputLogger
+from helper.moderation_bot_configuration import ModerationBotConfiguration
 from helper.redditor_extractor import extract_redditor
 from posts.post_count_limiter import PostCountLimiter
 from posts.post_repository import Posts
@@ -50,46 +51,59 @@ class SuperstonkModerationBot(Bot):
     USER_REACTIONS = None
     ALL_REACTIONS = None
 
-    def __init__(self, readonly_reddit, flairy_reddit, qvbot_reddit, **options):
+    def __init__(self, moderation_bot_configuration, **options):
         super().__init__(command_prefix='>',
                          description="Moderation bot for Superstonk.",
                          sync_commands_debug=True,
                          **options)
-        self.COMPONENTS["readonly_reddit"] = readonly_reddit
-        self.COMPONENTS["flairy_reddit"] = flairy_reddit
-        self.COMPONENTS["qvbot_reddit"] = qvbot_reddit
+        self.moderation_bot_configuration = moderation_bot_configuration
 
-    async def component(self, name, component=None):
-        if component is not None:
-            async def no_op(**_): pass
+    async def component(self, **kwargs):
+        for name, component in kwargs.items():
+            if component is not None:
+                async def no_op(**_): pass
 
-            on_ready = getattr(component, 'on_ready', no_op)
-            await on_ready(**self.COMPONENTS)
-            self.COMPONENTS[name] = component
-
-        return self.COMPONENTS[name]
+                on_ready = getattr(component, 'on_ready', no_op)
+                await on_ready(**self.COMPONENTS)
+                self.COMPONENTS[name] = component
 
     async def on_ready(self):
         self.COMPONENTS['superstonk_discord_moderation_bot'] = self
 
+        self.COMPONENTS["readonly_reddit"] = \
+            asyncpraw.Reddit(**self.moderation_bot_configuration.readonly_reddit_settings(),
+                             user_agent="com.halfdane.superstonk_moderation_bot:v0.1.5 (by u/half_dane)")
+        self.COMPONENTS["flairy_reddit"] = \
+            asyncpraw.Reddit(**self.moderation_bot_configuration.flairy_reddit_settings(),
+                             user_agent="com.halfdane.superstonk_flairy:v0.2.0 (by u/half_dane)")
+        self.COMPONENTS["qvbot_reddit"] = \
+            asyncpraw.Reddit(**self.moderation_bot_configuration.qvbot_reddit_settings(),
+                             user_agent="com.halfdane.superstonk_qvbot:v0.1.0 (by u/half_dane)")
+
+        self.moderation_bot_configuration.remove_secrets()
+
         # CONFIGURATION VALUES
-        await self.component("environment", ENVIRONMENT)
-        is_live_environment = (ENVIRONMENT == 'live')
-        await self.component("is_live_environment", is_live_environment)
+        await self.component(**self.moderation_bot_configuration)
 
-        self.logger.info(f"{REPORTING_CHANNEL}: discord channel for reports")
-        self.logger.info(f"{REPORTING_COMMENTS_CHANNEL}: discord channel for experimental comment reports")
-        self.logger.info(f"{FLAIRY_CHANNEL}: discord channel for flairy")
-        self.logger.info(f"{LOG_OUTPUT_CHANNEL}: discord channel for debugging messages")
-        self.logger.info(f"{USER_INVESTIGATION_CHANNELS}: discord channel to listen for users")
 
-        await self.component("report_channel", self.get_channel(REPORTING_CHANNEL))
-        await self.component("report_comments_channel", self.get_channel(REPORTING_COMMENTS_CHANNEL))
-        await self.component("flairy_channel", self.get_channel(FLAIRY_CHANNEL))
-        await self.component("logging_output_channel", self.get_channel(LOG_OUTPUT_CHANNEL))
+        # CHANNELS
+        self.logger.info(f"{self.COMPONENTS['report_channel_id']}: discord channel for reports")
+        await self.component(report_channel=self.get_channel(self.COMPONENTS['report_channel_id']))
+
+        self.logger.info(
+            f"{self.COMPONENTS['report_comments_channel_id']}: discord channel for experimental comment reports")
+        await self.component(report_comments_channel=self.get_channel(self.COMPONENTS['report_comments_channel_id']))
+
+        self.logger.info(f"{self.COMPONENTS['flairy_channel_id']}: discord channel for flairy")
+        await self.component(flairy_channel=self.get_channel(self.COMPONENTS['flairy_channel_id']))
+
+        self.logger.info(f"{self.COMPONENTS['logging_output_channel_id']}: discord channel for debugging messages")
+        await self.component(logging_output_channel=self.get_channel(self.COMPONENTS['logging_output_channel_id']))
+
+        self.logger.info(f"{self.COMPONENTS['user_investigation_channel_id']}: discord channel to listen for users")
 
         # ALREADY EXISTING OBJECTS
-        await self.component("discord_bot_user", self.user)
+        await self.component(discord_bot_user=self.user)
         self.logger.info(
             f"{self.COMPONENTS['discord_bot_user']} with id {self.COMPONENTS['discord_bot_user'].id} is the discord user")
 
@@ -97,51 +111,51 @@ class SuperstonkModerationBot(Bot):
         self.logger.info(f"{await self.COMPONENTS['flairy_reddit'].user.me()}: handling flair requests on reddit")
         self.logger.info(f"{await self.COMPONENTS['qvbot_reddit'].user.me()}: handling QV bot business on reddit")
 
-        await self.component("asyncio_loop", self.loop)
+        await self.component(asyncio_loop=self.loop)
 
         # FUNCTION COMPONENTS
-        await self.component("add_reactions_to_discord_message", self.add_reactions)
-        await self.component("get_discord_cogs", lambda: self.cogs)
-        await self.component("is_forbidden_comment_message", self.is_forbidden_comment_message)
+        await self.component(add_reactions_to_discord_message=self.add_reactions)
+        await self.component(get_discord_cogs=lambda: self.cogs)
+        await self.component(is_forbidden_comment_message=self.is_forbidden_comment_message)
 
         # FUNDAMENTAL COMPONENTS WITHOUT DEPENDENCIES
         logging.getLogger('apscheduler').setLevel(logging.WARN)
 
-        scheduler_timezone={}
-        if is_live_environment:
+        scheduler_timezone = {}
+        if self.COMPONENTS['is_live_environment']:
             scheduler_timezone = {'timezone': 'UTC'}
         scheduler = AsyncIOScheduler(**scheduler_timezone)
         scheduler.start()
-        await self.component("scheduler", scheduler)
+        await self.component(scheduler=scheduler)
 
         superstonk_subreddit = await self.COMPONENTS["readonly_reddit"].subreddit("Superstonk")
-        await self.component("superstonk_subreddit", superstonk_subreddit)
-        await self.component("superstonk_moderators", [m async for m in superstonk_subreddit.moderator])
+        await self.component(superstonk_subreddit=superstonk_subreddit)
+        await self.component(superstonk_moderators=[m async for m in superstonk_subreddit.moderator])
 
         r_all_subreddit = await self.COMPONENTS["readonly_reddit"].subreddit("all")
-        await self.component("r_all_subreddit", r_all_subreddit)
+        await self.component(r_all_subreddit=r_all_subreddit)
 
         testsubsuperstonk = await self.COMPONENTS["readonly_reddit"].subreddit("testsubsuperstonk")
-        await self.component("superstonk_TEST_subreddit", testsubsuperstonk)
+        await self.component(superstonk_TEST_subreddit=testsubsuperstonk)
 
         # DATABASE
-        await self.component("post_repo", Posts())
-        await self.component("comment_repo", Comments())
-        await self.component("report_repo", Reports())
+        await self.component(post_repo=Posts())
+        await self.component(comment_repo=Comments())
+        await self.component(report_repo=Reports())
 
         # SCHEDULED COMPONENTS
-        await self.component("calculate_post_statistics", CalculatePostStatistics(**self.COMPONENTS))
-        await self.component("comment_based_troll_identifier", CommentBasedTrollIdentifier(**self.COMPONENTS))
-        await self.component("comment_repository_updater", CommentRepositoryUpdater(**self.COMPONENTS))
-        await self.component("post_repository_updater", PostRepositoryUpdater(**self.COMPONENTS))
-        await self.component("handled_items_unreporter", HandledItemsUnreporter(**self.COMPONENTS))
-        await self.component("discord_output_logging_handler", discord_output_logging_handler)
-        await self.component("flairy_report", FlairyReport(**self.COMPONENTS))
-        await self.component("gme_ticker_as_user_name", GmeTickerAsUserName(**self.COMPONENTS))
+        await self.component(calculate_post_statistics=CalculatePostStatistics(**self.COMPONENTS))
+        await self.component(comment_based_troll_identifier=CommentBasedTrollIdentifier(**self.COMPONENTS))
+        await self.component(comment_repository_updater=CommentRepositoryUpdater(**self.COMPONENTS))
+        await self.component(post_repository_updater=PostRepositoryUpdater(**self.COMPONENTS))
+        await self.component(handled_items_unreporter=HandledItemsUnreporter(**self.COMPONENTS))
+        await self.component(discord_output_logging_handler=discord_output_logging_handler)
+        await self.component(flairy_report=FlairyReport(**self.COMPONENTS))
+        await self.component(gme_ticker_as_user_name=GmeTickerAsUserName(**self.COMPONENTS))
 
         # COGS
         hanami = Hanami(**self.COMPONENTS)
-        await self.component("hanami", hanami)
+        await self.component(hanami=hanami)
         super().add_cog(hanami)
         super().add_cog(UserCog(**self.COMPONENTS))
         super().add_cog(ModQueueCog(**self.COMPONENTS))
@@ -153,36 +167,32 @@ class SuperstonkModerationBot(Bot):
         self.ALL_REACTIONS = self.GENERIC_REACTIONS + self.USER_REACTIONS
 
         # STREAMING REDDIT ITEMS INTO HANDLERS
-        await self.component("comments_reader",
-                             RedditItemReader(
-                                 name="Comments",
-                                 item_fetch_function=superstonk_subreddit.stream.comments,
-                                 item_repository=self.COMPONENTS['comment_repo'],
-                                 handlers=[Flairy(**self.COMPONENTS), RestickyQualityVoteBot(**self.COMPONENTS)]))
+        await self.component(comments_reader=RedditItemReader(
+            name="Comments",
+            item_fetch_function=superstonk_subreddit.stream.comments,
+            item_repository=self.COMPONENTS['comment_repo'],
+            handlers=[Flairy(**self.COMPONENTS), RestickyQualityVoteBot(**self.COMPONENTS)]))
 
-        await self.component("reports_reader",
-                             RedditItemReader(
-                                 name="Reports",
-                                 item_fetch_function=superstonk_subreddit.mod.stream.reports,
-                                 item_repository=self.COMPONENTS['report_repo'],
-                                 handlers=[ImportantReports(**self.COMPONENTS)]))
+        await self.component(reports_reader=RedditItemReader(
+            name="Reports",
+            item_fetch_function=superstonk_subreddit.mod.stream.reports,
+            item_repository=self.COMPONENTS['report_repo'],
+            handlers=[ImportantReports(**self.COMPONENTS)]))
 
-        await self.component("posts_reader",
-                             RedditItemReader(
-                                 name="Posts",
-                                 item_fetch_function=superstonk_subreddit.stream.submissions,
-                                 item_repository=self.COMPONENTS['post_repo'],
-                                 handlers=[
-                                     PostCountLimiter(**self.COMPONENTS),
-                                     FrontDeskSticky(),
-                                     QualityVoteBot(**self.COMPONENTS)]))
+        await self.component(posts_reader=RedditItemReader(
+            name="Posts",
+            item_fetch_function=superstonk_subreddit.stream.submissions,
+            item_repository=self.COMPONENTS['post_repo'],
+            handlers=[
+                PostCountLimiter(**self.COMPONENTS),
+                FrontDeskSticky(),
+                QualityVoteBot(**self.COMPONENTS)]))
 
-        await self.component("r_all_reader",
-                             RedditItemReader(
-                                 name="r/all-Posts",
-                                 item_fetch_function=lambda: r_all_subreddit.hot(limit=100),
-                                 item_repository=None,
-                                 handlers=[RAllStickyCreator(**self.COMPONENTS)]))
+        await self.component(r_all_reader=RedditItemReader(
+            name="r/all-Posts",
+            item_fetch_function=lambda: r_all_subreddit.hot(limit=100),
+            item_repository=None,
+            handlers=[RAllStickyCreator(**self.COMPONENTS)]))
 
         automod_config = await superstonk_subreddit.wiki.get_page("config/automoderator")
         for rule in automod_config.content_md.split("---"):
@@ -195,7 +205,7 @@ class SuperstonkModerationBot(Bot):
         return any(rule.search(comment_message) for rule in self.automod_rules)
 
     async def on_message(self, msg: Message):
-        if msg.author.bot or msg.channel.id != USER_INVESTIGATION_CHANNELS:
+        if msg.author.bot or msg.channel.id != self.COMPONENTS['user_investigation_channel_id']:
             return
         if extract_redditor(msg):
             await self.add_reactions(msg, self.USER_REACTIONS)
@@ -250,44 +260,9 @@ if __name__ == "__main__":
         handlers=[discord_output_logging_handler, logging.StreamHandler()]
     )
 
-    DISCORD_BOT_TOKEN = config("discord_bot_token")
-    REPORTING_CHANNEL = int(config("REPORTING_CHANNEL"))
-    REPORTING_COMMENTS_CHANNEL = int(config("REPORTING_COMMENTS_CHANNEL"))
-    FLAIRY_CHANNEL = int(config("FLAIRY_CHANNEL"))
-    LOG_OUTPUT_CHANNEL = int(config("LOG_OUTPUT_CHANNEL"))
-    USER_INVESTIGATION_CHANNELS = int(config("USER_INVESTIGATION_CHANNELS"))
-
-    GUILD = int(config("GUILD"))
-
-    ENVIRONMENT = config("environment")
-
-    readonly_asyncpraw_reddit = \
-        asyncpraw.Reddit(username=(config("reddit_username")),
-                         password=(config("reddit_password")),
-                         client_id=(config("reddit_client_id")),
-                         client_secret=(config("reddit_client_secret")),
-                         user_agent="com.halfdane.superstonk_moderation_bot:v0.1.2 (by u/half_dane)")
-    flairy_asyncpraw_reddit = \
-        asyncpraw.Reddit(username=config("flairy_username"),
-                         password=config("flairy_password"),
-                         client_id=config("flairy_client_id"),
-                         client_secret=config("flairy_client_secret"),
-                         user_agent="com.halfdane.superstonk_flairy:v0.2.0 (by u/half_dane)")
-
-    qvbot_asyncpraw_reddit = \
-        asyncpraw.Reddit(username=config("qvbot_username"),
-                         password=config("qvbot_password"),
-                         client_id=config("qvbot_client_id"),
-                         client_secret=config("qvbot_client_secret"),
-                         user_agent="com.halfdane.superstonk_qvbot:v0.1.0 (by u/half_dane)")
-
-    with readonly_asyncpraw_reddit as readonly_reddit:
-        with flairy_asyncpraw_reddit as flairy_reddit:
-            with qvbot_asyncpraw_reddit as qvbot_reddit:
-                bot = SuperstonkModerationBot(
-                    readonly_reddit=readonly_reddit,
-                    flairy_reddit=flairy_reddit,
-                    qvbot_reddit=qvbot_reddit,
-                    test_guilds=[GUILD]
-                )
-                bot.run(DISCORD_BOT_TOKEN)
+    configuration = ModerationBotConfiguration()
+    bot = SuperstonkModerationBot(
+        moderation_bot_configuration=configuration,
+        test_guilds=[configuration['discord_guild_id']]
+    )
+    bot.run(configuration['discord_bot_token'])
