@@ -53,7 +53,7 @@ class UrlPostLimiter(Handler):
         url = getattr(item, 'url', None)
         posts_with_same_url = await self.url_post_repo.fetch(url=url)
 
-        limit = 1
+        limit = 2
         if "twitter.com/ryancohen" in url:
             limit = 3
 
