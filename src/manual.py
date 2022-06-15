@@ -69,22 +69,9 @@ async def main():
         print(f"\n\nLogged in as {redditor.name}")
         subreddit = await readonly_reddit.subreddit("superstonk")
 
-        post_repo = Posts()
-        yesterday = datetime.utcnow() - timedelta(hours=24)
-        posts = await post_repo.fetch(author='Super_Share_8721', since=yesterday)
-
-        posts_that_count = list(filter(lambda p: p.count_to_limit, posts))
-        posts_that_dont_count = list(filter(lambda p: not p.count_to_limit, posts))
-
-        sorted_posts = sorted(posts_that_count, key=lambda v: v.created_utc)
-        model = {
-            'list_of_posts': "    \n".join([await _post_to_string(post) for post in sorted_posts]),
-            'ignored_posts': "    \n".join([await _post_to_string(post) for post in posts_that_dont_count]),
-        }
-        removal_comment = chevron.render(post_limit_reached_comment, model)
-
-        print(f"{removal_comment}")
-
+        url="https://www.reddit.com/r/Superstonk/comments/vco7m6/european_central_bank_council_holding_an/"
+        submission = await readonly_reddit.submission(url=url)
+        pprint(vars(submission))
 
 
 loop = asyncio.get_event_loop()
