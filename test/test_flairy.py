@@ -210,7 +210,7 @@ class TestFlairy:
         # given
         mock_comment = default_comment()
         mock_comment.body = "!FLAIRY! 123456789 123456789 123456789 123456789 123456789 123456789 123"
-        mock_comment.author_flair_text = "some flair [fixed]"
+        mock_comment.author_flair_text = "some flair [lock]"
 
         flairy_reddit = AsyncMock()
 

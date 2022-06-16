@@ -120,7 +120,7 @@ class CommentAlreadyHasAResponse:
 
 
 class IsBlackListed:
-    blacklisted_string = '[fixed]'
+    blacklisted_string = '[lock]'
 
     def __init__(self):
         self._logger = logging.getLogger(self.__class__.__name__)

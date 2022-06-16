@@ -5,6 +5,8 @@ from datetime import datetime
 import disnake
 from disnake.ext import commands
 
+from helper.links import permalink
+
 
 class ModQueueCog(commands.Cog):
     def __init__(self, add_reactions_to_discord_message, superstonk_subreddit, **kwargs):
@@ -43,7 +45,7 @@ class ModQueueCog(commands.Cog):
                 result.append(
                     f"{item.__class__.__name__} "
                     f"with {item.num_reports} reports: "
-                    f"https://www.reddit.com{item.permalink}")
+                    f"{permalink(item.permalink)}")
                 if index >= 4:
                     break
         return result

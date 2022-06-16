@@ -40,6 +40,6 @@ class TestFlairyExplainer:
         assert "`!FLAIRY!`" in args[0]
         assert "`!FLAIRY:CLEARME!`" in args[0]
         assert "`!FLAIRY:SEALME!`" in args[0]
-        assert "[fixed]" in args[0]
+        assert "[lock]" in args[0]
 
 
