@@ -225,3 +225,7 @@ class TestFlairy:
         # then
         flairy_reddit.subreddit.return_value.flair.set.assert_not_called()
 
+        flairy_comment = flairy_reddit.comment.return_value
+        flairy_comment.reply.assert_awaited_once()
+        assert "Sorry, I'm cowardly refusing to change a locked flair" in flairy_comment.reply.call_args[0][0]
+

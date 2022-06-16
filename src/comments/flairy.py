@@ -48,7 +48,7 @@ class Flairy(Handler):
         self._commands = [
             CommentAlreadyHasAResponse(flairy_command_detection, regex_flags),
             FlairyExplainerCommand(self.flairy_reddit, self._templates.keys()),
-            IsBlackListed(),
+            IsBlackListed(self.flairy_reddit),
             ClearCommand(self.flairy_reddit, flairy_command_detection, regex_flags),
             SealmeCommand(self._templates[self._default_color], flairy_command_detection, regex_flags,
                           self.flair_user),
@@ -122,8 +122,9 @@ class CommentAlreadyHasAResponse:
 class IsBlackListed:
     blacklisted_string = '[lock]'
 
-    def __init__(self):
+    def __init__(self, flairy_reddit):
         self._logger = logging.getLogger(self.__class__.__name__)
+        self.flairy_reddit = flairy_reddit
 
     async def handled(self, body, comment, is_mod):
         current_flair = getattr(comment, 'author_flair_text', "") or ""
@@ -131,6 +132,13 @@ class IsBlackListed:
         if blacklisted:
             self._logger.info(f"Refusing to interact with blacklisted user.   \n"
                               f"Flair: {current_flair}   \n text: {body}   \n comment {permalink(comment)} ")
+            comment_from_flairies_view = await self.flairy_reddit.comment(comment.id, fetch=False)
+
+            message = f"Sorry, I'm cowardly refusing to change a locked flair.   \n" \
+                      f"Please  approach the mods for clarification.\n"
+            self._logger.info(f"Wrong color: {permalink(comment)}")
+            await comment_from_flairies_view.reply(message)
+
         return blacklisted
 
 
