@@ -28,8 +28,6 @@ class QualityVoteBot(Handler):
                           next_run_time=datetime.now()+timedelta(minutes=1))
 
     async def take(self, submission):
-        self._logger.info(f"checking comment to https://www.reddit.com{submission.permalink}")
-
         if not self.__has_stickied_comment(submission) \
                 and submission.link_flair_template_id not in self.config['ignore_flairs']:
 
@@ -37,7 +35,7 @@ class QualityVoteBot(Handler):
                 qv_user = await self.qvbot_reddit.user.me()
                 post_from_qbots_view = await self.qvbot_reddit.submission(submission.id, fetch=False)
 
-                self._logger.info(f"adding {qv_user} comment to https://www.reddit.com{submission.permalink}")
+                self._logger.debug(f"adding {qv_user} comment to https://www.reddit.com{submission.permalink}")
                 sticky = await post_from_qbots_view.reply(self.config['vote_comment'])
                 await sticky.mod.distinguish(how="yes", sticky=True)
                 await sticky.mod.ignore_reports()
