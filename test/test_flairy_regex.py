@@ -1,3 +1,5 @@
+import logging
+
 from comments.flairy import Flairy
 
 
@@ -11,6 +13,7 @@ def NOT_EQUALS(x, y):
 
 class TestFlairyRegex:
     testee = Flairy(None)
+    testee.setup_commands()
 
     def match(self, string, expected1, expected2=None, comparison=EQUALS):
         m = self.testee.flairy_detect_user_flair_change.match(string)
@@ -43,7 +46,8 @@ class TestFlairyRegex:
                    "!Flairy! king gizzard and the lizard wizard 🚀 "
                    "red  \n  whatever  ￼\n   neyy ", "king gizzard and the lizard wizard 🚀", "red")
 
-    def test_whitespace_variations(self):
+    def test_whitespace_variations(self, caplog):
+        caplog.set_level(logging.DEBUG)
         self.match("!Flairy! something ", "something", None)
         self.match("!Flairy! something", "something", None)
         self.match("!Flairy!something ", "something", None)

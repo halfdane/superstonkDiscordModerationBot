@@ -1,3 +1,4 @@
+import logging
 from unittest.mock import patch, AsyncMock, MagicMock
 from unittest.mock import ANY
 
@@ -32,34 +33,6 @@ def returns(return_value):
 class TestFlairy:
 
     @pytest.mark.asyncio
-    async def test_happy_path(self):
-        # given
-        mock_comment = default_comment()
-        mock_comment.body = "!FLAIRY! 123456789 123456789 123456789 123456789 123456789 123456789 123"
-
-        flairy_reddit = AsyncMock()
-
-        # when
-        testee = Flairy(flairy_reddit=flairy_reddit,
-                        is_forbidden_comment_message=returns(False),
-                        is_live_environment=True,
-                        add_reactions_to_discord_message=AsyncMock())
-        await testee.take(mock_comment)
-
-        # then
-        flairy_reddit.subreddit.assert_awaited()
-        flairy_reddit.subreddit.return_value.flair.set.assert_awaited_with(
-            redditor=mock_comment.author,
-            text="123456789 123456789 123456789 123456789 123456789 123456789 123",
-            flair_template_id=ANY
-        )
-
-        request_comment = flairy_reddit.comment.return_value
-
-        request_comment.upvote.assert_awaited()
-        request_comment.reply.assert_awaited()
-
-    @pytest.mark.asyncio
     async def test_flair_too_long(self):
         # given
         mock_comment = default_comment()
@@ -72,6 +45,7 @@ class TestFlairy:
         testee = Flairy(flairy_reddit=flairy_reddit,
                         is_forbidden_comment_message=returns(False),
                         add_reactions_to_discord_message=AsyncMock())
+        await testee.on_ready()
         await testee.take(mock_comment)
 
         # then
@@ -94,36 +68,10 @@ class TestFlairy:
         testee = Flairy(flairy_reddit=flairy_reddit,
                         is_forbidden_comment_message=returns(True),
                         add_reactions_to_discord_message=AsyncMock())
+        await testee.on_ready()
         await testee.take(mock_comment)
 
         # then
-        flairy_reddit.subreddit.return_value.flair.set.assert_not_called()
-
-    @pytest.mark.asyncio
-    async def test_empty_flairy_results_in_random_flair(self):
-        # given
-        mock_comment = default_comment()
-        mock_comment.body = "!FLAIRY!"
-        flairy_reddit = AsyncMock()
-        flair_user = AsyncMock()
-
-        # when
-        Flairy.flair_user = flair_user
-        testee = Flairy(flairy_reddit=flairy_reddit,
-                        is_forbidden_comment_message=returns(False),
-                        add_reactions_to_discord_message=AsyncMock())
-        await testee.take(mock_comment)
-
-        # then
-        flair_user.assert_called_once()
-        _, kwargs = flair_user.call_args
-
-        assert kwargs['comment'] == mock_comment
-        assert len(kwargs['flair_text']) > 2
-        assert len(kwargs['flair_color']) > 2
-        assert "(✿☉｡☉) You didn't ask for a flair?!" in kwargs['message']
-        assert "template" not in kwargs
-
         flairy_reddit.subreddit.return_value.flair.set.assert_not_called()
 
     @pytest.mark.asyncio
@@ -138,6 +86,7 @@ class TestFlairy:
         testee = Flairy(flairy_reddit=flairy_reddit,
                         is_forbidden_comment_message=returns(False),
                         add_reactions_to_discord_message=AsyncMock())
+        await testee.on_ready()
         await testee.take(mock_comment)
 
         # then
@@ -159,7 +108,7 @@ class TestFlairy:
         testee = Flairy(flairy_reddit=flairy_reddit,
                         is_forbidden_comment_message=returns(False),
                         add_reactions_to_discord_message=AsyncMock())
-
+        await testee.on_ready()
         await testee.take(mock_comment)
 
         # then
@@ -168,6 +117,35 @@ class TestFlairy:
         assert "Clearing the flair as requested" in flairy_comment.reply.call_args[0][0]
 
         flairy_reddit.subreddit.return_value.flair.delete.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_happy_path(self):
+        # given
+        mock_comment = default_comment()
+        mock_comment.body = "!FLAIRY! 123456789 123456789 123456789 123456789 123456789 123456789 123"
+
+        flairy_reddit = AsyncMock()
+
+        # when
+        testee = Flairy(flairy_reddit=flairy_reddit,
+                        is_forbidden_comment_message=returns(False),
+                        is_live_environment=True,
+                        add_reactions_to_discord_message=AsyncMock())
+        await testee.on_ready()
+        await testee.take(mock_comment)
+
+        # then
+        flairy_reddit.subreddit.assert_awaited()
+        flairy_reddit.subreddit.return_value.flair.set.assert_awaited_with(
+            redditor=mock_comment.author,
+            text="123456789 123456789 123456789 123456789 123456789 123456789 123",
+            flair_template_id=ANY
+        )
+
+        request_comment = flairy_reddit.comment.return_value
+
+        request_comment.upvote.assert_awaited()
+        request_comment.reply.assert_awaited()
 
     @pytest.mark.asyncio
     async def test_flair_seal_appending(self):
@@ -181,11 +159,11 @@ class TestFlairy:
         flair_user = AsyncMock()
 
         # when
-        Flairy.flair_user = flair_user
         testee = Flairy(flairy_reddit=flairy_reddit,
                         is_forbidden_comment_message=returns(False),
                         add_reactions_to_discord_message=AsyncMock())
-
+        testee.flair_user = flair_user
+        await testee.on_ready()
         await testee.take(mock_comment)
 
         # then
@@ -198,3 +176,52 @@ class TestFlairy:
         assert "color" not in kwargs
 
         flairy_reddit.subreddit.return_value.flair.delete.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_empty_flairy_results_in_random_flair(self):
+        # given
+        mock_comment = default_comment()
+        mock_comment.body = "!FLAIRY!"
+        flairy_reddit = AsyncMock()
+        flair_user = AsyncMock()
+
+        # when
+        testee = Flairy(flairy_reddit=flairy_reddit,
+                        is_forbidden_comment_message=returns(False),
+                        add_reactions_to_discord_message=AsyncMock())
+        testee.flair_user = flair_user
+        await testee.on_ready()
+        await testee.take(mock_comment)
+
+        # then
+        flair_user.assert_called_once()
+        _, kwargs = flair_user.call_args
+
+        assert kwargs['comment'] == mock_comment
+        assert len(kwargs['flair_text']) > 2
+        assert len(kwargs['flair_color']) > 2
+        assert "(✿☉｡☉) You didn't ask for a flair?!" in kwargs['message']
+        assert "template" not in kwargs
+
+        flairy_reddit.subreddit.return_value.flair.set.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_blacklisted_flair(self):
+        # given
+        mock_comment = default_comment()
+        mock_comment.body = "!FLAIRY! 123456789 123456789 123456789 123456789 123456789 123456789 123"
+        mock_comment.author_flair_text = "some flair [fixed]"
+
+        flairy_reddit = AsyncMock()
+
+        # when
+        testee = Flairy(flairy_reddit=flairy_reddit,
+                        is_forbidden_comment_message=returns(False),
+                        is_live_environment=True,
+                        add_reactions_to_discord_message=AsyncMock())
+        await testee.on_ready()
+        await testee.take(mock_comment)
+
+        # then
+        flairy_reddit.subreddit.return_value.flair.set.assert_not_called()
+

@@ -22,7 +22,14 @@ class Flairy(Handler):
 
         self.superstonk_moderators = superstonk_moderators
         self.flairy_reddit = flairy_reddit
+        self.is_live_environment = is_live_environment
+        self.is_forbidden_comment_message = is_forbidden_comment_message
 
+        self.flairy_detect_user_flair_change = None
+        self.detect_flairy_command = None
+        self._commands = None
+
+    def setup_commands(self):
         flairy_command_detection = r".*!\s*FL?AIRY"
         flair_command = rf"{flairy_command_detection}\s*!"
 
@@ -40,19 +47,21 @@ class Flairy(Handler):
         colors = list(self._templates.keys())
         self._commands = [
             CommentAlreadyHasAResponse(flairy_command_detection, regex_flags),
-            FlairyExplainerCommand(flairy_reddit, self._templates.keys()),
-            ClearCommand(flairy_reddit, flairy_command_detection, regex_flags),
+            FlairyExplainerCommand(self.flairy_reddit, self._templates.keys()),
+            IsBlackListed(),
+            ClearCommand(self.flairy_reddit, flairy_command_detection, regex_flags),
             SealmeCommand(self._templates[self._default_color], flairy_command_detection, regex_flags,
                           self.flair_user),
             RandomFlairCommand(flairy_command_detection, regex_flags, self.flair_user, colors),
-            WrongColorCommand(flairy_reddit, flair_command, regex_flags, colors),
-            FlairTooLongCommand(self.flairy_detect_user_flair_change, flairy_reddit),
-            FlairContainsForbiddenPhraseCommand(is_forbidden_comment_message, self.flairy_detect_user_flair_change),
+            WrongColorCommand(self.flairy_reddit, flair_command, regex_flags, colors),
+            FlairTooLongCommand(self.flairy_detect_user_flair_change, self.flairy_reddit),
+            FlairContainsForbiddenPhraseCommand(self.is_forbidden_comment_message,
+                                                self.flairy_detect_user_flair_change),
             ApplyFlairCommand(self.flairy_detect_user_flair_change, self.flair_user)
         ]
-        self.is_live_environment = is_live_environment
 
     async def on_ready(self, **kwargs):
+        self.setup_commands()
         self._logger.info("Ready to handle flair requests")
 
     async def take(self, comment):
@@ -73,6 +82,7 @@ class Flairy(Handler):
                     return
 
     async def flair_user(self, comment, flair_text, flair_color=None, template=None, message=""):
+        self._logger.debug("attempting to flair user")
         flair_text = flair_text.strip()
         color = (flair_color or self._default_color).lower().strip()
         template = (template or self._templates[color])
@@ -105,7 +115,23 @@ class CommentAlreadyHasAResponse:
             if author_name__lower == "superstonk-flairy":
                 self._logger.info(f"Flairy already responded: {permalink(response)}")
                 return True
+        self._logger.debug("comment doesn't have a response yet")
         return False
+
+
+class IsBlackListed:
+    blacklisted_string = '[fixed]'
+
+    def __init__(self):
+        self._logger = logging.getLogger(self.__class__.__name__)
+
+    async def handled(self, body, comment, is_mod):
+        current_flair = getattr(comment, 'author_flair_text', "") or ""
+        blacklisted = ('%s' % self.blacklisted_string) in current_flair.lower()
+        if blacklisted:
+            self._logger.info(f"Refusing to interact with blacklisted user.   \n"
+                              f"Flair: {current_flair}   \n text: {body}   \n comment {permalink(comment)} ")
+        return blacklisted
 
 
 class RandomFlairCommand:
@@ -119,12 +145,14 @@ class RandomFlairCommand:
 
     async def handled(self, body, comment, is_mod):
         if is_mod:
+            self._logger.debug("Refusing to give random flair to mods")
             return False
 
         if self._random_flair_command.match(body):
             await self._bestow_random_flair(comment)
             return True
 
+        self._logger.debug("It's not a request for a random flair")
         return False
 
     async def _bestow_random_flair(self, comment):
@@ -172,6 +200,7 @@ class SealmeCommand:
 
     async def handled(self, body, comment, is_mod):
         if is_mod:
+            self._logger.debug("Refusing SEALME mods")
             return False
 
         if self._sealme_command.match(body):
@@ -186,6 +215,7 @@ class SealmeCommand:
             self._logger.info(f"SEALING: {permalink(comment)}")
             return True
 
+        self._logger.debug("comment isn't a sealme request")
         return False
 
 
@@ -199,6 +229,7 @@ class ClearCommand:
 
     async def handled(self, body, comment, is_mod):
         if is_mod:
+            self._logger.debug("Refusing to clear mods' flair")
             return False
 
         if self._reset_command.match(body):
@@ -211,6 +242,7 @@ class ClearCommand:
             await comment_from_flairies_view.reply(message)
             return True
 
+        self._logger.debug("comment isn't a flair clearing request")
         return False
 
 
@@ -224,6 +256,7 @@ class WrongColorCommand:
 
     async def handled(self, body, comment, is_mod):
         if is_mod:
+            self._logger.debug("refusing to validate mods' color choice")
             return False
 
         if match := self._detect_last_word.match(body):
@@ -237,6 +270,7 @@ class WrongColorCommand:
                 self._logger.info(f"Wrong color: {permalink(comment)}")
                 await comment_from_flairies_view.reply(message)
 
+        self._logger.debug("Found no problem with color choice")
         return False
 
 
@@ -248,6 +282,7 @@ class FlairTooLongCommand:
 
     async def handled(self, body, comment, is_mod):
         if is_mod:
+            self._logger.debug("refusing to validate length of mod's flairy request")
             return False
 
         flairy = self.flairy_detect_user_flair_change.match(body)
@@ -259,6 +294,7 @@ class FlairTooLongCommand:
             await comment_from_flairies_view.reply(message)
             return True
 
+        self._logger.debug("Found no problem with the length of the flair request")
         return False
 
 
@@ -270,6 +306,7 @@ class FlairContainsForbiddenPhraseCommand:
 
     async def handled(self, body, comment, is_mod):
         if is_mod:
+            self._logger.debug("refusing to check mod's flair request for restricted words")
             return False
 
         flairy = self.flairy_detect_user_flair_change.match(body)
@@ -278,6 +315,7 @@ class FlairContainsForbiddenPhraseCommand:
             self._logger.info(f"Silently refusing to grant flair with restricted content: {flair_text}")
             return True
 
+        self._logger.debug("Found no restricted words in flair request")
         return False
 
 
@@ -298,6 +336,8 @@ Other available commands:
 - `!FLAIRY:CLEARME!` : remove all flairs and pretend you're a new ape   
 - `!FLAIRY:SEALME!` : Justin seduced me to get this 🥵    
 - `u/Superstonk-Flairy`  : If you tag me, I'll come around and explain how to get flairs
+
+Please note that the flairy will refuse to change your flair if it contains the string `{IsBlackListed.blacklisted_string}`.
 """
 
     async def handled(self, body, comment, is_mod):
@@ -307,6 +347,7 @@ Other available commands:
             await comment_from_flairies_view.reply(self._flairy_explanation_text)
             return True
 
+        self._logger.debug("comment isn't a flairy explanation request")
         return False
 
 
@@ -318,6 +359,7 @@ class ApplyFlairCommand:
 
     async def handled(self, body, comment, is_mod):
         if is_mod:
+            self._logger.debug("refusing to bestow flair upon mods")
             return False
 
         flairy = self.flairy_detect_user_flair_change.match(body)
@@ -326,4 +368,5 @@ class ApplyFlairCommand:
             await self.flair_user_function(comment=comment, flair_text=flairy.group(1), flair_color=flairy.group(2))
             return True
 
+        self._logger.debug("comment isn't a flair request at all")
         return False

@@ -21,7 +21,7 @@ class TestFlairyExplainer:
 
         # given
         mock_comment = self.default_comment()
-        mock_comment.body = "If you're looking for an explainer on how to get or change a flair, just tag the u/Superstonk-Flairy"
+        mock_comment.body = "If you're looking for an explainer, just tag the u/Superstonk-Flairy"
 
         # when
         await testee.handled(mock_comment.body, mock_comment, True)
@@ -30,7 +30,16 @@ class TestFlairyExplainer:
         mock_reddit.comment.assert_called_once_with("some id", fetch=False)
 
         flairy_comment = mock_reddit.comment.return_value
-        flairy_comment.reply.assert_called_once()
+        flairy_comment.reply.assert_awaited_once()
 
+        args, _ = flairy_comment.reply.call_args
+        assert len(args) == 1
+        assert "!FLAIRY!🚀" in args[0]
+        assert "some, weird, color" in args[0]
+        assert "u/Superstonk-Flairy" in args[0]
+        assert "`!FLAIRY!`" in args[0]
+        assert "`!FLAIRY:CLEARME!`" in args[0]
+        assert "`!FLAIRY:SEALME!`" in args[0]
+        assert "[fixed]" in args[0]
 
 
