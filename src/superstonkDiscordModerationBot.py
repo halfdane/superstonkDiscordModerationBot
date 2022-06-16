@@ -17,6 +17,7 @@ from comments.comment_based_troll_identifier import CommentBasedTrollIdentifier
 from comments.comment_repository import Comments
 from comments.comment_repository_updater import CommentRepositoryUpdater
 from comments.flairy import Flairy
+from comments.flairy_comment_repository import FlairyComments
 from comments.flairy_report import FlairyReport
 from comments.front_desk_sticky import FrontDeskSticky
 from comments.resticky_qv_bot import RestickyQualityVoteBot
@@ -146,6 +147,7 @@ class SuperstonkModerationBot(Bot):
         await self.component(post_repo=Posts())
         await self.component(url_post_repo=UrlPosts())
         await self.component(comment_repo=Comments())
+        await self.component(flairy_comment_repo=FlairyComments())
         await self.component(report_repo=Reports())
 
 

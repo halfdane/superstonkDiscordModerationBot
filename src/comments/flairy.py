@@ -17,13 +17,16 @@ class Flairy(Handler):
     _default_color = "black"
 
     def __init__(self, superstonk_moderators=[], flairy_reddit=None,
-                 is_forbidden_comment_message=None, is_live_environment=False, **kwargs):
+                 is_forbidden_comment_message=None, is_live_environment=False,
+                 flairy_comment_repo=None,
+                 **kwargs):
         Handler.__init__(self)
 
         self.superstonk_moderators = superstonk_moderators
         self.flairy_reddit = flairy_reddit
         self.is_live_environment = is_live_environment
         self.is_forbidden_comment_message = is_forbidden_comment_message
+        self.flairy_comment_repo = flairy_comment_repo
 
         self.flairy_detect_user_flair_change = None
         self.detect_flairy_command = None
@@ -47,6 +50,7 @@ class Flairy(Handler):
         colors = list(self._templates.keys())
         self._commands = [
             CommentAlreadyHasAResponse(flairy_command_detection, regex_flags),
+            RememberComment(self.flairy_comment_repo),
             FlairyExplainerCommand(self.flairy_reddit, self._templates.keys()),
             IsBlackListed(self.flairy_reddit),
             ClearCommand(self.flairy_reddit, flairy_command_detection, regex_flags),
@@ -118,6 +122,14 @@ class CommentAlreadyHasAResponse:
         self._logger.debug("comment doesn't have a response yet")
         return False
 
+class RememberComment:
+    def __init__(self, flairy_comment_repo):
+        self._logger = logging.getLogger(self.__class__.__name__)
+        self.flairy_comment_repo = flairy_comment_repo
+
+    async def handled(self, body, comment, is_mod):
+        self.flairy_comment_repo.push(comment.id, body)
+        return False
 
 class IsBlackListed:
     blacklisted_string = '[lock]'
