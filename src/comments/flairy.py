@@ -128,7 +128,7 @@ class RememberComment:
         self.flairy_comment_repo = flairy_comment_repo
 
     async def handled(self, body, comment, is_mod):
-        self.flairy_comment_repo.push(comment.id, body)
+        await self.flairy_comment_repo.push(comment.id, body)
         return False
 
 class IsBlackListed:

@@ -44,6 +44,7 @@ class TestFlairy:
         # when
         testee = Flairy(flairy_reddit=flairy_reddit,
                         is_forbidden_comment_message=returns(False),
+                        flairy_comment_repo=AsyncMock(),
                         add_reactions_to_discord_message=AsyncMock())
         await testee.on_ready()
         await testee.take(mock_comment)
@@ -67,6 +68,7 @@ class TestFlairy:
         # when
         testee = Flairy(flairy_reddit=flairy_reddit,
                         is_forbidden_comment_message=returns(True),
+                        flairy_comment_repo=AsyncMock(),
                         add_reactions_to_discord_message=AsyncMock())
         await testee.on_ready()
         await testee.take(mock_comment)
@@ -85,6 +87,7 @@ class TestFlairy:
         # when
         testee = Flairy(flairy_reddit=flairy_reddit,
                         is_forbidden_comment_message=returns(False),
+                        flairy_comment_repo=AsyncMock(),
                         add_reactions_to_discord_message=AsyncMock())
         await testee.on_ready()
         await testee.take(mock_comment)
@@ -107,6 +110,7 @@ class TestFlairy:
         # when
         testee = Flairy(flairy_reddit=flairy_reddit,
                         is_forbidden_comment_message=returns(False),
+                        flairy_comment_repo=AsyncMock(),
                         add_reactions_to_discord_message=AsyncMock())
         await testee.on_ready()
         await testee.take(mock_comment)
@@ -130,6 +134,7 @@ class TestFlairy:
         testee = Flairy(flairy_reddit=flairy_reddit,
                         is_forbidden_comment_message=returns(False),
                         is_live_environment=True,
+                        flairy_comment_repo=AsyncMock(),
                         add_reactions_to_discord_message=AsyncMock())
         await testee.on_ready()
         await testee.take(mock_comment)
@@ -160,6 +165,7 @@ class TestFlairy:
 
         # when
         testee = Flairy(flairy_reddit=flairy_reddit,
+                        flairy_comment_repo=AsyncMock(),
                         is_forbidden_comment_message=returns(False),
                         add_reactions_to_discord_message=AsyncMock())
         testee.flair_user = flair_user
@@ -188,6 +194,7 @@ class TestFlairy:
         # when
         testee = Flairy(flairy_reddit=flairy_reddit,
                         is_forbidden_comment_message=returns(False),
+                        flairy_comment_repo=AsyncMock(),
                         add_reactions_to_discord_message=AsyncMock())
         testee.flair_user = flair_user
         await testee.on_ready()
@@ -218,6 +225,7 @@ class TestFlairy:
         testee = Flairy(flairy_reddit=flairy_reddit,
                         is_forbidden_comment_message=returns(False),
                         is_live_environment=True,
+                        flairy_comment_repo=AsyncMock(),
                         add_reactions_to_discord_message=AsyncMock())
         await testee.on_ready()
         await testee.take(mock_comment)
