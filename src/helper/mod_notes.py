@@ -5,6 +5,7 @@ import disnake
 
 def __transform_mod_note(n):
     note = {
+        "id": n['id'],
         "created_at": dt.fromtimestamp(int(n['created_at'])).strftime('%Y-%m-%d %H:%M:%S'),
         "mod": n['operator'],
         "user": n['user'],
@@ -16,7 +17,7 @@ def __transform_mod_note(n):
     return note
 
 
-async def __fetch_notes(reddit, redditor_param, before=None, only=None):
+async def __fetch_notes(reddit, redditor_param, before=None, all=True):
     params = {"subreddit": "Superstonk", "user": redditor_param, "limit": 100}
     if before:
         params["before"] = before
@@ -24,11 +25,24 @@ async def __fetch_notes(reddit, redditor_param, before=None, only=None):
     response = await reddit.get(api_path, params=params)
     notes = list(map(__transform_mod_note, reversed(response['mod_notes'])))
 
-    if response['has_next_page']:
+    if response['has_next_page'] and all:
         end_cursor = response['end_cursor']
         notes = await __fetch_notes(reddit, redditor_param, end_cursor) + notes
 
     return notes
+
+
+# possible types: BOT_BAN, PERMA_BAN, BAN, ABUSE_WARNING, SPAM_WARNING, SPAM_WATCH, SOLID_CONTRIBUTOR, HELPFUL_USER
+async def __store_note(reddit, note, redditor_param, type="ABUSE_WARNING"):
+    params = {"label": type, "note": note, "subreddit": "Superstonk", "user": redditor_param}
+    api_path = "api/mod/notes"
+    await reddit.post(api_path, params=params)
+
+
+async def __delete_note(reddit, note_id, redditor_param):
+    params = {"note_id": note_id, "subreddit": "Superstonk", "user": redditor_param}
+    api_path = "api/mod/notes"
+    await reddit.delete(api_path, params=params)
 
 
 async def fetch_modnotes(reddit, redditor_param, only=None):

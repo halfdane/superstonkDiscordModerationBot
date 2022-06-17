@@ -13,11 +13,11 @@ import chevron
 
 from comments.comment_repository import Comments
 from helper.links import permalink
+from helper.mod_notes import __store_note, __fetch_notes, __delete_note
 from helper.moderation_bot_configuration import ModerationBotConfiguration
 
 from posts.post_repository import Posts
 from superstonkDiscordModerationBot import SuperstonkModerationBot
-
 
 from asyncpraw.exceptions import InvalidURL
 
@@ -26,6 +26,7 @@ configuration = ModerationBotConfiguration()
 asyncreddit = asyncpraw.Reddit(
     **configuration.readonly_reddit_settings(),
     user_agent="com.halfdane.superstonk_moderation_bot:v0.1.1 (by u/half_dane)")
+
 
 def pushshift():
     pushshift_api = PushshiftAPI()
@@ -41,7 +42,8 @@ def pushshift():
         metadata='true'
     )
 
-post_limit_reached_comment="""Your post was removed by a moderator because you have reached the limit of posts per user in 24 hours.
+
+post_limit_reached_comment = """Your post was removed by a moderator because you have reached the limit of posts per user in 24 hours.
 
 Every ape may submit up to 7 posts in a 24 hour window, and you already had your fill. 
 Please take a little break before attempting to post again.  
@@ -63,19 +65,26 @@ If you feel this removal was unwarranted, please contact us via Mod Mail: https:
 Thanks for being a member of r/Superstonk 💎🙌🚀
 """
 
+
 async def _post_to_string(post):
     created_utc = datetime.utcfromtimestamp(post.created_utc).strftime("%m/%d/%Y, %H:%M:%S")
     return f"- **{created_utc}**: https://www.reddit.com/r/Superstonk/comments/{post.id}"
 
-async def main():
-    async with asyncreddit as readonly_reddit:
-        redditor = await readonly_reddit.user.me()
-        print(f"\n\nLogged in as {redditor.name}")
-        subreddit = await readonly_reddit.subreddit("superstonk")
 
-        url="https://www.reddit.com/r/Superstonk/comments/vco7m6/european_central_bank_council_holding_an/"
-        submission = await readonly_reddit.submission(url=url)
-        pprint(vars(submission))
+async def main():
+    async with asyncreddit as reddit:
+        redditor = await reddit.user.me()
+        print(f"Logged in as {redditor.name}")
+        subreddit = await reddit.subreddit("superstonk")
+
+        note = """
+        """
+
+        users = []
+
+        for user in users:
+            print(f"Adding note for {user}")
+            await __store_note(reddit, note, user)
 
 
 loop = asyncio.get_event_loop()
