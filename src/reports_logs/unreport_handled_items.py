@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime
 
+import disnake
 from asyncpraw.exceptions import InvalidURL
 
 from helper.links import permalink
@@ -59,7 +60,10 @@ class HandledItemsUnreporter:
             async for message in self.report_channel \
                     .history(limit=200):
                 if __was_confirmed(message) or (await __was_removed(message)):
-                    await message.delete()
+                    try:
+                        await message.delete()
+                    except disnake.errors.NotFound:
+                        pass
                     removed_count += 1
                     self._logger.debug(f'removed report for {message.embeds[0].url}')
 
