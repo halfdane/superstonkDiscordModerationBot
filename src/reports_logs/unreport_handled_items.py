@@ -68,8 +68,3 @@ class HandledItemsUnreporter:
                     self._logger.debug(f'removed report for {message.embeds[0].url}')
 
             self._logger.debug(f'removed {removed_count} reports')
-        self._logger.info("Cleaned up channel")
-
-
-
-

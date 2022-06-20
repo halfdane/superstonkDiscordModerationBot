@@ -53,11 +53,15 @@ class UrlPostLimiter(Handler):
         url = getattr(item, 'url', None)
         posts_with_same_url = await self.url_post_repo.fetch(url=url)
 
+
         limit = 2
         if "twitter.com/ryancohen" in url:
             limit = 3
 
-        if len(posts_with_same_url) > limit:
+        count_of_posts = len(posts_with_same_url)
+        self._logger.info(f"url in post: {url} - amount of times it was posted: {count_of_posts}")
+        if count_of_posts > limit:
+            self._logger.info(f"post should be removed: {permalink(item)}")
             sorted_posts = sorted(posts_with_same_url, key=lambda v: v.created_utc)
             model = {
                 'previously_posted': "    \n".join([await _post_to_string(post) for post in sorted_posts]),
@@ -72,9 +76,12 @@ class UrlPostLimiter(Handler):
                 await sticky.mod.distinguish(how="yes", sticky=True)
                 await sticky.mod.ignore_reports()
                 await item_from_qvbot_view.mod.remove(spam=False, mod_note="url count limit reached")
+            else:
+                self._logger.info("Feature isn't active, so I'm not removing anything.")
             await self.report_infraction(url, item)
 
         else:
+            self._logger.info(f"post url doesn't break the limit: {permalink(item)}")
             await self.url_post_repo.store(item)
 
     async def report_infraction(self, url, item):
