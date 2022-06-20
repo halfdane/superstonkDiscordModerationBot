@@ -2,7 +2,7 @@ from disnake.utils import escape_markdown
 
 
 def permalink(item):
-    return f"https://www.reddit.com{getattr(item, 'permalink', item)}"
+    return f"https://new.reddit.com{getattr(item, 'permalink', item)}"
 
 
 def make_safe(maybe_string):
