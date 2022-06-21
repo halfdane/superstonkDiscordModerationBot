@@ -40,6 +40,6 @@ class DiscordOutputLogger(logging.Handler):
         for content in self.get_conc_messages():
             try:
                 msg = await self.logging_output_channel.send(content=content)
-                await msg.edit(suppress=True)
+                await msg.edit(suppress_embeds=True)
             except Exception:
                 self.handleError(content)

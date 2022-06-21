@@ -192,15 +192,15 @@ class SuperstonkModerationBot(Bot):
             item_fetch_function=superstonk_subreddit.stream.submissions,
             item_repository=self.COMPONENTS['post_repo'],
             handlers=[
+                FrontDeskSticky(),
                 PostCountLimiter(**self.COMPONENTS),
                 UrlPostLimiter(**self.COMPONENTS),
-                FrontDeskSticky(),
                 QualityVoteBot(**self.COMPONENTS),
             ]))
 
         await self.component(r_all_reader=RedditItemReader(
             name="r/all-Posts",
-            item_fetch_function=lambda: r_all_subreddit.hot(limit=100),
+            item_fetch_function=lambda: r_all_subreddit.hot(limit=50),
             item_repository=None,
             handlers=[RAllStickyCreator(**self.COMPONENTS)]))
 

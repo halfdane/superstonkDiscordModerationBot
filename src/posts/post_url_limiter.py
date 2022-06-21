@@ -59,7 +59,7 @@ class UrlPostLimiter(Handler):
             limit = 3
 
         count_of_posts = len(posts_with_same_url)
-        self._logger.info(f"url in post: {url} - amount of times it was posted: {count_of_posts}")
+        self._logger.info(f"url {url} - amount of times it was posted: {count_of_posts}")
         if count_of_posts > limit:
             self._logger.info(f"post should be removed: {permalink(item)}")
             sorted_posts = sorted(posts_with_same_url, key=lambda v: v.created_utc)
@@ -80,8 +80,9 @@ class UrlPostLimiter(Handler):
                 self._logger.info("Feature isn't active, so I'm not removing anything.")
             await self.report_infraction(url, item)
 
+            return True
+
         else:
-            self._logger.info(f"post url doesn't break the limit: {permalink(item)}")
             await self.url_post_repo.store(item)
 
     async def report_infraction(self, url, item):

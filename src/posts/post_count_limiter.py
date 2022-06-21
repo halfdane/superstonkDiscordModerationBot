@@ -29,6 +29,7 @@ async def _post_to_string(post):
     created_utc = datetime.utcfromtimestamp(post.created_utc).strftime("%m/%d/%Y, %H:%M:%S")
     return f"- **{created_utc}**: https://www.reddit.com/r/Superstonk/comments/{post.id}"
 
+
 class PostCountLimiter(Handler):
     _interval = timedelta(hours=24)
 
@@ -74,6 +75,8 @@ class PostCountLimiter(Handler):
 
             await self.post_repo.do_not_count_to_limit(item)
             await self.report_infraction(author_name, item)
+
+            return True
 
     async def report_infraction(self, author, item):
         embed = Embed(colour=disnake.Colour(0).from_rgb(207, 206, 255))
