@@ -45,7 +45,7 @@ class Posts:
                     ''', posts)
             await db.commit()
 
-    async def fetch(self, author=None, since: datetime = None, only_counting_to_limit=False):
+    async def fetch(self, author=None, since: datetime = None, before: datetime = None, only_counting_to_limit=False):
         async with aiosqlite.connect(self.database) as db:
             statement = 'select id, author, flair, created_utc, score, count_to_limit, available from POSTS'
             condition_statements = []
@@ -57,6 +57,10 @@ class Posts:
             if since is not None:
                 condition_statements.append('created_utc >:since')
                 condition_parameters['since'] = since.timestamp()
+
+            if before is not None:
+                condition_statements.append('created_utc <=:before')
+                condition_parameters['before'] = before.timestamp()
 
             if only_counting_to_limit:
                 condition_statements.append('count_to_limit')

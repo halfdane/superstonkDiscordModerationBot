@@ -30,6 +30,12 @@ class UrlPosts:
             async with db.execute(statement, {'url': url}) as cursor:
                 return [row[0] async for row in cursor]
 
+    async def fetch_like(self, url):
+        async with aiosqlite.connect(self.database) as db:
+            statement = 'select id from URL_POSTS where url like :url'
+            async with db.execute(statement, {'url': f"{url}%"}) as cursor:
+                return [row[0] async for row in cursor]
+
     async def remove(self, ids):
         async with aiosqlite.connect(self.database) as db:
             statement = 'delete from URL_POSTS where id = :id'

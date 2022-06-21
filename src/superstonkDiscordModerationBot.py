@@ -36,6 +36,7 @@ from posts.post_statistics import CalculatePostStatistics
 from posts.post_url_limiter import UrlPostLimiter
 from posts.qv_bot import QualityVoteBot
 from posts.r_all_sticky_creator import RAllStickyCreator
+from posts.tweet_post_limiter import TweetPostLimiter
 from posts.url_post_repository import UrlPosts
 from random_stuff.gme_ticker import GmeTickerAsUserName
 from reddit_item_reader import RedditItemReader
@@ -195,6 +196,7 @@ class SuperstonkModerationBot(Bot):
                 FrontDeskSticky(),
                 PostCountLimiter(**self.COMPONENTS),
                 UrlPostLimiter(**self.COMPONENTS),
+                TweetPostLimiter(**self.COMPONENTS),
                 QualityVoteBot(**self.COMPONENTS),
             ]))
 
