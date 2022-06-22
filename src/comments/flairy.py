@@ -19,11 +19,13 @@ class Flairy(Handler):
     def __init__(self, superstonk_moderators=[], flairy_reddit=None,
                  is_forbidden_comment_message=None, is_live_environment=False,
                  flairy_comment_repo=None, flairy_reddit_username=None,
+                 subreddit_name=None,
                  **kwargs):
         Handler.__init__(self)
 
         self.superstonk_moderators = superstonk_moderators
         self.flairy_reddit = flairy_reddit
+        self.subreddit_name = subreddit_name
         self.flairy_reddit_username = flairy_reddit_username
         self.is_live_environment = is_live_environment
         self.is_forbidden_comment_message = is_forbidden_comment_message
@@ -54,7 +56,7 @@ class Flairy(Handler):
             RememberComment(self.flairy_comment_repo),
             FlairyExplainerCommand(self.flairy_reddit, self._templates.keys(), self.flairy_reddit_username),
             IsBlackListed(self.flairy_reddit),
-            ClearCommand(self.flairy_reddit, flairy_command_detection, regex_flags),
+            ClearCommand(self.flairy_reddit, flairy_command_detection, regex_flags, self.subreddit_name),
             SealmeCommand(self._templates[self._default_color], flairy_command_detection, regex_flags,
                           self.flair_user),
             RandomFlairCommand(flairy_command_detection, regex_flags, self.flair_user, colors),
@@ -93,7 +95,7 @@ class Flairy(Handler):
         template = (template or self._templates[color])
         previous_flair = getattr(comment, 'author_flair_text', "")
         log_message = f"[{make_safe(comment.author)}] [{make_safe(previous_flair)}] => [{make_safe(flair_text)}] in {color}"
-        subreddit_from_flairies_view = await self.flairy_reddit.subreddit("Superstonk")
+        subreddit_from_flairies_view = await self.flairy_reddit.subreddit(self.subreddit_name)
 
         if self.is_live_environment:
             await subreddit_from_flairies_view.flair.set(
@@ -244,12 +246,12 @@ class SealmeCommand:
 
 
 class ClearCommand:
-    def __init__(self, flairy_reddit, flairy_command_detection, flags):
+    def __init__(self, flairy_reddit, flairy_command_detection, flags, subreddit_name):
         self._logger = logging.getLogger(self.__class__.__name__)
         self.flairy_reddit = flairy_reddit
-
         self._reset_command = \
             re.compile(rf"{flairy_command_detection}\s*:\s*CLEARME\s*!", flags)
+        self.subreddit_name = subreddit_name
 
     async def handled(self, body, comment, is_mod):
         if is_mod:
@@ -260,7 +262,7 @@ class ClearCommand:
             message = 'Clearing the flair as requested  \n\n' + r'(✿\^‿\^)━☆ﾟ.*･｡ﾟ '
             self._logger.info(f"Clearing flair: {permalink(comment)}")
 
-            subreddit_from_flairies_view = await self.flairy_reddit.subreddit("Superstonk")
+            subreddit_from_flairies_view = await self.flairy_reddit.subreddit(self.subreddit_name)
             await subreddit_from_flairies_view.flair.delete(redditor=comment.author)
             comment_from_flairies_view = await self.flairy_reddit.comment(comment.id, fetch=False)
             await comment_from_flairies_view.reply(message)
