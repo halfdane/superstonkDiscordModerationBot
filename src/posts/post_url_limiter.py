@@ -44,20 +44,21 @@ class UrlPostLimiter(Handler):
         self.post_limit_reached_comment = REMOVAL_COMMENT
         self.active = False
 
+    def wot_doing(self):
+        return "Restrict the posting of identical URLs to 2"
+
     async def on_ready(self, scheduler, **kwargs):
-        self._logger.info("Ready to restrict URL posts")
+        self._logger.info(self.wot_doing())
         scheduler.add_job(self.fetch_config_from_wiki, "cron", minute="6-59/10", next_run_time=datetime.now())
-        scheduler.add_job(self.cleanup_database, "cron", hour="*", next_run_time=datetime.now())
 
     async def take(self, item):
         url = getattr(item, 'url', None)
         posts_with_same_url = await self.url_post_repo.fetch(url=url)
 
+        if "twitter.com/ryancohen" in url:
+            return
 
         limit = 2
-        if "twitter.com/ryancohen" in url:
-            limit = 3
-
         count_of_posts = len(posts_with_same_url)
         self._logger.info(f"url {url} - amount of times it was posted: {count_of_posts}")
         if count_of_posts > limit:
@@ -100,9 +101,3 @@ class UrlPostLimiter(Handler):
         wiki_config = yaml.safe_load(wiki_config_text)
         self.post_limit_reached_comment = wiki_config['url_limit_reached_comment']
         self.active = wiki_config['url_restriction_active'] == "true"
-
-    async def cleanup_database(self):
-        yesterday = datetime.utcnow() - timedelta(hours=24)
-        posts = await self.post_repo.fetch(since=yesterday)
-        ids = [post.id for post in posts]
-        await self.url_post_repo.remove(ids)

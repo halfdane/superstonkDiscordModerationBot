@@ -1,6 +1,7 @@
 from collections import namedtuple
 from datetime import datetime, timedelta
 from pathlib import Path
+from unittest.mock import AsyncMock, MagicMock
 
 import aiosqlite
 import pytest
@@ -29,8 +30,8 @@ class TestUrlPostDatabaseIntegration:
     async def before_each(self):
         # given
         Path(test_db).unlink(missing_ok=True)
-        testee = UrlPosts(test_db)
-        await testee.on_ready()
+        testee = UrlPosts(None, test_db)
+        await testee.on_ready(scheduler=MagicMock())
 
         # actual test
         yield
@@ -60,7 +61,7 @@ class TestUrlPostDatabaseIntegration:
         store_posts = [aPost("id1", "url1"), aPost("id2", "url2"), aPost("id3", "url3"),]
 
         # when
-        testee = UrlPosts(test_db)
+        testee = UrlPosts(None, test_db)
         for p in store_posts:
             await testee.store(p)
 
@@ -79,7 +80,7 @@ class TestUrlPostDatabaseIntegration:
         aPost = namedtuple("Post", "id url")
         store_posts = [aPost("id1", "url1"), aPost("id2", "url2"), aPost("id3", "url3"),]
 
-        testee = UrlPosts(test_db)
+        testee = UrlPosts(None, test_db)
         for p in store_posts:
             await testee.store(p)
 
@@ -96,7 +97,7 @@ class TestUrlPostDatabaseIntegration:
         aPost = namedtuple("Post", "id url")
         store_posts = [aPost(f"id{i}", f"url{i}") for i in range(10)]
 
-        testee = UrlPosts(test_db)
+        testee = UrlPosts(None, test_db)
         for p in store_posts:
             await testee.store(p)
 

@@ -35,6 +35,7 @@ from posts.post_repository_updater import PostRepositoryUpdater
 from posts.post_statistics import CalculatePostStatistics
 from posts.post_url_limiter import UrlPostLimiter
 from posts.qv_bot import QualityVoteBot
+from posts.qv_bot_configuration import QualityVoteBotConfiguration
 from posts.r_all_sticky_creator import RAllStickyCreator
 from posts.tweet_post_limiter import TweetPostLimiter
 from posts.url_post_repository import UrlPosts
@@ -91,31 +92,31 @@ class SuperstonkModerationBot(Bot):
 
 
         # CHANNELS
-        self.logger.info(f"{self.COMPONENTS['report_channel_id']}: discord channel for reports")
+        self.logger.info(f"reports into the discord channel: {self.COMPONENTS['report_channel_id']}")
         await self.component(report_channel=self.get_channel(self.COMPONENTS['report_channel_id']))
 
         self.logger.info(
-            f"{self.COMPONENTS['report_comments_channel_id']}: discord channel for experimental comment reports")
+            f"uses this discord channel for experimental comment stuff: {self.COMPONENTS['report_comments_channel_id']}")
         await self.component(report_comments_channel=self.get_channel(self.COMPONENTS['report_comments_channel_id']))
 
-        self.logger.info(f"{self.COMPONENTS['flairy_channel_id']}: discord channel for flairy")
+        self.logger.info(f"uses this discord channel for flairy{self.COMPONENTS['flairy_channel_id']}")
         await self.component(flairy_channel=self.get_channel(self.COMPONENTS['flairy_channel_id']))
 
-        self.logger.info(f"{self.COMPONENTS['logging_output_channel_id']}: discord channel for debugging messages")
+        self.logger.info(f"uses this discord channel for debugging messages: {self.COMPONENTS['logging_output_channel_id']}")
         await self.component(logging_output_channel=self.get_channel(self.COMPONENTS['logging_output_channel_id']))
 
-        self.logger.info(f"{self.COMPONENTS['user_investigation_channel_id']}: discord channel to listen for users")
+        self.logger.info(f"listens for user mentions in this discord channel: {self.COMPONENTS['user_investigation_channel_id']}")
 
-        self.logger.info(f"Reading configuration from {CONFIG_HOME}")
+        self.logger.info(f"Reads configuration from {CONFIG_HOME}")
 
         # ALREADY EXISTING OBJECTS
         await self.component(discord_bot_user=self.user)
         self.logger.info(
-            f"{self.COMPONENTS['discord_bot_user']} with id {self.COMPONENTS['discord_bot_user'].id} is the discord user")
+            f"uses discord user {self.COMPONENTS['discord_bot_user']} with id {self.COMPONENTS['discord_bot_user'].id}")
 
-        self.logger.info(f"{await self.COMPONENTS['readonly_reddit'].user.me()}: listening for reports on reddit")
-        self.logger.info(f"{await self.COMPONENTS['flairy_reddit'].user.me()}: handling flair requests on reddit")
-        self.logger.info(f"{await self.COMPONENTS['qvbot_reddit'].user.me()}: handling QV bot business on reddit")
+        self.logger.info(f"uses generic reddit user readonly: {await self.COMPONENTS['readonly_reddit'].user.me()}")
+        self.logger.info(f"uses this reddit user for flair requests: {await self.COMPONENTS['flairy_reddit'].user.me()}")
+        self.logger.info(f"uses this reddit user for QV bot business {await self.COMPONENTS['qvbot_reddit'].user.me()}")
 
         await self.component(asyncio_loop=self.loop)
 
@@ -144,9 +145,11 @@ class SuperstonkModerationBot(Bot):
         testsubsuperstonk = await self.COMPONENTS["readonly_reddit"].subreddit("testsubsuperstonk")
         await self.component(superstonk_TEST_subreddit=testsubsuperstonk)
 
+        await self.component(quality_vote_bot_configuration=QualityVoteBotConfiguration(**self.COMPONENTS))
+
         # DATABASE
         await self.component(post_repo=Posts())
-        await self.component(url_post_repo=UrlPosts())
+        await self.component(url_post_repo=UrlPosts(**self.COMPONENTS))
         await self.component(comment_repo=Comments())
         await self.component(flairy_comment_repo=FlairyComments())
         await self.component(report_repo=Reports())

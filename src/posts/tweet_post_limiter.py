@@ -31,7 +31,7 @@ class TweetPostLimiter(Handler):
     _interval = timedelta(hours=24)
 
     def __init__(self, add_reactions_to_discord_message, post_repo, url_post_repo, qvbot_reddit,
-                 report_channel, is_live_environment,
+                 report_channel, is_live_environment, quality_vote_bot_configuration,
                  superstonk_subreddit, **kwargs):
         super().__init__()
         self.post_repo = post_repo
@@ -42,12 +42,14 @@ class TweetPostLimiter(Handler):
         self.is_live_environment = is_live_environment
         self.superstonk_subreddit = superstonk_subreddit
         self.post_limit_reached_comment = REMOVAL_COMMENT
+        self.quality_vote_bot_configuration = quality_vote_bot_configuration
         self.active = False
 
+    def wot_doing(self):
+        return "Restrict Ryan Cohen Tweets to 3"
+
     async def on_ready(self, scheduler, **kwargs):
-        self._logger.info("Ready to restrict how often the same tweet can be reposted")
-        scheduler.add_job(self.fetch_config_from_wiki, "cron", minute="6-59/10", next_run_time=datetime.now())
-        scheduler.add_job(self.cleanup_database, "cron", hour="*", next_run_time=datetime.now())
+        self._logger.info(self.wot_doing())
 
     async def take(self, item):
         url = getattr(item, 'url', None)
@@ -65,11 +67,12 @@ class TweetPostLimiter(Handler):
             model = {
                 'previously_posted': "    \n".join([await _post_to_string(post) for post in sorted_posts]),
             }
-            removal_comment = chevron.render(self.post_limit_reached_comment, model)
+            removal_comment = chevron.render(self.quality_vote_bot_configuration.config['url_limit_reached_comment'], model)
 
             self._logger.info(f"The URL is posted a lot: {removal_comment}")
 
-            if self.is_live_environment and self.active:
+            if self.is_live_environment and \
+                    (self.quality_vote_bot_configuration.config['url_restriction_active'] == "true"):
                 item_from_qvbot_view = await self.qvbot_reddit.submission(item.id, fetch=False)
                 sticky = await item_from_qvbot_view.reply(removal_comment)
                 await sticky.mod.distinguish(how="yes", sticky=True)
@@ -88,17 +91,3 @@ class TweetPostLimiter(Handler):
 
         msg = await self.report_channel.send(embed=embed)
         await self.add_reactions_to_discord_message(msg)
-
-    async def fetch_config_from_wiki(self):
-        wiki_page = await self.superstonk_subreddit.wiki.get_page("qualityvote")
-        wiki_config_text = wiki_page.content_md
-        wiki_config = yaml.safe_load(wiki_config_text)
-        self.post_limit_reached_comment = wiki_config['url_limit_reached_comment']
-        self.active = wiki_config['url_restriction_active'] == "true"
-
-    async def cleanup_database(self):
-        yesterday = datetime.utcnow() - timedelta(hours=24)
-        day_before_yesterday = datetime.utcnow() - timedelta(hours=48)
-        posts = await self.post_repo.fetch(before=yesterday, since=day_before_yesterday)
-        ids = [post.id for post in posts]
-        await self.url_post_repo.remove(ids)

@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime, timedelta
 
 import aiosqlite
 
@@ -8,14 +9,22 @@ POSTS_DB = f"{CONFIG_HOME}/url_posts.db"
 
 
 class UrlPosts:
-    def __init__(self, database=POSTS_DB):
+    def __init__(self, post_repo, database=POSTS_DB, **kwargs):
         self.database = database
         self._logger = logging.getLogger(self.__class__.__name__)
+        self.post_repo = post_repo
 
-    async def on_ready(self, **_):
+    async def on_ready(self, scheduler, **_):
         async with aiosqlite.connect(self.database) as db:
-            await db.execute('CREATE TABLE if not exists '
-                             'URL_POSTS (id PRIMARY KEY, url);')
+            await db.execute('CREATE TABLE if not exists URL_POSTS (id PRIMARY KEY, url);')
+        scheduler.add_job(self.cleanup_database, "cron", hour="*", next_run_time=datetime.now())
+
+    async def cleanup_database(self):
+        yesterday = datetime.utcnow() - timedelta(hours=24)
+        day_before_yesterday = datetime.utcnow() - timedelta(hours=48)
+        posts = await self.post_repo.fetch(before=yesterday, since=day_before_yesterday)
+        ids = [post.id for post in posts]
+        await self.remove(ids)
 
     async def store(self, post):
         async with aiosqlite.connect(self.database) as db:
