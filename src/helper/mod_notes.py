@@ -17,8 +17,8 @@ def __transform_mod_note(n):
     return note
 
 
-async def __fetch_notes(reddit, redditor_param, before=None, all=True):
-    params = {"subreddit": "Superstonk", "user": redditor_param, "limit": 100}
+async def __fetch_notes(reddit, redditor_param, subreddit_name, before=None, all=True):
+    params = {"subreddit": subreddit_name, "user": redditor_param, "limit": 100}
     if before:
         params["before"] = before
     api_path = "api/mod/notes"
@@ -33,20 +33,20 @@ async def __fetch_notes(reddit, redditor_param, before=None, all=True):
 
 
 # possible types: BOT_BAN, PERMA_BAN, BAN, ABUSE_WARNING, SPAM_WARNING, SPAM_WATCH, SOLID_CONTRIBUTOR, HELPFUL_USER
-async def __store_note(reddit, note, redditor_param, type="ABUSE_WARNING"):
-    params = {"label": type, "note": note, "subreddit": "Superstonk", "user": redditor_param}
+async def __store_note(reddit, note, redditor_param, subreddit_name, type="ABUSE_WARNING"):
+    params = {"label": type, "note": note, "subreddit": subreddit_name, "user": redditor_param}
     api_path = "api/mod/notes"
     await reddit.post(api_path, params=params)
 
 
-async def __delete_note(reddit, note_id, redditor_param):
-    params = {"note_id": note_id, "subreddit": "Superstonk", "user": redditor_param}
+async def __delete_note(reddit, note_id, redditor_param, subreddit_name):
+    params = {"note_id": note_id, "subreddit": subreddit_name, "user": redditor_param}
     api_path = "api/mod/notes"
     await reddit.delete(api_path, params=params)
 
 
-async def fetch_modnotes(reddit, redditor_param, only=None):
-    notes = await __fetch_notes(reddit, redditor_param)
+async def fetch_modnotes(reddit, redditor_param, only=None, subreddit_name="Superstonk"):
+    notes = await __fetch_notes(reddit, redditor_param, subreddit_name)
 
     if only:
         notes = [note for note in notes if note["action"] == only]

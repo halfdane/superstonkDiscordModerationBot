@@ -3,7 +3,7 @@ import re
 
 from disnake import Embed
 
-from helper.links import permalink
+from helper.links import permalink, user_page
 from helper.mod_notes import fetch_modnotes
 from reddit_item_handler import Handler
 
@@ -12,15 +12,21 @@ RULE_1 = re.compile(r"rule\s*1", re.IGNORECASE)
 
 class ImportantReports(Handler):
 
-    def __init__(self, add_reactions_to_discord_message, report_channel, readonly_reddit, discord_bot_user, **kwargs):
+    def __init__(self, add_reactions_to_discord_message,
+                 report_channel, readonly_reddit, discord_bot_user,
+                 subreddit_name, **kwargs):
         super().__init__()
         self.report_channel = report_channel
         self.add_reactions_to_discord_message = add_reactions_to_discord_message
         self.readonly_reddit = readonly_reddit
         self.discord_bot_user = discord_bot_user
+        self.subreddit_name = subreddit_name
+
+    def wot_doing(self):
+        return "Discord notification for posts with more that 3 and comments with more than 2 reports"
 
     async def on_ready(self, **kwargs):
-        self._logger.info("Ready to handle important reports")
+        self._logger.info(self.wot_doing())
 
     async def take(self, item):
         user_report_count = sum([r[1] for r in item.user_reports])
@@ -51,7 +57,7 @@ class ImportantReports(Handler):
             qv_score = str(comments[0].score)
 
         fields = []
-        self.__field(fields, "Redditor", f"[{item.author}](https://www.reddit.com/u/{item.author})", False)
+        self.__field(fields, "Redditor", f"[{item.author}]({user_page(item.author)})", False)
         self.__field(fields, "User Reports", "\n".join(f"{r[1]} {r[0]}" for r in item.user_reports), False)
         self.__field(fields, "Mod Reports", "\n".join(f"{r[1]} {r[0]}" for r in item.mod_reports), False)
         self.__field(fields, "Score", str(getattr(item, 'score', 0)), True)
@@ -69,7 +75,10 @@ class ImportantReports(Handler):
             field_list.append({"name": name, "value": value, "inline": inline})
 
     async def __send_ban_list(self, mods_reporting_rule_1, item):
-        modnotes = fetch_modnotes(reddit=self.readonly_reddit, redditor_param=item.author, only='banuser')
+        modnotes = fetch_modnotes(reddit=self.readonly_reddit,
+                                  redditor_param=item.author,
+                                  only='banuser',
+                                  subreddit_name=self.subreddit_name)
         bans = f"All bans of {item.author}   "
         async for k, v in modnotes:
             bans += f"- **{k}**: {v}   \n"

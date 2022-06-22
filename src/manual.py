@@ -84,7 +84,7 @@ async def main():
 
         for user in users:
             print(f"Adding note for {user}")
-            await __store_note(reddit, note, user)
+            await __store_note(reddit, note, user, "Superstonk")
 
 
 loop = asyncio.get_event_loop()

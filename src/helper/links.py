@@ -5,7 +5,7 @@ def permalink(item):
     return f"https://new.reddit.com{getattr(item, 'permalink', item)}"
 
 def user_page(redditor):
-    return "https://new.reddit.com/u/{redditor}"
+    return f"https://new.reddit.com/u/{redditor}"
 
 def make_safe(maybe_string):
     string = str(maybe_string)

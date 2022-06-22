@@ -24,7 +24,7 @@ REMOVAL_COMMENT = """
 
 async def _post_to_string(post):
     created_utc = datetime.utcfromtimestamp(post.created_utc).strftime("%m/%d/%Y, %H:%M:%S")
-    return f"- **{created_utc}**: https://www.reddit.com/r/Superstonk/comments/{post.id}"
+    return f"- **{created_utc}**: {permalink(post.id)}"
 
 
 class TweetPostLimiter(Handler):
