@@ -45,8 +45,11 @@ class PostCountLimiter(Handler):
         self.superstonk_subreddit = superstonk_subreddit
         self.post_limit_reached_comment = REMOVAL_COMMENT
 
+    def wot_doing(self):
+        return "Limit post count to 7 per 24 hours"
+
     async def on_ready(self, scheduler, **kwargs):
-        self._logger.info("Ready to limit post count")
+        self._logger.info(self.wot_doing())
         scheduler.add_job(self.fetch_config_from_wiki, "cron", minute="6-59/10", next_run_time=datetime.now())
 
     async def take(self, item):
@@ -55,8 +58,9 @@ class PostCountLimiter(Handler):
         posts = await self.post_repo.fetch(author=author_name, since=yesterday)
         posts_that_count = list(filter(lambda p: p.count_to_limit, posts))
         posts_that_dont_count = list(filter(lambda p: not p.count_to_limit, posts))
+        posts_that_dont_count.append(item)
 
-        if len(posts_that_count) > 7:
+        if len(posts_that_count) >= 7:
             sorted_posts = sorted(posts_that_count, key=lambda v: v.created_utc)
             model = {
                 'list_of_posts': "    \n".join([await _post_to_string(post) for post in sorted_posts]),
