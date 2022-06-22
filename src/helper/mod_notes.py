@@ -27,7 +27,7 @@ async def __fetch_notes(reddit, redditor_param, subreddit_name, before=None, all
 
     if response['has_next_page'] and all:
         end_cursor = response['end_cursor']
-        notes = await __fetch_notes(reddit, redditor_param, end_cursor) + notes
+        notes = await __fetch_notes(reddit, redditor_param, subreddit_name, end_cursor) + notes
 
     return notes
 
