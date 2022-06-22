@@ -114,9 +114,14 @@ class SuperstonkModerationBot(Bot):
         self.logger.info(
             f"uses discord user {self.COMPONENTS['discord_bot_user']} with id {self.COMPONENTS['discord_bot_user'].id}")
 
-        self.logger.info(f"uses generic reddit user readonly: {await self.COMPONENTS['readonly_reddit'].user.me()}")
-        self.logger.info(f"uses this reddit user for flair requests: {await self.COMPONENTS['flairy_reddit'].user.me()}")
-        self.logger.info(f"uses this reddit user for QV bot business {await self.COMPONENTS['qvbot_reddit'].user.me()}")
+        self.COMPONENTS["readonly_reddit_username"] = await self.COMPONENTS['readonly_reddit'].user.me()
+        self.logger.info(f"uses generic reddit user readonly: {self.COMPONENTS['readonly_reddit_username']}")
+
+        self.COMPONENTS["flairy_reddit_username"] = await self.COMPONENTS['flairy_reddit'].user.me()
+        self.logger.info(f"uses this reddit user for flair requests: {self.COMPONENTS['flairy_reddit_username']}")
+
+        self.COMPONENTS["qvbot_reddit_username"] = await self.COMPONENTS['qvbot_reddit'].user.me()
+        self.logger.info(f"uses this reddit user for QV bot business {self.COMPONENTS['qvbot_reddit_username']}")
 
         await self.component(asyncio_loop=self.loop)
 

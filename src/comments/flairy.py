@@ -18,12 +18,13 @@ class Flairy(Handler):
 
     def __init__(self, superstonk_moderators=[], flairy_reddit=None,
                  is_forbidden_comment_message=None, is_live_environment=False,
-                 flairy_comment_repo=None,
+                 flairy_comment_repo=None, flairy_reddit_username=None,
                  **kwargs):
         Handler.__init__(self)
 
         self.superstonk_moderators = superstonk_moderators
         self.flairy_reddit = flairy_reddit
+        self.flairy_reddit_username = flairy_reddit_username
         self.is_live_environment = is_live_environment
         self.is_forbidden_comment_message = is_forbidden_comment_message
         self.flairy_comment_repo = flairy_comment_repo
@@ -42,16 +43,16 @@ class Flairy(Handler):
         regex_flags = re.IGNORECASE | re.MULTILINE | re.DOTALL
 
         self.detect_flairy_command = \
-            re.compile(rf"{flairy_command_detection}|u/superstonk-flairy", regex_flags)
+            re.compile(rf"{flairy_command_detection}|u/{self.flairy_reddit_username}", regex_flags)
 
         self.flairy_detect_user_flair_change = \
             re.compile(rf"{flair_command}{flairy_text}{_valid_colors}$", regex_flags)
 
         colors = list(self._templates.keys())
         self._commands = [
-            CommentAlreadyHasAResponse(flairy_command_detection, regex_flags),
+            CommentAlreadyHasAResponse(flairy_command_detection, regex_flags, self.flairy_reddit_username),
             RememberComment(self.flairy_comment_repo),
-            FlairyExplainerCommand(self.flairy_reddit, self._templates.keys()),
+            FlairyExplainerCommand(self.flairy_reddit, self._templates.keys(), self.flairy_reddit_username),
             IsBlackListed(self.flairy_reddit),
             ClearCommand(self.flairy_reddit, flairy_command_detection, regex_flags),
             SealmeCommand(self._templates[self._default_color], flairy_command_detection, regex_flags,
@@ -71,7 +72,7 @@ class Flairy(Handler):
     async def take(self, comment):
         body = getattr(comment, 'body', "")
         author = getattr(getattr(comment, "author", None), "name", None)
-        if author == "Superstonk-Flairy":
+        if author == self.flairy_reddit_username:
             self._logger.debug(f"Not answering to myself: {permalink(comment)}")
             return
 
@@ -107,16 +108,17 @@ class Flairy(Handler):
 
 
 class CommentAlreadyHasAResponse:
-    def __init__(self, flairy_command_detection, flags):
+    def __init__(self, flairy_command_detection, flags, flairy_reddit_username):
         self._logger = logging.getLogger(self.__class__.__name__)
         self._random_flair_command = \
             re.compile(rf"{flairy_command_detection}\s*!$", flags)
+        self.flairy_reddit_username = flairy_reddit_username
 
     async def handled(self, body, comment, is_mod):
         await comment.refresh()
         for response in comment.replies:
             author_name__lower = getattr(getattr(response, "author", None), "name", "").lower()
-            if author_name__lower == "superstonk-flairy":
+            if author_name__lower == self.flairy_reddit_username.lower():
                 self._logger.info(f"Flairy already responded: {permalink(response)}")
                 return True
         self._logger.debug("comment doesn't have a response yet")
@@ -342,9 +344,10 @@ class FlairContainsForbiddenPhraseCommand:
 
 
 class FlairyExplainerCommand:
-    def __init__(self, flairy_reddit, available_colors):
+    def __init__(self, flairy_reddit, available_colors, flairy_reddit_username):
         self._logger = logging.getLogger(self.__class__.__name__)
         self._flairy_reddit = flairy_reddit
+        self.flairy_reddit_username = flairy_reddit_username
         self._flairy_explanation_text = f"""Are you talking about me? 😍   
         
 This is how it works: you can request a flair with the magic incantation
@@ -357,7 +360,7 @@ Other available commands:
 - `!FLAIRY!` : if you can't think of a flair, I'll give you one of my own choice 🤭   
 - `!FLAIRY:CLEARME!` : remove all flairs and pretend you're a new ape   
 - `!FLAIRY:SEALME!` : Justin seduced me to get this 🥵    
-- `u/Superstonk-Flairy`  : If you tag me, I'll come around and explain how to get flairs
+- `u/{self.flairy_reddit_username}`  : If you tag me, I'll come around and explain how to get flairs
 
 Please note that the flairy will refuse to change your flair if it contains the string `{IsBlackListed.blacklisted_string}`.
 
@@ -366,7 +369,7 @@ Some custom emojis are supported, like `:triforce:` -
 """
 
     async def handled(self, body, comment, is_mod):
-        if "u/superstonk-flairy" in body.lower():
+        if f"u/{self.flairy_reddit_username}".lower() in body.lower():
             comment_from_flairies_view = await self._flairy_reddit.comment(comment.id, fetch=False)
             self._logger.info(f"Explaining flairs: {permalink(comment)}")
             await comment_from_flairies_view.reply(self._flairy_explanation_text)

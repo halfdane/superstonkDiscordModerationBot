@@ -15,13 +15,15 @@ class TestFlairyExplainer:
 
     @pytest.mark.asyncio
     async def test_happy_path(self):
+
+        reddit_username = "flairy's_reddit_username"
         mock_reddit = MagicMock()
         mock_reddit.comment = AsyncMock()
-        testee = FlairyExplainerCommand(mock_reddit, ['some', 'weird', 'color'])
+        testee = FlairyExplainerCommand(mock_reddit, ['some', 'weird', 'color'], reddit_username)
 
         # given
         mock_comment = self.default_comment()
-        mock_comment.body = "If you're looking for an explainer, just tag the u/Superstonk-Flairy"
+        mock_comment.body = f"If you're looking for an explainer, just tag the u/{reddit_username}"
 
         # when
         await testee.handled(mock_comment.body, mock_comment, True)
@@ -36,7 +38,7 @@ class TestFlairyExplainer:
         assert len(args) == 1
         assert "!FLAIRY!🚀" in args[0]
         assert "some, weird, color" in args[0]
-        assert "u/Superstonk-Flairy" in args[0]
+        assert f"u/{reddit_username}" in args[0]
         assert "`!FLAIRY!`" in args[0]
         assert "`!FLAIRY:CLEARME!`" in args[0]
         assert "`!FLAIRY:SEALME!`" in args[0]
