@@ -122,6 +122,7 @@ class CommentAlreadyHasAResponse:
         self._logger.debug("comment doesn't have a response yet")
         return False
 
+
 class RememberComment:
     def __init__(self, flairy_comment_repo):
         self._logger = logging.getLogger(self.__class__.__name__)
@@ -130,6 +131,7 @@ class RememberComment:
     async def handled(self, body, comment, is_mod):
         await self.flairy_comment_repo.push(comment.id, body)
         return False
+
 
 class IsBlackListed:
     blacklisted_string = '[lock]'
@@ -358,6 +360,9 @@ Other available commands:
 - `u/Superstonk-Flairy`  : If you tag me, I'll come around and explain how to get flairs
 
 Please note that the flairy will refuse to change your flair if it contains the string `{IsBlackListed.blacklisted_string}`.
+
+Some custom emojis are supported, like `:triforce:` - 
+[please check this post for details](https://new.reddit.com/r/Superstonk/comments/v89p0h/new_superstonk_user_flair_emojis_how_to_edit_your/id8hj7r/)
 """
 
     async def handled(self, body, comment, is_mod):
