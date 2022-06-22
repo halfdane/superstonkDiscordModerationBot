@@ -57,9 +57,12 @@ class SuperstonkModerationBot(Bot):
     ALL_REACTIONS = None
 
     def __init__(self, moderation_bot_configuration, **options):
+        intents = disnake.Intents.default()
+        intents.message_content = True
         super().__init__(command_prefix='>',
                          description="Moderation bot for Superstonk.",
                          sync_commands_debug=True,
+                         intents=intents,
                          **options)
         self.moderation_bot_configuration = moderation_bot_configuration
 
