@@ -140,7 +140,7 @@ class SuperstonkModerationBot(Bot):
         scheduler.start()
         await self.component(scheduler=scheduler)
 
-        superstonk_subreddit = await self.COMPONENTS["readonly_reddit"].subreddit("Superstonk")
+        superstonk_subreddit = await self.COMPONENTS["readonly_reddit"].subreddit(self.COMPONENTS["subreddit_name"])
         await self.component(superstonk_subreddit=superstonk_subreddit)
         await self.component(superstonk_moderators=[m async for m in superstonk_subreddit.moderator])
 
