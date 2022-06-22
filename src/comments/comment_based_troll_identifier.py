@@ -21,25 +21,14 @@ class CommentBasedTrollIdentifier:
     async def on_ready(self, scheduler, **kwargs):
         self._logger.info(f"Ready to identify possible trolls from comments")
         scheduler.add_job(self.identify_comment_removers, "cron", minute="1-59/10")
-        scheduler.add_job(self.identify_mass_downvoted_authors, "cron", day="*")
         scheduler.add_job(self.identify_heavily_downvoted_comments, "cron", hour="*", next_run_time=datetime.now())
 
     async def identify_comment_removers(self):
         self._logger.info(f"checking database for people who have lots of downvoted comments that are then removed")
         now = datetime.utcnow()
-        await self.method_name(
-            "**Found a possible comment deleting troll**",
-            self.persist_comments.find_authors_with_removed_negative_comments(since=now - timedelta(hours=1)))
 
-    async def identify_mass_downvoted_authors(self):
-        self._logger.info(f"checking database for people who have lots of downvoted comments")
-        now = datetime.utcnow()
-        await self.method_name(
-            "**Found a possibly mass downvoted troll**",
-            self.persist_comments.find_authors_with_negative_comments(limit=-5, since=(now - timedelta(hours=36))))
-
-    async def method_name(self, message, future_from_db):
         authors = dict()
+        future_from_db= self.persist_comments.find_authors_with_removed_negative_comments(since=now - timedelta(hours=1))
         for author, comment_id, score in await future_from_db:
             comments_of_author = authors.get(author, [])
             comments_of_author.append(comment_id)
@@ -49,7 +38,7 @@ class CommentBasedTrollIdentifier:
         self._logger.debug(f"These are the suspicious ones: {sus}")
         for author, comments in sus.items():
             embed = disnake.Embed(colour=disnake.Colour(0).from_rgb(207, 206, 255))
-            embed.description = message
+            embed.description = "**Found a possible comment deleting troll**"
             embed.add_field("Redditor", f"[{author}](https://www.reddit.com/u/{author})", inline=False)
 
             ids = ",".join([c for c in comments])

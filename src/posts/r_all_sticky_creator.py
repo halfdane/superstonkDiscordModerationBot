@@ -28,6 +28,7 @@ class RAllStickyCreator(Handler):
 
     async def take(self, item):
         subreddit = item.subreddit
+        await item.load()
         if subreddit == "SuperStonk" and await self.__needs_r_all_comment(item):
             await self.report_r_all_was_hit(item)
             post_from_qbots_view = await self.qvbot_reddit.submission(item.id, fetch=False)
@@ -56,7 +57,6 @@ class RAllStickyCreator(Handler):
         self.r_all_comment = wiki_config['r_all_comment']
 
     async def __needs_r_all_comment(self, submission):
-        await submission.load()
         myself = await self.qvbot_reddit.user.me()
         has_comments = len(submission.comments) > 0
 
