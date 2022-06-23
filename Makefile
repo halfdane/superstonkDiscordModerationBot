@@ -14,6 +14,10 @@ remote_manual:
 	scp -i ~/.ssh/id_ed25519_halfdane src/manual.py   'root@83.229.85.245:~/superstonkDiscordModerationBot/src'
 	ssh -i ~/.ssh/id_ed25519_halfdane 'root@83.229.85.245' 'cd superstonkDiscordModerationBot; venv/bin/python src/manual.py'
 
+install:
+	./install_services.sh nonlive
+	./install_services.sh live
+
 venv: venv/bin/activate
 
 venv/bin/activate: src/requirements.txt
