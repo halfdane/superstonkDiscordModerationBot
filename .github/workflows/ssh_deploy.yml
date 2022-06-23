@@ -11,7 +11,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    environment: live
+    environment: root
     steps:
       - uses: actions/checkout@v1.0.0
       - run: make test
