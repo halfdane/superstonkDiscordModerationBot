@@ -11,7 +11,6 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    environment: live
     steps:
       - uses: actions/checkout@v1.0.0
       - run: make test
@@ -27,11 +26,5 @@ jobs:
         username: ${{ secrets.USERNAME }}
         key: ${{ secrets.SSH_KEY }}
         script: |
-          cd superstonkDiscordModerationBot
-          git pull --rebase
-          
-          export LOG_FILE=~/superstonkDiscordModerationBot_`date +"%Y%m%d_%H%M"`.log
-                    
-          make >"${LOG_FILE}" 2>&1 &
-          ln -sf "${LOG_FILE}" ~/superstonkDiscordModerationBot.log
+          systemctl --user restart superstonkModerationBot.service
           echo "That's all folks"

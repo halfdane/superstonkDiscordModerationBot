@@ -24,6 +24,7 @@ install:
 	systemctl --user daemon-reload
 	systemctl --user enable superstonkModerationBot.service
 	systemctl --user start superstonkModerationBot.service
+	sudo loginctl enable-linger $USER
 
 
 venv: venv/bin/activate
