@@ -8,7 +8,7 @@ After=multi-user.target
 # Command to execute when the service is started
 Type=simple
 WorkingDirectory=%h/superstonkDiscordModerationBot
-ExecStart=/usr/bin/make
+ExecStart=/usr/bin/make bot
 Restart=always
 RestartSec=1
 

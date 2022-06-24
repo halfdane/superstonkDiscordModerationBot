@@ -5,6 +5,14 @@ run: venv
 	-/usr/bin/pkill -f "python src/superstonkDiscordModerationBot.py" || true
 	venv/bin/python src/superstonkDiscordModerationBot.py
 
+.PHONY: force_pull
+force_pull:
+	git reset --hard origin/main
+	git pull --rebase
+
+.PHONY: bot
+bot: force_pull run
+
 .PHONY: test
 test: venv
 	venv/bin/pytest -vv
