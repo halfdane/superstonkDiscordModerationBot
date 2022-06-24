@@ -7,6 +7,7 @@ run: venv
 
 .PHONY: force_pull
 force_pull:
+	git fetch --all
 	git reset --hard origin/main
 	git pull --rebase
 
