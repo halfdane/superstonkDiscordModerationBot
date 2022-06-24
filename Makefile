@@ -15,8 +15,12 @@ remote_manual:
 	ssh -i ~/.ssh/id_ed25519_halfdane 'root@83.229.85.245' 'cd superstonkDiscordModerationBot; venv/bin/python src/manual.py'
 
 install:
-	./install_services.sh nonlive
-	./install_services.sh live
+	mkdir -p ~/.config/systemd/user/
+	cp superstonkModerationBot.service ~/.config/systemd/user/
+	systemctl --user daemon-reload
+	systemctl --user enable superstonkModerationBot.service
+	systemctl --user start superstonkModerationBot.service
+
 
 venv: venv/bin/activate
 
