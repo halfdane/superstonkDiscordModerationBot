@@ -45,7 +45,7 @@ class ModQueueCog(commands.Cog):
                 result.append(
                     f"{item.__class__.__name__} "
                     f"with {item.num_reports} reports: "
-                    f"{permalink(item.permalink)}")
+                    f"{permalink(item)}")
                 if index >= 4:
                     break
         return result
