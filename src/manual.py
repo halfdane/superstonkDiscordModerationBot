@@ -80,11 +80,9 @@ async def main():
         note = """
         """
 
-        users = []
-
-        for user in users:
-            print(f"Adding note for {user}")
-            await __store_note(reddit, note, user, "Superstonk")
+        submission = await reddit.submission(
+            url='https://new.reddit.com/r/Superstonk/comments/vjflm7/here_we_go_bill_9_10_big_banks_and_risk/')
+        print(permalink(submission))
 
 
 loop = asyncio.get_event_loop()

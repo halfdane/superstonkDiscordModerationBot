@@ -22,18 +22,23 @@ class QualityVoteBot(Handler):
     async def on_ready(self, scheduler, **kwargs):
         self._logger.info(self.wot_doing())
         scheduler.add_job(self.check_recent_comments, "cron", minute="4-59/10",
-                          next_run_time=datetime.now()+timedelta(minutes=1))
+                          next_run_time=datetime.now() + timedelta(minutes=1))
 
     async def take(self, submission):
+        config = self.quality_vote_bot_configuration.config
         if not self.__has_stickied_comment(submission) \
-                and submission.link_flair_template_id not in self.quality_vote_bot_configuration.config['ignore_flairs']:
+                and submission.link_flair_template_id not in config['ignore_flairs']:
+
+            default_comment = config['vote_comment']
+            flair_specific_comment_key = 'vote_comment_' + submission.link_flair_template_id
+            vote_comment = config.get(flair_specific_comment_key, default_comment)
 
             qv_user = await self.qvbot_reddit.user.me()
             post_from_qbots_view = await self.qvbot_reddit.submission(submission.id, fetch=False)
             self._logger.debug(f"adding {qv_user} comment to https://www.reddit.com{submission.permalink}")
 
             if self.is_live_environment:
-                sticky = await post_from_qbots_view.reply(self.quality_vote_bot_configuration.config['vote_comment'])
+                sticky = await post_from_qbots_view.reply(vote_comment)
                 await sticky.mod.distinguish(how="yes", sticky=True)
                 await sticky.mod.ignore_reports()
 
@@ -57,7 +62,8 @@ class QualityVoteBot(Handler):
                 model: dict = self.quality_vote_bot_configuration.config.copy()
                 model.update(comment_parent.__dict__)
                 self._logger.debug(f"{comment.score} {permalink(comment_parent)}")
-                await comment_parent.report(chevron.render(self.quality_vote_bot_configuration.config['report_reason'], model))
+                await comment_parent.report(
+                    chevron.render(self.quality_vote_bot_configuration.config['report_reason'], model))
 
         self._logger.info(f"looked at {len(c_fids)} comments between {yesterday} and {now}")
 
