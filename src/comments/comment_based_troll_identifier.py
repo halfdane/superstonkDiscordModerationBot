@@ -9,7 +9,8 @@ from helper.links import permalink
 
 class CommentBasedTrollIdentifier:
 
-    def __init__(self, comment_repo: Comments = None, readonly_reddit=None, report_channel=None, report_comments_channel=None,
+    def __init__(self, comment_repo: Comments = None, readonly_reddit=None,
+                 report_channel=None, report_comments_channel=None,
                  add_reactions_to_discord_message=None, **kwargs):
         self._logger = logging.getLogger(self.__class__.__name__)
         self.persist_comments = comment_repo

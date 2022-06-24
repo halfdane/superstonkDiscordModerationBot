@@ -1,5 +1,6 @@
 import logging
 import re
+from pprint import pprint
 
 import asyncpraw
 import disnake
@@ -9,6 +10,8 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from disnake import Message
 from disnake.ext import commands
 from disnake.ext.commands import Bot
+from disnake import Embed, Colour
+
 
 from cogs.hanami_mail_responder import Hanami
 from cogs.modqueue_cog import ModQueueCog
@@ -27,6 +30,7 @@ from discordReactionHandlers.modnote_reaction import ModNoteReaction
 from discordReactionHandlers.user_history_reaction import UserHistoryReaction
 from discordReactionHandlers.wip_reaction import WipReaction
 from discord_output_logger import DiscordOutputLogger
+from helper.links import permalink, user_page
 from helper.moderation_bot_configuration import ModerationBotConfiguration, CONFIG_HOME
 from helper.redditor_extractor import extract_redditor
 from posts.post_count_limiter import PostCountLimiter
@@ -132,6 +136,8 @@ class SuperstonkModerationBot(Bot):
         await self.component(add_reactions_to_discord_message=self.add_reactions)
         await self.component(get_discord_cogs=lambda: self.cogs)
         await self.component(is_forbidden_comment_message=self.is_forbidden_comment_message)
+        await self.component(send_discord_message=self.send_discord_message)
+
 
         # FUNDAMENTAL COMPONENTS WITHOUT DEPENDENCIES
         logging.getLogger('apscheduler').setLevel(logging.WARN)
@@ -258,6 +264,16 @@ class SuperstonkModerationBot(Bot):
         if reaction_information:
             await self.handle_reaction(*reaction_information)
 
+    async def send_discord_message(self, **kwargs):
+        embed = self.create_embed(**kwargs)
+        try:
+            msg = await self.COMPONENTS['report_channel'].send(embed=embed)
+            await self.add_reactions(msg)
+        except disnake.errors.HTTPException:
+            for f in embed.fields:
+                print(f"{f.name}: {f.value}")
+            self.logger.exception("Ignoring this")
+
     async def add_reactions(self, msg: disnake.Message, reactions=None):
         if reactions is None:
             reactions = self.GENERIC_REACTIONS + self.USER_REACTIONS
@@ -273,6 +289,46 @@ class SuperstonkModerationBot(Bot):
         for reaction in self.ALL_REACTIONS:
             if reaction.emoji == emoji:
                 await reaction.unhandle_reaction(message, user)
+
+    def create_embed(self, item=None, item_description='', author=None, **kwargs):
+        url = permalink(item)
+        title = getattr(item, 'title', getattr(item, 'body', ""))[:75]
+        e = Embed(url=url, colour=Colour(0).from_rgb(207, 206, 255),
+                  description=f"[{item_description} {item.__class__.__name__}: {title}]({url})")
+
+        if author is None:
+            author_attr = getattr(item, 'author', None)
+            author = getattr(author_attr, 'name', author_attr)
+        if author:
+            e.add_field("Redditor", f"[{author}]({user_page(author)})", inline=False)
+
+        user_reports_attr = getattr(item, 'user_reports', None)
+        if user_reports_attr:
+            user_reports = "\n".join(f"{r[1]} {r[0]}" for r in user_reports_attr)
+            if user_reports:
+                e.add_field("User Reports", user_reports, inline=False)
+
+        mod_reports_attr = getattr(item, 'mod_reports', None)
+        if mod_reports_attr:
+            mod_reports = "\n".join(f"{r[1]} {r[0]}" for r in mod_reports_attr)
+            if mod_reports:
+                e.add_field("Mod Reports", mod_reports, inline=False)
+
+        score = getattr(item, 'score', None)
+        if score:
+            e.add_field("Score:", str(score))
+
+        comments = getattr(item, 'comments', None)
+        if comments is not None and len(comments) > 0 and comments[0].author.name == "Superstonk_QV":
+            qv_score = str(comments[0].score)
+            e.add_field("QV Score:", qv_score)
+
+        upvote_ratio = getattr(item, 'upvote_ratio', None)
+        if upvote_ratio:
+            e.add_field("Upvote Ratio:", str(upvote_ratio))
+
+        return e
+
 
 
 if __name__ == "__main__":
