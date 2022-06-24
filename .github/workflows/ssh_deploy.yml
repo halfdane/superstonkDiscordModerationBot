@@ -30,8 +30,8 @@ jobs:
           cd superstonkDiscordModerationBot
           git pull --rebase
           
-          export LOG_FILE=/var/log/superstonkDiscordModerationBot_`date +"%Y%m%d_%H%M"`.log
+          export LOG_FILE=~/superstonkDiscordModerationBot_`date +"%Y%m%d_%H%M"`.log
                     
           make >"${LOG_FILE}" 2>&1 &
-          ln -sf "${LOG_FILE}" /var/log/superstonkDiscordModerationBot.log
+          ln -sf "${LOG_FILE}" ~/superstonkDiscordModerationBot.log
           echo "That's all folks"
