@@ -18,11 +18,6 @@ bot: force_pull run
 test: venv
 	venv/bin/pytest -vv
 
-.PHONY: test
-remote_manual:
-	scp -i ~/.ssh/id_ed25519_halfdane src/manual.py   'root@83.229.85.245:~/superstonkDiscordModerationBot/src'
-	ssh -i ~/.ssh/id_ed25519_halfdane 'root@83.229.85.245' 'cd superstonkDiscordModerationBot; venv/bin/python src/manual.py'
-
 install:
 	mkdir -p ~/.config/systemd/user/
 	cp superstonkModerationBot.service ~/.config/systemd/user/
