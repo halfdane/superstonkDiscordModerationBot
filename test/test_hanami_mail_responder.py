@@ -6,7 +6,7 @@ import pytest
 from cogs.hanami_mail_responder import Hanami
 
 
-class TestHanamiMailResponder:
+class IgnoreTestHanamiMailResponder:
 
     @pytest.mark.asyncio
     async def test_read_config(self):
