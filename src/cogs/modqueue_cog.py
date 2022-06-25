@@ -9,8 +9,7 @@ from helper.links import permalink
 
 
 class ModQueueCog(commands.Cog):
-    def __init__(self, add_reactions_to_discord_message, superstonk_subreddit, send_discord_message, **kwargs):
-        self.add_reactions_to_discord_message = add_reactions_to_discord_message
+    def __init__(self, superstonk_subreddit, send_discord_message, **kwargs):
         self.superstonk_subreddit = superstonk_subreddit
         self.send_discord_message = send_discord_message
 
@@ -38,6 +37,6 @@ class ModQueueCog(commands.Cog):
         description="Fetch the top items from the mod queue"
     )
     async def modq(self, ctx):
-        await ctx.send(f"Fetching modqueue!")
+        await self.send_discord_message(message="Fetching modqueue!")
         await self.fetch_top_modqueue()
-        await ctx.send(f"Done modqueue!")
+        await self.send_discord_message(message="Done modqueue!")
