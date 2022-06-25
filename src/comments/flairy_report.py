@@ -7,7 +7,7 @@ from helper.links import permalink, make_safe
 
 
 class FlairyReport:
-    def __init__(self, flairy_reddit,
+    def __init__(self, flairy_reddit, send_discord_message,
                  add_reactions_to_discord_message,
                  report_channel, comment_repo, flairy_comment_repo, **kwargs):
         self._logger = logging.getLogger(self.__class__.__name__)
@@ -17,6 +17,7 @@ class FlairyReport:
         self.comment_repo = comment_repo
         self.flairy_comment_repo = flairy_comment_repo
         self.add_reactions_to_discord_message = add_reactions_to_discord_message
+        self.send_discord_message = send_discord_message
 
     async def on_ready(self, scheduler, **kwargs):
         self._logger.info("Scheduling flairy reports")
@@ -45,12 +46,8 @@ class FlairyReport:
             
             message += f"\n- [{comment_parent_from_own_db.author}: {make_safe(body)}]({permalink(comment_parent)})"
             if len(message) > 3000:
-                e = disnake.Embed(colour=disnake.Colour(0).from_rgb(207, 206, 255), description=message)
-                m = await self.report_channel.send(embed=e)
-                await self.add_reactions_to_discord_message(m)
+                await self.send_discord_message(message=message)
                 message = f"**MORE** comments the flairy reacted to since {yesterday}:  \n"
 
         if len(message) > 0:
-            e = disnake.Embed(colour=disnake.Colour(0).from_rgb(207, 206, 255), description=message)
-            message = await self.report_channel.send(embed=e)
-            await self.add_reactions_to_discord_message(message)
+            await self.send_discord_message(message=message)
