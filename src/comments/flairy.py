@@ -288,7 +288,7 @@ class WrongColorCommand:
 
         if match := self._detect_last_word.match(body):
             last_word = match.group(1)
-            if last_word.lower() in ["orange", "grey", "gray", "purple", "white"]:
+            if last_word.lower() in ["orange", "grey", "gray", "purple"]:
                 comment_from_flairies_view = await self.flairy_reddit.comment(comment.id, fetch=False)
                 message = f"(ノಠ益ಠ)ノ彡┻━┻ {last_word.upper()} IS NOT A VALID COLOR!   \n" \
                           f"Valid colors are {', '.join(self.colors)}.   \n" \
