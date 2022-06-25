@@ -41,7 +41,6 @@ from posts.post_url_limiter import UrlPostLimiter
 from posts.qv_bot import QualityVoteBot
 from posts.qv_bot_configuration import QualityVoteBotConfiguration
 from posts.r_all_sticky_creator import RAllStickyCreator
-from posts.tweet_post_limiter import TweetPostLimiter
 from posts.url_post_repository import UrlPosts
 from random_stuff.gme_ticker import GmeTickerAsUserName
 from reddit_item_reader import RedditItemReader
@@ -138,7 +137,6 @@ class SuperstonkModerationBot(Bot):
         await self.component(is_forbidden_comment_message=self.is_forbidden_comment_message)
         await self.component(send_discord_message=self.send_discord_message)
 
-
         # FUNDAMENTAL COMPONENTS WITHOUT DEPENDENCIES
         logging.getLogger('apscheduler').setLevel(logging.WARN)
 
@@ -167,7 +165,6 @@ class SuperstonkModerationBot(Bot):
         await self.component(comment_repo=Comments())
         await self.component(flairy_comment_repo=FlairyComments())
         await self.component(report_repo=Reports())
-
 
         # SCHEDULED COMPONENTS
         await self.component(calculate_post_statistics=CalculatePostStatistics(**self.COMPONENTS))
@@ -213,7 +210,6 @@ class SuperstonkModerationBot(Bot):
                 FrontDeskSticky(),
                 PostCountLimiter(**self.COMPONENTS),
                 UrlPostLimiter(**self.COMPONENTS),
-                TweetPostLimiter(**self.COMPONENTS),
                 QualityVoteBot(**self.COMPONENTS),
             ]))
 
@@ -347,7 +343,6 @@ class SuperstonkModerationBot(Bot):
                 e.add_field(key, value)
 
         return e
-
 
 
 if __name__ == "__main__":
