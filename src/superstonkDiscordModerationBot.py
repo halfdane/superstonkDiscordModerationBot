@@ -265,10 +265,10 @@ class SuperstonkModerationBot(Bot):
         if reaction_information:
             await self.handle_reaction(*reaction_information)
 
-    async def send_discord_message(self, **kwargs):
+    async def send_discord_message(self, channel='report_channel', **kwargs):
         embed = self.create_embed(**kwargs)
         try:
-            msg = await self.COMPONENTS['report_channel'].send(embed=embed)
+            msg = await self.COMPONENTS[channel].send(embed=embed)
             await self.add_reactions(msg)
         except disnake.errors.HTTPException:
             for f in embed.fields:
@@ -291,7 +291,12 @@ class SuperstonkModerationBot(Bot):
             if reaction.emoji == emoji:
                 await reaction.unhandle_reaction(message, user)
 
-    def create_embed(self, item=None, item_description=None, author=None, message=None, fields=None, **kwargs):
+    def create_embed(self, item=None,
+                     item_description=None,
+                     author=None,
+                     message=None,
+                     fields=None,
+                     **kwargs):
         params = {
             'colour': Colour(0).from_rgb(207, 206, 255),
         }
