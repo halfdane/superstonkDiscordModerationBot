@@ -36,7 +36,7 @@ class FlairyReport:
             body = await self.flairy_comment_repo.pop_body(comment_parent.id)
             if body is None:
                 body = comment_parent.body
-            comment_parent_from_own_db = await self.comment_repo.fetch(since=yesterday, author=flairy_username)
+            comment_parent_from_own_db = await self.comment_repo.fetch(id=comment_parent.id)
             
             message += f"\n- [{comment_parent_from_own_db[0].author.name}: {make_safe(body)}]({permalink(comment_parent)})"
             if len(message) > 3000:
