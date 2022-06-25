@@ -41,7 +41,9 @@ class FlairyReport:
             body = await self.flairy_comment_repo.pop_body(comment_parent.id)
             if body is None:
                 body = comment_parent.body
-            message += f"\n- [{comment_parent.author}: {make_safe(body)}]({permalink(comment_parent)})"
+            comment_parent_from_own_db = await self.comment_repo.fetch(since=yesterday, author=flairy_username)
+            
+            message += f"\n- [{comment_parent_from_own_db.author}: {make_safe(body)}]({permalink(comment_parent)})"
             if len(message) > 3000:
                 e = disnake.Embed(colour=disnake.Colour(0).from_rgb(207, 206, 255), description=message)
                 m = await self.report_channel.send(embed=e)

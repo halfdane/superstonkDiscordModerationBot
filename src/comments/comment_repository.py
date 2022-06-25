@@ -49,7 +49,9 @@ class Comments:
                     ''', db_comments)
             await db.commit()
 
-    async def fetch(self, since: datetime = None, deleted_not_removed=False, author=None):
+    async def fetch(self, since: datetime = None,
+                    deleted_not_removed=False, author=None,
+                    id=None):
         async with aiosqlite.connect(self.database) as db:
             statement = 'select id, author, created_utc, deleted, mod_removed, updated_utc, score from COMMENTS'
             condition_statements = []
@@ -61,6 +63,10 @@ class Comments:
             if author is not None:
                 condition_statements.append('author = :author')
                 condition_parameters['author'] = str(author)
+
+            if id is not None:
+                condition_statements.append('id = :id')
+                condition_parameters['id'] = str(id)
 
             if deleted_not_removed:
                 condition_statements.append('deleted is not NULL and mod_removed is NULL')
