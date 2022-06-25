@@ -229,6 +229,7 @@ class SuperstonkModerationBot(Bot):
             if y and y.get('action', "") == 'remove':
                 self.automod_rules += [re.compile(r) for k, v in y.items() if "regex" in k for r in v]
         self.logger.info(f"Read {len(self.automod_rules)} removal rules from automod rules")
+        await self.send_discord_message(message="Moderation bot restarted")
 
     def is_forbidden_comment_message(self, comment_message):
         return any(rule.search(comment_message) for rule in self.automod_rules)
@@ -290,11 +291,20 @@ class SuperstonkModerationBot(Bot):
             if reaction.emoji == emoji:
                 await reaction.unhandle_reaction(message, user)
 
-    def create_embed(self, item=None, item_description='', author=None, **kwargs):
-        url = permalink(item)
-        title = getattr(item, 'title', getattr(item, 'body', ""))[:75]
-        e = Embed(url=url, colour=Colour(0).from_rgb(207, 206, 255),
-                  description=f"[{item_description} {item.__class__.__name__}: {title}]({url})")
+    def create_embed(self, item=None, item_description=None, author=None, message=None, fields=None, **kwargs):
+        params = {
+            'colour': Colour(0).from_rgb(207, 206, 255),
+        }
+        if item:
+            params['url'] = permalink(item)
+            description = f"{item.__class__.__name__}: {getattr(item, 'title', getattr(item, 'body', ''))[:75]}"
+            if item_description:
+                description = f"{item_description} {description}"
+            params['description'] = f"[{description}]({params['url']})"
+        else:
+            params['description'] = message
+
+        e = Embed(**params)
 
         if author is None:
             author_attr = getattr(item, 'author', None)
@@ -326,6 +336,10 @@ class SuperstonkModerationBot(Bot):
         upvote_ratio = getattr(item, 'upvote_ratio', None)
         if upvote_ratio:
             e.add_field("Upvote Ratio:", str(upvote_ratio))
+
+        if fields:
+            for key, value in fields.items():
+                e.add_field(key, value)
 
         return e
 

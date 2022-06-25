@@ -20,7 +20,11 @@ class QualityVoteBotConfiguration:
 
     async def on_ready(self, scheduler, **kwargs):
         self._logger.info(self.wot_doing())
-        scheduler.add_job(self.fetch_config_from_wiki, "cron", minute="3-59/10", next_run_time=datetime.now())
+        scheduler.add_job(self.fetch_config_from_wiki, "cron", minute="3-59/10")
+        # Instead of using next_run_time=datetime.now() in the scheduler, delay the startup
+        # until the qv config has been read, so that qvbot has the comment templates
+        # already available when the first items come streaming in
+        await self.fetch_config_from_wiki()
 
     async def fetch_config_from_wiki(self):
         wiki_page = await self.superstonk_subreddit.wiki.get_page("qualityvote")
