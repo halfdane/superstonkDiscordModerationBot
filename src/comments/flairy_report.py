@@ -1,22 +1,16 @@
 import logging
 from datetime import datetime, timedelta
 
-import disnake
-
 from helper.links import permalink, make_safe
 
 
 class FlairyReport:
     def __init__(self, flairy_reddit, send_discord_message,
-                 add_reactions_to_discord_message,
-                 report_channel, comment_repo, flairy_comment_repo, **kwargs):
+                 comment_repo, flairy_comment_repo, **kwargs):
         self._logger = logging.getLogger(self.__class__.__name__)
         self.flairy_reddit = flairy_reddit
-
-        self.report_channel = report_channel
         self.comment_repo = comment_repo
         self.flairy_comment_repo = flairy_comment_repo
-        self.add_reactions_to_discord_message = add_reactions_to_discord_message
         self.send_discord_message = send_discord_message
 
     async def on_ready(self, scheduler, **kwargs):
