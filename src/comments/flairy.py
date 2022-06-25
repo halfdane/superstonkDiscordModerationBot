@@ -12,7 +12,8 @@ class Flairy(Handler):
                   "pink": "6de5f58e-f3ce-11eb-af43-eae78a59944d",
                   "yellow": "5f91a294-f3ce-11eb-948b-d26e0741292d",
                   "green": "7dfd44fe-f3ce-11eb-a228-aaac7809dc68",
-                  "black": "8abdf72e-f3ce-11eb-b3e3-22147bc43b70"}
+                  "black": "8abdf72e-f3ce-11eb-b3e3-22147bc43b70",
+                  "white": "a39da5fa-f46d-11ec-b46b-42cab4344c7a"}
 
     _default_color = "black"
 
