@@ -23,7 +23,7 @@ class HandledItemsUnreporter:
 
     async def unreport_items(self):
         unreport_actions = ['spamlink', 'removelink', 'approvelink', 'spamcomment', 'removecomment', 'approvecomment']
-        handled_urls = [permalink(log.target_permalink) async for log in self.superstonk_subreddit.mod.log(limit=100)
+        handled_urls = [permalink(log) async for log in self.superstonk_subreddit.mod.log(limit=100)
                         if log.action in unreport_actions]
         async for message in self.report_channel \
                 .history(limit=200) \
