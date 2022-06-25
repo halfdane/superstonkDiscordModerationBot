@@ -1,14 +1,9 @@
 import logging
-from datetime import datetime
 
 import yaml
 
 
 class QualityVoteBotConfiguration:
-    default_config = {
-        'report_reason': 'Score of stickied comment has dropped below threshold',
-    }
-
     def __init__(self, superstonk_subreddit, **kwargs):
         super().__init__()
         self._logger = logging.getLogger(self.__class__.__name__)
@@ -30,10 +25,7 @@ class QualityVoteBotConfiguration:
         wiki_page = await self.superstonk_subreddit.wiki.get_page("qualityvote")
         wiki_config_text = wiki_page.content_md
         wiki_config = yaml.safe_load(wiki_config_text)
-        updated_config: dict = self.default_config.copy()
-        updated_config.update(wiki_config)
-
-        self.config = updated_config
+        self.config = wiki_config
         self._logger.info(f"reloaded config")
         self._logger.debug(self.config)
 
