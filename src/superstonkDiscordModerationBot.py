@@ -303,7 +303,7 @@ class SuperstonkModerationBot(Bot):
             description = f"{item.__class__.__name__}: {getattr(item, 'title', getattr(item, 'body', ''))[:75]}"
             if item_description:
                 description = f"{item_description} {description}"
-            params['description'] = f"[{description}]({params['url']})"
+            params['description'] = f"[**{description}**]({params['url']})"
         else:
             params['description'] = message
 

@@ -1,20 +1,15 @@
 import logging
 from datetime import timedelta, datetime
 
-import disnake
-
 from comments.comment_repository import Comments
 
 
 class CommentRepositoryUpdater:
 
-    def __init__(self, comment_repo: Comments = None, readonly_reddit=None,
-                 add_reactions_to_discord_message=None, report_comments_channel=None, **kwargs):
+    def __init__(self, comment_repo: Comments = None, readonly_reddit=None, **kwargs):
         self._logger = logging.getLogger(self.__class__.__name__)
         self.persist_comments = comment_repo
         self.readonly_reddit = readonly_reddit
-        self.add_reactions_to_discord_message = add_reactions_to_discord_message
-        self.report_comments_channel = report_comments_channel
 
     async def on_ready(self, scheduler, **kwargs):
         self._logger.info(f"Ready to update comments")
