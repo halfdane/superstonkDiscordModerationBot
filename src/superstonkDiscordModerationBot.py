@@ -33,6 +33,7 @@ from discord_output_logger import DiscordOutputLogger
 from helper.links import permalink, user_page
 from helper.moderation_bot_configuration import ModerationBotConfiguration, CONFIG_HOME
 from helper.redditor_extractor import extract_redditor
+from posts.WeekendRestrictor import WeekendRestrictor
 from posts.post_count_limiter import PostCountLimiter
 from posts.post_repository import Posts
 from posts.post_repository_updater import PostRepositoryUpdater
@@ -210,6 +211,7 @@ class SuperstonkModerationBot(Bot):
                 FrontDeskSticky(),
                 PostCountLimiter(**self.COMPONENTS),
                 UrlPostLimiter(**self.COMPONENTS),
+                WeekendRestrictor(**self.COMPONENTS),
                 QualityVoteBot(**self.COMPONENTS),
             ]))
 
