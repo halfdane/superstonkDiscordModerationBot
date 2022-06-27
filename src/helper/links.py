@@ -2,7 +2,8 @@ from disnake.utils import escape_markdown
 
 
 def permalink(item):
-    return f"https://new.reddit.com{getattr(item, 'permalink', '/'+str(item))}"
+
+    return f"https://new.reddit.com{getattr(item, 'permalink', getattr(item, 'target_permalink', '/'+str(item)))}"
 
 def user_page(redditor):
     return f"https://new.reddit.com/u/{redditor}"

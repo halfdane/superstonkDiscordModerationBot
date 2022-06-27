@@ -77,12 +77,11 @@ async def main():
         print(f"Logged in as {redditor.name}")
         subreddit = await reddit.subreddit("superstonk")
 
-        note = """
-        """
+        unreport_actions = ['spamlink', 'removelink', 'approvelink', 'spamcomment', 'removecomment', 'approvecomment']
+        handled_urls = [permalink(log) async for log in subreddit.mod.log(limit=100)
+                        if log.action in unreport_actions]
+        print(handled_urls)
 
-        submission = await reddit.submission(
-            url='https://new.reddit.com/r/Superstonk/comments/vjflm7/here_we_go_bill_9_10_big_banks_and_risk/')
-        print(permalink(submission))
 
 
 loop = asyncio.get_event_loop()
