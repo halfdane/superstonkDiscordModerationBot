@@ -28,7 +28,11 @@ class HandledItemsUnreporter:
         async for message in self.report_channel \
                 .history(limit=200) \
                 .filter(lambda r: len(getattr(r, 'embeds', [])) > 0 and r.embeds[0].url in handled_urls):
-            await message.delete()
+            try:
+                await message.delete()
+            except disnake.errors.NotFound:
+                self._logger.debug("Message that should be deleted is already gone - works for me.")
+
             self._logger.debug(f'removed report for {message.embeds[0].url}')
 
     async def remove_handled_items(self):
@@ -63,7 +67,7 @@ class HandledItemsUnreporter:
                     try:
                         await message.delete()
                     except disnake.errors.NotFound:
-                        pass
+                        self._logger.debug("Message that should be deleted is already gone - works for me.")
                     removed_count += 1
                     self._logger.debug(f'removed report for {message.embeds[0].url}')
 
