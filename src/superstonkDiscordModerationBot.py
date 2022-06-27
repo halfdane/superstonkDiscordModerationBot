@@ -227,7 +227,7 @@ class SuperstonkModerationBot(Bot):
             if y and y.get('action', "") == 'remove':
                 self.automod_rules += [re.compile(r) for k, v in y.items() if "regex" in k for r in v]
         self.logger.info(f"Read {len(self.automod_rules)} removal rules from automod rules")
-        await self.send_discord_message(message="Moderation bot restarted")
+        await self.send_discord_message(description_beginning="Moderation bot restarted")
 
     def is_forbidden_comment_message(self, comment_message):
         return any(rule.search(comment_message) for rule in self.automod_rules)
@@ -290,22 +290,22 @@ class SuperstonkModerationBot(Bot):
                 await reaction.unhandle_reaction(message, user)
 
     def create_embed(self, item=None,
-                     item_description=None,
+                     description_beginning='',
                      author=None,
-                     message=None,
                      fields=None,
                      **kwargs):
         params = {
             'colour': Colour(0).from_rgb(207, 206, 255),
         }
+
+        if description_beginning:
+            params['description'] = f"**{description_beginning}**"
+
         if item:
             params['url'] = permalink(item)
             description = f"{item.__class__.__name__}: {getattr(item, 'title', getattr(item, 'body', ''))[:75]}"
-            if item_description:
-                description = f"{item_description} {description}"
-            params['description'] = f"[**{description}**]({params['url']})"
-        else:
-            params['description'] = message
+            description = f"{params['description']} {description}"
+            params['description'] = f"[{description}]({params['url']})"
 
         e = Embed(**params)
 

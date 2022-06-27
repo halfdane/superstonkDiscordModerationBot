@@ -40,7 +40,7 @@ class ImportantReports(Handler):
         elif user_report_count >= lots_of_reports or mod_report_count > 0:
             await item.load()
             self._logger.debug(f"Sending reported item {permalink(item)}")
-            await self.send_discord_message(item=item, item_description="Report")
+            await self.send_discord_message(item=item, description_beginning="Report")
 
     async def __send_ban_list(self, mods_reporting_rule_1, item):
         modnotes = fetch_modnotes(reddit=self.readonly_reddit,

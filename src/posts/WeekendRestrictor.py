@@ -49,7 +49,7 @@ class WeekendRestrictor(Handler):
 
             await self.send_discord_message(
                 item=item,
-                item_description=f"**Prevented {item.link_flair_text} from posted on a outside the weekend**  \n")
+                description_beginning=f"Prevented {item.link_flair_text} from posted on a outside the weekend  \n")
             return True
 
     def it_is_not_weekend(self):

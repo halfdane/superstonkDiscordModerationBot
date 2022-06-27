@@ -41,7 +41,7 @@ class CommentBasedTrollIdentifier:
             link_to_history = f'https://api.pushshift.io/reddit/search/comment/?ids={ids}&fields=author,body,score,full_link'
             await self.send_discord_message(
                 author=author,
-                message="**Found a possible comment deleting troll**",
+                description_beginning="Found a possible comment deleting troll",
                 fields={"Comments": f"[{ids}]({link_to_history})"})
 
     async def identify_heavily_downvoted_comments(self):
@@ -55,5 +55,5 @@ class CommentBasedTrollIdentifier:
         for comment in downvoted_comments:
             await self.send_discord_message(
                 item=comment,
-                item_description="**Found a heavily downvoted comment**",
+                description_beginning="Heavily downvoted comment",
                 channel='report_comments_channel')

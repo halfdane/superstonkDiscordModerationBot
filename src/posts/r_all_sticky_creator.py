@@ -22,7 +22,7 @@ class RAllStickyCreator(Handler):
         subreddit = item.subreddit
         await item.load()
         if subreddit == "SuperStonk" and await self.__needs_r_all_comment(item):
-            await self.send_discord_message(item=item, item_description="NEW ON R/ALL")
+            await self.send_discord_message(item=item, description_beginning="NEW ON R/ALL")
             post_from_qbots_view = await self.qvbot_reddit.submission(item.id, fetch=False)
 
             if self.is_live_environment:

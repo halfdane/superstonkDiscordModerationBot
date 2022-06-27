@@ -29,7 +29,7 @@ class ModQueueCog(commands.Cog):
                 self.fetch_modqueue(type="submissions"),
                 self.fetch_modqueue(type="comments")):
             for index, item in enumerate(reversed(q)):
-                await self.send_discord_message(item=item, item_description="Report")
+                await self.send_discord_message(item=item, description_beginning="Report")
                 if index >= 4:
                     break
 
@@ -37,6 +37,6 @@ class ModQueueCog(commands.Cog):
         description="Fetch the top items from the mod queue"
     )
     async def modq(self, ctx):
-        await self.send_discord_message(message="Fetching modqueue!")
+        await self.send_discord_message(description_beginning="Fetching modqueue!")
         await self.fetch_top_modqueue()
-        await self.send_discord_message(message="Done modqueue!")
+        await self.send_discord_message(description_beginning="Done modqueue!")

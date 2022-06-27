@@ -40,8 +40,8 @@ class FlairyReport:
             
             message += f"\n- [{comment_parent_from_own_db[0].author.name}: {make_safe(body)}]({permalink(comment_parent)})"
             if len(message) > 3000:
-                await self.send_discord_message(message=message)
-                message = f"**MORE** comments the flairy reacted to since {yesterday}:  \n"
+                await self.send_discord_message(description_beginning=message)
+                message = f"MORE comments the flairy reacted to since {yesterday}:  \n"
 
         if len(message) > 0:
-            await self.send_discord_message(message=message)
+            await self.send_discord_message(description_beginning=message)
