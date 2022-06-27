@@ -35,6 +35,7 @@ class FlairyReport:
             await comment_parent.load()
             body = await self.flairy_comment_repo.pop_body(comment_parent.id)
             if body is None:
+                self._logger.info(f"no body stored for {comment_parent.id}? using it from reddit instead")
                 body = comment_parent.body
             comment_parent_from_own_db = await self.comment_repo.fetch(id=comment_parent.id)
             

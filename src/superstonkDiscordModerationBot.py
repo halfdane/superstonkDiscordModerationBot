@@ -296,15 +296,13 @@ class SuperstonkModerationBot(Bot):
                      **kwargs):
         params = {
             'colour': Colour(0).from_rgb(207, 206, 255),
+            'description': description_beginning
         }
-
-        if description_beginning:
-            params['description'] = f"**{description_beginning}**"
 
         if item:
             params['url'] = permalink(item)
             description = f"{item.__class__.__name__}: {getattr(item, 'title', getattr(item, 'body', ''))[:75]}"
-            description = f"{params['description']} {description}"
+            description = f"**{params['description']}** {description}"
             params['description'] = f"[{description}]({params['url']})"
 
         e = Embed(**params)
