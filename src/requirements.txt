@@ -1,16 +1,21 @@
 disnake
 asyncpraw
-python-decouple
+psaw
+
 pyyaml
 chevron
-psaw
+
 nltk
+
 aiosqlite
+
 apscheduler
+python-dateutil
 
 pytest
 pytest-asyncio
 freezegun
+
 
 yahoo_fin
 millify

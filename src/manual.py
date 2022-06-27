@@ -5,11 +5,11 @@ from datetime import datetime, timedelta
 from pprint import pprint
 
 import asyncpraw
-from decouple import config
 from disnake.utils import escape_markdown
 from psaw import PushshiftAPI
 
 import chevron
+from dateutil.relativedelta import relativedelta
 
 from comments.comment_repository import Comments
 from helper.links import permalink
@@ -51,8 +51,6 @@ async def main():
 
         comment = await reddit.comment(id='idwslbp')
         print(vars(comment))
-
-
 
 loop = asyncio.get_event_loop()
 loop.run_until_complete(main())
