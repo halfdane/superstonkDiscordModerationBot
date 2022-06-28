@@ -29,6 +29,7 @@ class RedditItemReader:
 
     async def _stream(self):
         async for item in self.item_fetch_function():
+
             needs_handling = (self.item_repository is None) or (not (await self.item_repository.contains(item)))
             if needs_handling:
                 for handler in self.handlers:
