@@ -36,13 +36,14 @@ class UrlPostLimiter(Handler):
     async def take(self, item):
         url = getattr(item, 'url', None)
         reduced = self.reduce_url(url)
-        posts_with_same_url = await self.url_post_repo.fetch_like(url=reduced)
+        post_ids_with_same_url = await self.url_post_repo.fetch_like(url=reduced)
+        self._logger.info(f"post_ids with same url: {post_ids_with_same_url}")
 
         limit = 2
         if "https://twitter.com/ryancohen" in url:
             limit = 3
 
-        posts_with_same_url = await self.post_repo.fetch(ids=posts_with_same_url)
+        posts_with_same_url = await self.post_repo.fetch(ids=post_ids_with_same_url)
         count_of_posts = len(posts_with_same_url)
         self._logger.info(f"url {url} - amount of times it was posted: {count_of_posts}")
         if count_of_posts+1 > limit:
