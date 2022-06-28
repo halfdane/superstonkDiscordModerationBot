@@ -43,7 +43,7 @@ class UrlPostLimiter(Handler):
             limit = 3
 
         p_fids = [p.id for p in posts_with_same_url]
-        posts_with_same_url = [post async for post in self.post_repo.fetch(ids=p_fids)]
+        posts_with_same_url = await self.post_repo.fetch(ids=p_fids)
 
         count_of_posts = len(posts_with_same_url)
         self._logger.info(f"url {url} - amount of times it was posted: {count_of_posts}")
