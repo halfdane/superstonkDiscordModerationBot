@@ -60,7 +60,7 @@ class Posts:
                 condition_parameters['author'] = author
 
             if ids is not None:
-                condition_statements.append('ids in (:ids)')
+                condition_statements.append('id in (:ids)')
                 condition_parameters['ids'] = ", ".join(ids)
 
             if since is not None:
