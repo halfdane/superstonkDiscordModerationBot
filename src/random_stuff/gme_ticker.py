@@ -30,6 +30,7 @@ class GmeTickerAsUserName:
         change = si.get_quote_data("gme")
         market_state = change['marketState']
         if market_state == "PRE":
+            print(change)
             price = change['preMarketPrice']
             activity = f"PM: ${millify(change['preMarketChange'], 2)} " \
                        f"{millify(change['preMarketChangePercent'], 2)}% "

@@ -28,6 +28,9 @@ asyncreddit = asyncpraw.Reddit(
     user_agent="com.halfdane.superstonk_moderation_bot:v0.1.1 (by u/half_dane)")
 
 
+COMPONENTS={}
+COMPONENTS.update(configuration)
+
 def pushshift():
     pushshift_api = PushshiftAPI()
 
@@ -47,10 +50,15 @@ async def main():
     async with asyncreddit as reddit:
         redditor = await reddit.user.me()
         print(f"Logged in as {redditor.name}")
-        subreddit = await reddit.subreddit("superstonk")
 
-        comment = await reddit.comment(id='idwslbp')
-        print(vars(comment))
+        subreddit_name_ = COMPONENTS["subreddit_name"]
+        print(type(subreddit_name_))
+        subreddit = await reddit.subreddit(subreddit_name_)
+
+        async for item in subreddit.stream.submissions():
+            print(f"got item {item}")
+
+
 
 loop = asyncio.get_event_loop()
 loop.run_until_complete(main())
