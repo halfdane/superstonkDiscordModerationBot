@@ -45,7 +45,7 @@ class UrlPostLimiter(Handler):
         posts_with_same_url = await self.post_repo.fetch(ids=posts_with_same_url)
         count_of_posts = len(posts_with_same_url)
         self._logger.info(f"url {url} - amount of times it was posted: {count_of_posts}")
-        if count_of_posts > limit:
+        if count_of_posts+1 > limit:
             self._logger.info(f"post should be removed: {permalink(item)}")
             sorted_posts = sorted(posts_with_same_url, key=lambda v: v.created_utc)
             model = {

@@ -30,7 +30,7 @@ class QualityVoteBot(Handler):
                 and getattr(submission, 'link_flair_template_id', None) not in config['ignore_flairs']:
 
             default_comment = config['vote_comment']
-            flair_specific_comment_key = 'vote_comment_' + submission.link_flair_template_id
+            flair_specific_comment_key = 'vote_comment_' + getattr(submission, 'link_flair_template_id', '')
             vote_comment = config.get(flair_specific_comment_key, default_comment)
 
             qv_user = await self.qvbot_reddit.user.me()
