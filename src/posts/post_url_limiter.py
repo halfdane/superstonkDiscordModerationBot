@@ -46,9 +46,8 @@ class UrlPostLimiter(Handler):
         self._logger.info(f"url {url} - amount of times it was posted: {count_of_posts}")
         if count_of_posts > limit:
             self._logger.info(f"post should be removed: {permalink(item)}")
-            sorted_posts = sorted(posts_with_same_url, key=lambda v: v.created_utc)
             model = {
-                'previously_posted': "    \n".join([await _post_to_string(post) for post in sorted_posts]),
+                'previously_posted': "    \n".join([await _post_to_string(post) for post in posts_with_same_url]),
             }
             removal_comment_template = self.quality_vote_bot_configuration.config['url_limit_reached_comment']
             removal_comment = chevron.render(removal_comment_template, model)
