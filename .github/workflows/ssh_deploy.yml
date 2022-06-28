@@ -14,9 +14,23 @@ jobs:
     steps:
       - uses: actions/checkout@v1.0.0
       - run: make test
-  deploy:
+  deploy nonlive:
     runs-on: ubuntu-latest
     needs: test
+    environment: nonlive
+    steps:
+    - name: Deploy to nonlive server via ssh
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        key: ${{ secrets.SSH_KEY }}
+        script: |
+          systemctl --user restart superstonkModerationBot.service
+          echo "That's all folks"
+  deploy live:
+    runs-on: ubuntu-latest
+    needs: nonlive
     environment: live
     steps:
     - name: Deploy to live server via ssh
