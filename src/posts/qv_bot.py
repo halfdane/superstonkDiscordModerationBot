@@ -27,7 +27,7 @@ class QualityVoteBot(Handler):
     async def take(self, submission):
         config = self.quality_vote_bot_configuration.config
         if not self.__has_stickied_comment(submission) \
-                and submission.link_flair_template_id not in config['ignore_flairs']:
+                and getattr(submission, 'link_flair_template_id', None) not in config['ignore_flairs']:
 
             default_comment = config['vote_comment']
             flair_specific_comment_key = 'vote_comment_' + submission.link_flair_template_id

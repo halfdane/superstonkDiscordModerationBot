@@ -31,7 +31,7 @@ class WeekendRestrictor(Handler):
 
     async def take(self, item):
         config = self.quality_vote_bot_configuration.config
-        if item.link_flair_template_id in config['restrict_flair_to_weekend'] and \
+        if getattr(item, 'link_flair_template_id', None) in config['restrict_flair_to_weekend'] and \
             self.it_is_not_weekend():
 
             removal_comment = config['restrict_to_weekend_removal']
