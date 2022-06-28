@@ -223,3 +223,20 @@ class TestPostDatabaseIntegration:
         PostWithId = namedtuple("Post", "id")
         assert await testee.contains(PostWithId('id1')) is True
         assert await testee.contains(PostWithId('id7')) is False
+
+    @pytest.mark.asyncio
+    async def test_read_by_id(self):
+        # given
+        await add_test_data([a_post(1), a_post(2), a_post(3)])
+
+        # when
+        testee = Posts(test_db)
+        posts = await testee.fetch(ids=["id1", "id3"])
+
+        # then
+        assert len(posts) == 2
+        assert posts[0].id == f"id1"
+        assert posts[1].id == f"id3"
+
+
+

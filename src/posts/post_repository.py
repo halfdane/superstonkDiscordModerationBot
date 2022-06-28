@@ -60,8 +60,8 @@ class Posts:
                 condition_parameters['author'] = author
 
             if ids is not None:
-                condition_statements.append('id in (:ids)')
-                condition_parameters['ids'] = ", ".join(ids)
+                condition_statements.append(f"id in ({', '.join(f':{i}' for i in range(len(ids)))})")
+                condition_parameters.update({str(i): id for i, id in enumerate(ids)})
 
             if since is not None:
                 condition_statements.append('created_utc >:since')
@@ -77,8 +77,12 @@ class Posts:
             if len(condition_statements) > 0:
                 statement = f'{statement} where {" and ".join(condition_statements)};'
 
+            print(statement)
+            print(condition_parameters)
+
             Author = namedtuple("Author", "name")
             Post = namedtuple("Post", "id author link_flair_text created_utc score count_to_limit available")
+            await db.set_trace_callback(print)
             async with db.execute(statement, condition_parameters) as cursor:
                 return [Post(row[0], Author(row[1]), row[2], row[3], row[4], row[5], row[6] != '0') async for row in
                         cursor]
