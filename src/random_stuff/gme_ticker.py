@@ -2,10 +2,8 @@ import asyncio
 import logging
 
 import disnake
-
-from disnake.ext import commands
-from yahoo_fin import stock_info as si
 from millify import millify
+from yahoo_fin import stock_info as si
 
 
 class GmeTickerAsUserName:
@@ -25,8 +23,13 @@ class GmeTickerAsUserName:
             await asyncio.wait_for(self.change_name_to_market_data(), timeout=9)
         except asyncio.TimeoutError:
             pass
-
     async def change_name_to_market_data(self):
+        try:
+            await self.change_name_to_market_data_unsafe()
+        except:
+            pass
+
+    async def change_name_to_market_data_unsafe(self):
         change = si.get_quote_data("gme")
         market_state = change['marketState']
         if market_state == "PRE":
