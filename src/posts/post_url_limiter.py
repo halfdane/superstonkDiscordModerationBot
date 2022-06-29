@@ -37,16 +37,15 @@ class UrlPostLimiter(Handler):
         url = getattr(item, 'url', None)
         reduced = self.reduce_url(url)
         post_ids_with_same_url = await self.url_post_repo.fetch_like(url=reduced)
-        self._logger.info(f"post_ids with same url: {post_ids_with_same_url}")
 
         limit = 2
         if "https://twitter.com/ryancohen" in url:
             limit = 3
 
         posts_with_same_url = await self.post_repo.fetch(ids=post_ids_with_same_url)
-        count_of_posts = len(posts_with_same_url)
+        count_of_posts = len(posts_with_same_url)+1
         self._logger.info(f"url {url} - amount of times it was posted: {count_of_posts}")
-        if count_of_posts+1 > limit:
+        if count_of_posts > limit:
             self._logger.info(f"post should be removed: {permalink(item)}")
             sorted_posts = sorted(posts_with_same_url, key=lambda v: v.created_utc)
             model = {

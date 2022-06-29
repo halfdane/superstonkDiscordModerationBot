@@ -77,12 +77,8 @@ class Posts:
             if len(condition_statements) > 0:
                 statement = f'{statement} where {" and ".join(condition_statements)};'
 
-            print(statement)
-            print(condition_parameters)
-
             Author = namedtuple("Author", "name")
             Post = namedtuple("Post", "id author link_flair_text created_utc score count_to_limit available")
-            await db.set_trace_callback(print)
             async with db.execute(statement, condition_parameters) as cursor:
                 return [Post(row[0], Author(row[1]), row[2], row[3], row[4], row[5], row[6] != '0') async for row in
                         cursor]

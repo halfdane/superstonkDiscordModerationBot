@@ -13,7 +13,6 @@ class HelpReaction(Reaction):
     async def handle_reaction(self, message: Message, user):
         explanations = ["**Generic Reactions**"]
         for reaction in Reaction.__subclasses__():
-            print(reaction)
             explanations.append(f"{reaction.emoji}: {reaction.description()}")
 
         explanations.append("")
