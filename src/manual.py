@@ -17,6 +17,7 @@ from helper.mod_notes import __store_note, __fetch_notes, __delete_note
 from helper.moderation_bot_configuration import ModerationBotConfiguration
 
 from posts.post_repository import Posts
+from reports_logs.trading_halts_reporter import TradingHaltsReporter
 from superstonkDiscordModerationBot import SuperstonkModerationBot
 
 from asyncpraw.exceptions import InvalidURL
@@ -51,12 +52,12 @@ async def main():
         redditor = await reddit.user.me()
         print(f"Logged in as {redditor.name}")
 
-        subreddit_name_ = COMPONENTS["subreddit_name"]
-        print(type(subreddit_name_))
-        subreddit = await reddit.subreddit(subreddit_name_)
-
-        async for item in subreddit.stream.submissions():
-            print(f"got item {item}")
+        reporter = TradingHaltsReporter(None)
+        halted = await reporter.trading_halt("ERUS")
+        if halted is not None:
+           print(f"got something: {halted}")
+        else:
+            print("got nothing")
 
 
 

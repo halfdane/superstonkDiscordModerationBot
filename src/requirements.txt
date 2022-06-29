@@ -1,6 +1,7 @@
 disnake
 asyncpraw
 psaw
+aiohttp
 
 pyyaml
 chevron

@@ -47,6 +47,7 @@ from random_stuff.gme_ticker import GmeTickerAsUserName
 from reddit_item_reader import RedditItemReader
 from reports_logs.important_reports_handler import ImportantReports
 from reports_logs.report_repository import Reports
+from reports_logs.trading_halts_reporter import TradingHaltsReporter
 from reports_logs.unreport_handled_items import HandledItemsUnreporter
 
 
@@ -142,8 +143,6 @@ class SuperstonkModerationBot(Bot):
         logging.getLogger('apscheduler').setLevel(logging.WARN)
 
         scheduler_timezone = {}
-        if self.COMPONENTS['is_live_environment']:
-            scheduler_timezone = {'timezone': 'UTC'}
         scheduler = AsyncIOScheduler(**scheduler_timezone)
         scheduler.start()
         await self.component(scheduler=scheduler)
@@ -179,6 +178,7 @@ class SuperstonkModerationBot(Bot):
         await self.component(discord_output_logging_handler=discord_output_logging_handler)
         await self.component(flairy_report=FlairyReport(**self.COMPONENTS))
         await self.component(gme_ticker_as_user_name=GmeTickerAsUserName(**self.COMPONENTS))
+        await self.component(trading_halts_reporter=TradingHaltsReporter(**self.COMPONENTS))
 
         # COGS
         hanami = Hanami(**self.COMPONENTS)
@@ -266,37 +266,13 @@ class SuperstonkModerationBot(Bot):
         if reaction_information:
             await self.handle_reaction(*reaction_information)
 
-    async def send_discord_message(self, channel='report_channel', **kwargs):
-        embed = self.create_embed(**kwargs)
-        try:
-            msg = await self.COMPONENTS[channel].send(embed=embed)
-            await self.add_reactions(msg)
-        except disnake.errors.HTTPException:
-            for f in embed.fields:
-                print(f"{f.name}: {f.value}")
-            self.logger.exception("Ignoring this")
-
-    async def add_reactions(self, msg: disnake.Message, reactions=None):
-        if reactions is None:
-            reactions = self.GENERIC_REACTIONS + self.USER_REACTIONS
-        for r in reactions:
-            await msg.add_reaction(r.emoji)
-
-    async def handle_reaction(self, message, emoji, user):
-        for reaction in self.ALL_REACTIONS:
-            if reaction.emoji == emoji:
-                await reaction.handle_reaction(message, user)
-
-    async def unhandle_reaction(self, message, emoji, user):
-        for reaction in self.ALL_REACTIONS:
-            if reaction.emoji == emoji:
-                await reaction.unhandle_reaction(message, user)
-
-    def create_embed(self, item=None,
-                     description_beginning='',
-                     author=None,
-                     fields=None,
-                     **kwargs):
+    async def send_discord_message(self,
+                                   channel='report_channel',
+                                   item=None,
+                                   description_beginning='',
+                                   author=None,
+                                   fields=None,
+                                   **kwargs):
         params = {
             'colour': Colour(0).from_rgb(207, 206, 255),
             'description': description_beginning
@@ -345,7 +321,29 @@ class SuperstonkModerationBot(Bot):
             for key, value in fields.items():
                 e.add_field(key, value)
 
-        return e
+        try:
+            msg = await self.COMPONENTS[channel].send(embed=e)
+            await self.add_reactions(msg)
+        except disnake.errors.HTTPException:
+            for f in e.fields:
+                print(f"{f.name}: {f.value}")
+            self.logger.exception("Ignoring this")
+
+    async def add_reactions(self, msg: disnake.Message, reactions=None):
+        if reactions is None:
+            reactions = self.GENERIC_REACTIONS + self.USER_REACTIONS
+        for r in reactions:
+            await msg.add_reaction(r.emoji)
+
+    async def handle_reaction(self, message, emoji, user):
+        for reaction in self.ALL_REACTIONS:
+            if reaction.emoji == emoji:
+                await reaction.handle_reaction(message, user)
+
+    async def unhandle_reaction(self, message, emoji, user):
+        for reaction in self.ALL_REACTIONS:
+            if reaction.emoji == emoji:
+                await reaction.unhandle_reaction(message, user)
 
 
 if __name__ == "__main__":
