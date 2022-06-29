@@ -47,6 +47,7 @@ from random_stuff.gme_ticker import GmeTickerAsUserName
 from reddit_item_reader import RedditItemReader
 from reports_logs.important_reports_handler import ImportantReports
 from reports_logs.report_repository import Reports
+from reports_logs.reported_comments_remover import ReportedCommentsRemover
 from reports_logs.trading_halts_reporter import TradingHaltsReporter
 from reports_logs.unreport_handled_items import HandledItemsUnreporter
 
@@ -179,6 +180,7 @@ class SuperstonkModerationBot(Bot):
         await self.component(flairy_report=FlairyReport(**self.COMPONENTS))
         await self.component(gme_ticker_as_user_name=GmeTickerAsUserName(**self.COMPONENTS))
         await self.component(trading_halts_reporter=TradingHaltsReporter(**self.COMPONENTS))
+        await self.component(reported_comments_remover=ReportedCommentsRemover(**self.COMPONENTS))
 
         # COGS
         hanami = Hanami(**self.COMPONENTS)
