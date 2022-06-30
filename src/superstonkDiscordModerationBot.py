@@ -176,7 +176,6 @@ class SuperstonkModerationBot(Bot):
         await self.component(comment_repository_updater=CommentRepositoryUpdater(**self.COMPONENTS))
         await self.component(post_repository_updater=PostRepositoryUpdater(**self.COMPONENTS))
         await self.component(handled_items_unreporter=HandledItemsUnreporter(**self.COMPONENTS))
-        await self.component(discord_output_logging_handler=discord_output_logging_handler)
         await self.component(flairy_report=FlairyReport(**self.COMPONENTS))
         await self.component(gme_ticker_as_user_name=GmeTickerAsUserName(**self.COMPONENTS))
         await self.component(trading_halts_reporter=TradingHaltsReporter(**self.COMPONENTS))
@@ -349,11 +348,9 @@ class SuperstonkModerationBot(Bot):
 
 
 if __name__ == "__main__":
-    discord_output_logging_handler = DiscordOutputLogger()
     logging.basicConfig(
         level=logging.INFO,
-        format='%(asctime)s [%(name)s]: %(message)s',
-        handlers=[discord_output_logging_handler, logging.StreamHandler()]
+        format='%(asctime)s [%(name)s]: %(message)s'
     )
 
     configuration = ModerationBotConfiguration()
