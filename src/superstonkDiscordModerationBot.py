@@ -177,7 +177,7 @@ class SuperstonkModerationBot(Bot):
         await self.component(post_repository_updater=PostRepositoryUpdater(**self.COMPONENTS))
         await self.component(handled_items_unreporter=HandledItemsUnreporter(**self.COMPONENTS))
         await self.component(flairy_report=FlairyReport(**self.COMPONENTS))
-        await self.component(gme_ticker_as_user_name=GmeTickerAsUserName(**self.COMPONENTS))
+        # await self.component(gme_ticker_as_user_name=GmeTickerAsUserName(**self.COMPONENTS))
         await self.component(trading_halts_reporter=TradingHaltsReporter(**self.COMPONENTS))
         await self.component(reported_comments_remover=ReportedCommentsRemover(**self.COMPONENTS))
 
