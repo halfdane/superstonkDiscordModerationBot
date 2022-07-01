@@ -76,8 +76,8 @@ class HandledItemsUnreporter:
                         or (await __was_removed(message)):
                     try:
                         await message.delete()
-                    except disnake.errors.NotFound:
-                        self._logger.debug("Message that should be deleted is already gone - works for me.")
+                    except (disnake.errors.NotFound, disnake.errors.Forbidden):
+                        pass
                     removed_count += 1
                     self._logger.debug(f'removed report for {message.embeds[0].url}')
 
