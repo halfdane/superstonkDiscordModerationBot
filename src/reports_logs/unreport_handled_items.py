@@ -58,12 +58,20 @@ class HandledItemsUnreporter:
                         pass
             return was_removed
 
+        def __may_be_removed_automatically(message):
+            e: disnake.Embed = message.embeds[0] if len(getattr(message, 'embeds', [])) > 0 else None
+            for field in e.fields:
+                if field.name == "auto_clean":
+                    return str(field.value) == 'True'
+            return True
+
         removed_count = 1_000
         while removed_count > 0:
             removed_count = 0
-            async for message in self.report_channel \
-                    .history(limit=200):
-                if __was_confirmed(message) or (await __was_removed(message)):
+            async for message in self.report_channel.history(limit=100):
+                if __may_be_removed_automatically(message) \
+                        or __was_confirmed(message) \
+                        or (await __was_removed(message)):
                     try:
                         await message.delete()
                     except disnake.errors.NotFound:

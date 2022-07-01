@@ -43,7 +43,7 @@ class UrlPostLimiter(Handler):
             limit = 3
 
         posts_with_same_url = await self.post_repo.fetch(ids=post_ids_with_same_url)
-        count_of_posts = len(posts_with_same_url)+1
+        count_of_posts = len(posts_with_same_url) + 1
         self._logger.info(f"url {url} - amount of times it was posted: {count_of_posts}")
         if count_of_posts > limit:
             self._logger.info(f"post should be removed: {permalink(item)}")
@@ -67,7 +67,8 @@ class UrlPostLimiter(Handler):
 
             await self.send_discord_message(
                 item=item,
-                item_description=f"Prevented {url} from being posted again  \n")
+                item_description=f"Prevented {url} from being posted again  \n",
+                fields={'auto_clean': False})
             return True
 
         else:
