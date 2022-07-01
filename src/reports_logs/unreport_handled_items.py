@@ -49,7 +49,8 @@ class HandledItemsUnreporter:
             if url:
                 try:
                     comment = await self.readonly_reddit.comment(url=url)
-                    was_removed = (comment.body == '[deleted]') or comment.removed or (getattr(comment, "ban_note", None) is not None)
+                    was_removed = (comment.body == '[deleted]') or comment.removed or (
+                            getattr(comment, "ban_note", None) is not None)
                 except InvalidURL:
                     try:
                         submission = await self.readonly_reddit.submission(url=url)
@@ -71,13 +72,12 @@ class HandledItemsUnreporter:
         while removed_count > 0:
             removed_count = 0
             async for message in self.report_channel.history(limit=100):
-                if __may_be_removed_automatically(message) \
-                        or __was_confirmed(message) \
-                        or (await __was_removed(message)):
+                if __may_be_removed_automatically(message) and \
+                        (__was_confirmed(message) or (await __was_removed(message))):
                     try:
+                        self._logger.debug(f'removing report for {message.embeds[0].url}')
                         await message.delete()
                         removed_count += 1
-                        self._logger.debug(f'removed report for {message.embeds[0].url}')
                     except (disnake.errors.NotFound, disnake.errors.Forbidden):
                         pass
 
