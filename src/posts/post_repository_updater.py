@@ -23,9 +23,9 @@ class PostRepositoryUpdater:
 
     def update_posts(self, interval):
         async def update_posts_for_interval():
-            self._logger.info(f"Fetch top posts of the last {interval}")
+            self._logger.debug(f"Fetch top posts of the last {interval}")
             top_posts = [c async for c in self.superstonk_subreddit.top(interval, limit=25)]
-            self._logger.info(f"Storing updated info for top 25 posts")
+            self._logger.debug(f"Storing updated info for top 25 posts")
             await self.persist_posts.store(top_posts)
 
             all_comments = []
@@ -39,9 +39,9 @@ class PostRepositoryUpdater:
                 all_comments += real_comments
 
             all_comments.sort(key=lambda comment: comment.score, reverse=True)
-            self._logger.info(f"Storing updated info for top 100 posts")
+            self._logger.debug(f"Storing updated info for top 100 comments")
             await self.comment_repo.store(all_comments[:100])
-            self._logger.info(f"Done")
+            self._logger.debug(f"Done")
 
         return update_posts_for_interval
 
