@@ -60,6 +60,8 @@ class HandledItemsUnreporter:
 
         def __may_be_removed_automatically(message):
             e: disnake.Embed = message.embeds[0] if len(getattr(message, 'embeds', [])) > 0 else None
+            if e is None:
+                return True
             for field in e.fields:
                 if field.name == "auto_clean":
                     return str(field.value) == 'True'
