@@ -29,5 +29,5 @@ class ReportedCommentsRemover:
             await post.load()
             await post.comments.replace_more(limit=None)
             comments = [permalink(c) for c in post.comments if len(getattr(c, 'user_reports', [])) > 0]
-            self.send_discord_message(description_beginning=", ".join(comments))
+            await self.send_discord_message(description_beginning=", ".join(comments))
 
