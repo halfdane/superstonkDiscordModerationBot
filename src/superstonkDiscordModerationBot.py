@@ -270,7 +270,7 @@ class SuperstonkModerationBot(Bot):
     async def send_discord_message(self,
                                    channel='report_channel',
                                    item=None,
-                                   description_beginning='',
+                                   description_beginning='[EMPTY]',
                                    author=None,
                                    fields=None,
                                    **kwargs):
