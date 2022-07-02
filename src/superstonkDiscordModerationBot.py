@@ -40,6 +40,7 @@ from posts.qv_bot_configuration import QualityVoteBotConfiguration
 from posts.r_all_sticky_creator import RAllStickyCreator
 from posts.url_post_repository import UrlPosts
 from reddit_item_reader import RedditItemReader
+from reports_logs.approve_old_modqueue_items import ApproveOldModqueueItems
 from reports_logs.important_reports_handler import ImportantReports
 from reports_logs.report_repository import Reports
 from reports_logs.reported_comments_remover import ReportedCommentsRemover
@@ -175,6 +176,7 @@ class SuperstonkModerationBot(Bot):
         # await self.component(gme_ticker_as_user_name=GmeTickerAsUserName(**self.COMPONENTS))
         await self.component(trading_halts_reporter=TradingHaltsReporter(**self.COMPONENTS))
         await self.component(reported_comments_remover=ReportedCommentsRemover(**self.COMPONENTS))
+        await self.component(approve_old_modqueue_items=ApproveOldModqueueItems(**self.COMPONENTS))
 
         # COGS
         hanami = Hanami(**self.COMPONENTS)

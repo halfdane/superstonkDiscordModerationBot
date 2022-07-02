@@ -1,16 +1,18 @@
 import asyncio
+import logging
 from datetime import datetime, timedelta
 
 import asyncpraw
 from psaw import PushshiftAPI
 
 from helper.moderation_bot_configuration import ModerationBotConfiguration
+from reports_logs.approve_old_modqueue_items import ApproveOldModqueueItems
 from reports_logs.reported_comments_remover import ReportedCommentsRemover
 
 configuration = ModerationBotConfiguration()
 
 asyncreddit = asyncpraw.Reddit(
-    **configuration.readonly_reddit_settings(),
+    **configuration.qvbot_reddit_settings(),
     user_agent="com.halfdane.superstonk_moderation_bot:v0.1.1 (by u/half_dane)")
 
 
@@ -38,8 +40,15 @@ async def main():
         print(f"Logged in as {redditor.name}")
         superstonk_subreddit = await reddit.subreddit("Superstonk")
 
-        remover = ReportedCommentsRemover(superstonk_subreddit=superstonk_subreddit, qvbot_reddit=reddit)
-        await remover.remove_sus_comments()
+        approver = ApproveOldModqueueItems(subreddit_name="Superstonk", qvbot_reddit=reddit, send_discord_message=None)
+        await approver.handle_obsolete_modqueue_items()
+
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s [%(name)s]: %(message)s'
+)
+
 
 loop = asyncio.get_event_loop()
 loop.run_until_complete(main())

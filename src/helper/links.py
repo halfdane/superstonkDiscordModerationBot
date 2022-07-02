@@ -13,3 +13,11 @@ def make_safe(maybe_string):
     clipped = str(string[:100])
     clipped += '...' if len(string) > 100 else ''
     return escape_markdown(clipped).replace('\n', ' ')
+
+def removed(item):
+    submission_removed = getattr(item, 'removed_by_category', None) is not None
+    comment_deleted = getattr(item, 'body', '') == '[deleted]'
+    comment_removed = getattr(item, 'removed', False)
+    comment_author_banned = getattr(item, "ban_note", None) is not None
+
+    return submission_removed or comment_deleted or comment_removed or comment_author_banned
