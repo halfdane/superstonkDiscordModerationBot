@@ -68,9 +68,12 @@ class Flairy(Handler):
             ApplyFlairCommand(self.flairy_detect_user_flair_change, self.flair_user)
         ]
 
+    def wot_doing(self):
+        return "Handle flair requests"
+
     async def on_ready(self, **kwargs):
         self.setup_commands()
-        self._logger.info("Ready to handle flair requests")
+        self._logger.warning(self.wot_doing())
 
     async def take(self, comment):
         body = getattr(comment, 'body', "")

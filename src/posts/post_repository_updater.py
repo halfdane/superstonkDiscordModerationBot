@@ -15,8 +15,11 @@ class PostRepositoryUpdater:
         self.readonly_reddit = readonly_reddit
         self.report_channel = report_channel
 
+    def wot_doing(self):
+        return "Hourly post statistics update"
+
     async def on_ready(self, scheduler, **kwargs):
-        self._logger.info(f"Scheduling statistics calculation")
+        self._logger.warning(self.wot_doing())
         scheduler.add_job(self.update_posts("hour"), "cron", hour="*",
                           next_run_time=datetime.now() + timedelta(minutes=1))
         scheduler.add_job(self.update_posts("day"), "cron", day="*", next_run_time=datetime.now())

@@ -1,9 +1,4 @@
 import logging
-from datetime import datetime
-from pprint import pprint
-
-import disnake
-from asyncpraw.exceptions import InvalidURL
 
 from helper.links import permalink
 
@@ -15,6 +10,9 @@ class ReportedCommentsRemover:
         self.superstonk_subreddit = superstonk_subreddit
         self.qvbot_reddit = qvbot_reddit
         self.send_discord_message = send_discord_message
+
+    def wot_doing(self):
+        return "Remove reported comments if the post was removed or locked."
 
     async def on_ready(self, scheduler, **kwargs):
         self._logger.info(f"Scheduling cleanup of handled reports")

@@ -11,8 +11,11 @@ class CommentRepositoryUpdater:
         self.persist_comments = comment_repo
         self.readonly_reddit = readonly_reddit
 
+    def wot_doing(self):
+        return "Update comments every 10 mins"
+
     async def on_ready(self, scheduler, **kwargs):
-        self._logger.info(f"Ready to update comments")
+        self._logger.warning(self.wot_doing())
         scheduler.add_job(self.update_comments, "cron", minute="*/10")
 
 

@@ -1,9 +1,7 @@
 import datetime
 import re
 
-from disnake import Embed, Colour
-
-from helper.links import permalink, user_page
+from helper.links import permalink
 from helper.mod_notes import fetch_modnotes
 from reddit_item_handler import Handler
 
@@ -22,7 +20,7 @@ class ImportantReports(Handler):
         return "Discord notification for posts with more that 3 and comments with more than 2 reports"
 
     async def on_ready(self, **kwargs):
-        self._logger.info(self.wot_doing())
+        self._logger.warning(self.wot_doing())
 
     async def take(self, item):
         user_report_count = sum([r[1] for r in item.user_reports])

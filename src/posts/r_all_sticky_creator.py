@@ -16,7 +16,7 @@ class RAllStickyCreator(Handler):
         self.quality_vote_bot_configuration = quality_vote_bot_configuration
 
     async def on_ready(self, scheduler, **kwargs):
-        self._logger.info("Writes a qv comment when a post hits r/all")
+        self._logger.info("Write a qv comment when a post hits r/all")
 
     async def take(self, item):
         subreddit = item.subreddit

@@ -31,7 +31,7 @@ class UrlPostLimiter(Handler):
         return "Restrict the posting of similar URLs to 2"
 
     async def on_ready(self, scheduler, **kwargs):
-        self._logger.info(self.wot_doing())
+        self._logger.warning(self.wot_doing())
 
     async def take(self, item):
         url = getattr(item, 'url', None)

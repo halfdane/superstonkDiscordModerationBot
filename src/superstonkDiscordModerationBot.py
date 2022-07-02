@@ -1,17 +1,14 @@
 import logging
 import re
-from pprint import pprint
 
 import asyncpraw
 import disnake
 import yaml
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-
+from disnake import Embed, Colour
 from disnake import Message
 from disnake.ext import commands
 from disnake.ext.commands import Bot
-from disnake import Embed, Colour
-
 
 from cogs.hanami_mail_responder import Hanami
 from cogs.modqueue_cog import ModQueueCog
@@ -29,7 +26,6 @@ from discordReactionHandlers.help_reaction import HelpReaction
 from discordReactionHandlers.modnote_reaction import ModNoteReaction
 from discordReactionHandlers.user_history_reaction import UserHistoryReaction
 from discordReactionHandlers.wip_reaction import WipReaction
-from discord_output_logger import DiscordOutputLogger
 from helper.links import permalink, user_page
 from helper.moderation_bot_configuration import ModerationBotConfiguration, CONFIG_HOME
 from helper.redditor_extractor import extract_redditor
@@ -43,7 +39,6 @@ from posts.qv_bot import QualityVoteBot
 from posts.qv_bot_configuration import QualityVoteBotConfiguration
 from posts.r_all_sticky_creator import RAllStickyCreator
 from posts.url_post_repository import UrlPosts
-from random_stuff.gme_ticker import GmeTickerAsUserName
 from reddit_item_reader import RedditItemReader
 from reports_logs.important_reports_handler import ImportantReports
 from reports_logs.report_repository import Reports
@@ -86,13 +81,13 @@ class SuperstonkModerationBot(Bot):
 
         self.COMPONENTS["readonly_reddit"] = \
             asyncpraw.Reddit(**self.moderation_bot_configuration.readonly_reddit_settings(),
-                             user_agent="com.halfdane.superstonk_moderation_bot:v0.1.5 (by u/half_dane)")
+                             user_agent="com.halfdane.superstonk_moderation_bot:v0.2.0 (by u/half_dane)")
         self.COMPONENTS["flairy_reddit"] = \
             asyncpraw.Reddit(**self.moderation_bot_configuration.flairy_reddit_settings(),
-                             user_agent="com.halfdane.superstonk_flairy:v0.2.0 (by u/half_dane)")
+                             user_agent="com.halfdane.superstonk_flairy:v0.2.1 (by u/half_dane)")
         self.COMPONENTS["qvbot_reddit"] = \
             asyncpraw.Reddit(**self.moderation_bot_configuration.qvbot_reddit_settings(),
-                             user_agent="com.halfdane.superstonk_qvbot:v0.1.0 (by u/half_dane)")
+                             user_agent="com.halfdane.superstonk_qvbot:v0.1.1 (by u/half_dane)")
 
         self.moderation_bot_configuration.remove_secrets()
 
@@ -101,36 +96,36 @@ class SuperstonkModerationBot(Bot):
 
 
         # CHANNELS
-        self.logger.info(f"reports into the discord channel: {self.COMPONENTS['report_channel_id']}")
+        self.logger.warning(f"report into the discord channel: {self.COMPONENTS['report_channel_id']}")
         await self.component(report_channel=self.get_channel(self.COMPONENTS['report_channel_id']))
 
-        self.logger.info(
-            f"uses this discord channel for experimental comment stuff: {self.COMPONENTS['report_comments_channel_id']}")
+        self.logger.warning(
+            f"use this discord channel for experimental comment stuff: {self.COMPONENTS['report_comments_channel_id']}")
         await self.component(report_comments_channel=self.get_channel(self.COMPONENTS['report_comments_channel_id']))
 
-        self.logger.info(f"uses this discord channel for flairy{self.COMPONENTS['flairy_channel_id']}")
+        self.logger.warning(f"use this discord channel for flairy{self.COMPONENTS['flairy_channel_id']}")
         await self.component(flairy_channel=self.get_channel(self.COMPONENTS['flairy_channel_id']))
 
-        self.logger.info(f"uses this discord channel for debugging messages: {self.COMPONENTS['logging_output_channel_id']}")
+        self.logger.warning(f"use this discord channel for debugging messages: {self.COMPONENTS['logging_output_channel_id']}")
         await self.component(logging_output_channel=self.get_channel(self.COMPONENTS['logging_output_channel_id']))
 
-        self.logger.info(f"listens for user mentions in this discord channel: {self.COMPONENTS['user_investigation_channel_id']}")
+        self.logger.warning(f"listen for user mentions in this discord channel: {self.COMPONENTS['user_investigation_channel_id']}")
 
-        self.logger.info(f"Reads configuration from {CONFIG_HOME}")
+        self.logger.warning(f"Read configuration from {CONFIG_HOME}")
 
         # ALREADY EXISTING OBJECTS
         await self.component(discord_bot_user=self.user)
-        self.logger.info(
-            f"uses discord user {self.COMPONENTS['discord_bot_user']} with id {self.COMPONENTS['discord_bot_user'].id}")
+        self.logger.warning(
+            f"use discord user {self.COMPONENTS['discord_bot_user']} with id {self.COMPONENTS['discord_bot_user'].id}")
 
         self.COMPONENTS["readonly_reddit_username"] = await self.COMPONENTS['readonly_reddit'].user.me()
-        self.logger.info(f"uses generic reddit user readonly: {self.COMPONENTS['readonly_reddit_username']}")
+        self.logger.warning(f"use generic reddit user readonly: {self.COMPONENTS['readonly_reddit_username']}")
 
         self.COMPONENTS["flairy_reddit_username"] = await self.COMPONENTS['flairy_reddit'].user.me()
-        self.logger.info(f"uses this reddit user for flair requests: {self.COMPONENTS['flairy_reddit_username']}")
+        self.logger.warning(f"use this reddit user for flair requests: {self.COMPONENTS['flairy_reddit_username']}")
 
         self.COMPONENTS["qvbot_reddit_username"] = await self.COMPONENTS['qvbot_reddit'].user.me()
-        self.logger.info(f"uses this reddit user for QV bot business {self.COMPONENTS['qvbot_reddit_username']}")
+        self.logger.warning(f"use this reddit user for QV bot business: {self.COMPONENTS['qvbot_reddit_username']}")
 
         await self.component(asyncio_loop=self.loop)
 
@@ -153,7 +148,7 @@ class SuperstonkModerationBot(Bot):
         await self.component(superstonk_subreddit=superstonk_subreddit)
         await self.component(superstonk_moderators=[m async for m in superstonk_subreddit.moderator])
 
-        self.logger.info(f"{subreddit_name_} => {superstonk_subreddit}")
+        self.logger.warning(f"{subreddit_name_} => {superstonk_subreddit}")
 
         r_all_subreddit = await self.COMPONENTS["readonly_reddit"].subreddit("all")
         await self.component(r_all_subreddit=r_all_subreddit)
@@ -230,7 +225,7 @@ class SuperstonkModerationBot(Bot):
             y = yaml.safe_load(rule)
             if y and y.get('action', "") == 'remove':
                 self.automod_rules += [re.compile(r) for k, v in y.items() if "regex" in k for r in v]
-        self.logger.info(f"Read {len(self.automod_rules)} removal rules from automod rules")
+        self.logger.warning(f"Read {len(self.automod_rules)} removal rules from automod rules")
         await self.send_discord_message(description_beginning="Moderation bot restarted")
 
     def is_forbidden_comment_message(self, comment_message):

@@ -1,10 +1,9 @@
 from datetime import datetime, timedelta
 
-import disnake
-from disnake import Embed
-
-import yaml
 import chevron
+import disnake
+import yaml
+from disnake import Embed
 
 from helper.links import permalink
 from reddit_item_handler import Handler
@@ -49,7 +48,7 @@ class PostCountLimiter(Handler):
         return "Limit post count to 7 per 24 hours"
 
     async def on_ready(self, scheduler, **kwargs):
-        self._logger.info(self.wot_doing())
+        self._logger.warning(self.wot_doing())
         scheduler.add_job(self.fetch_config_from_wiki, "cron", minute="6-59/10", next_run_time=datetime.now())
 
     async def take(self, item):

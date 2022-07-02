@@ -1,10 +1,10 @@
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime
 
 import disnake
+from dateutil.relativedelta import relativedelta
 
 from helper.links import permalink, make_safe
-from dateutil.relativedelta import relativedelta
 
 
 class CalculatePostStatistics:
@@ -18,8 +18,11 @@ class CalculatePostStatistics:
         self.readonly_reddit = readonly_reddit
         self.report_channel = report_channel
 
+    def wot_doing(self):
+        return "Calculate weekly and hourly subreddit statistics"
+
     async def on_ready(self, scheduler, **kwargs):
-        self._logger.info(f"Scheduling statistics calculation")
+        self._logger.warning(self.wot_doing())
         scheduler.add_job(self.calculate_statistics_for(relativedelta(days=7)), "cron", hour="12", day_of_week="6")
         scheduler.add_job(self.calculate_statistics_for(relativedelta(months=1)), "cron", hour="12", day="1")
 

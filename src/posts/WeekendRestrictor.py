@@ -1,7 +1,8 @@
 from datetime import datetime, time
 
-from reddit_item_handler import Handler
 import pytz
+
+from reddit_item_handler import Handler
 
 
 class WeekendRestrictor(Handler):
@@ -27,7 +28,7 @@ class WeekendRestrictor(Handler):
         return "Remove posts with weekend-only flairs"
 
     async def on_ready(self, scheduler, **kwargs):
-        self._logger.info(self.wot_doing())
+        self._logger.warning(self.wot_doing())
 
     async def take(self, item):
         config = self.quality_vote_bot_configuration.config

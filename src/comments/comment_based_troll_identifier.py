@@ -1,10 +1,7 @@
 import logging
 from datetime import timedelta, datetime
 
-import disnake
-
 from comments.comment_repository import Comments
-from helper.links import permalink
 
 
 class CommentBasedTrollIdentifier:
@@ -17,8 +14,11 @@ class CommentBasedTrollIdentifier:
         self.readonly_reddit = readonly_reddit
         self.send_discord_message = send_discord_message
 
+    def wot_doing(self):
+        return "Identify possible trolls that delete their comments"
+
     async def on_ready(self, scheduler, **kwargs):
-        self._logger.info(f"Ready to identify possible trolls from comments")
+        self._logger.warning(self.wot_doing())
         scheduler.add_job(self.identify_comment_removers, "cron", minute="1-59/10")
         scheduler.add_job(self.identify_heavily_downvoted_comments, "cron", hour="*", next_run_time=datetime.now())
 

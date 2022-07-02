@@ -1,11 +1,7 @@
 import asyncio
 from bisect import bisect_left
-from datetime import datetime
 
-import disnake
 from disnake.ext import commands
-
-from helper.links import permalink
 
 
 class ModQueueCog(commands.Cog):

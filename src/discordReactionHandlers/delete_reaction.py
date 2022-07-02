@@ -1,8 +1,7 @@
-from asyncio import BaseEventLoop
+import disnake
 
 from discord_reaction_handler import Reaction
-import disnake
-import asyncio
+
 
 class DeleteReaction(Reaction):
     emoji = '❌'
@@ -12,8 +11,6 @@ class DeleteReaction(Reaction):
             await message.delete()
         except disnake.errors.NotFound:
             self._logger.debug("Message that should be deleted is already gone - works for me.")
-
-        BaseEventLoop
 
     @staticmethod
     def description():

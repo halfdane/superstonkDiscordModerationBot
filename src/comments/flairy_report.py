@@ -13,8 +13,11 @@ class FlairyReport:
         self.flairy_comment_repo = flairy_comment_repo
         self.send_discord_message = send_discord_message
 
+    def wot_doing(self):
+        return "Create hourly flair reports"
+
     async def on_ready(self, scheduler, **kwargs):
-        self._logger.info("Scheduling flairy reports")
+        self._logger.warning(self.wot_doing())
         scheduler.add_job(self.report_flairs, "cron", hour="*", next_run_time=datetime.now())
 
     async def report_flairs(self):

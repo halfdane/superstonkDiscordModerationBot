@@ -16,8 +16,11 @@ class HandledItemsUnreporter:
         self.discord_bot_user = discord_bot_user
         self.readonly_reddit = readonly_reddit
 
+    def wot_doing(self):
+        return "Clean up discord notifications of handled reports"
+
     async def on_ready(self, scheduler, **kwargs):
-        self._logger.info(f"Scheduling cleanup of handled reports")
+        self._logger.warning(self.wot_doing())
         scheduler.add_job(self.unreport_items, "cron", minute="*")
         scheduler.add_job(self.remove_handled_items, "cron", minute="*", next_run_time=datetime.now())
 

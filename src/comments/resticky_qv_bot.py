@@ -11,13 +11,16 @@ class RestickyQualityVoteBot(Handler):
         self.qvbot_reddit = qvbot_reddit
         self.superstonk_moderators = superstonk_moderators
 
+    def wot_doing(self):
+        return "Re-sticky QV comment if a mod responds 'sticky'"
+
     async def on_ready(self, scheduler, **kwargs):
-        self._logger.info(f"Ready to re-sticky QV comments")
+        self._logger.warning(self.wot_doing())
 
     async def take(self, comment):
         body = getattr(comment, 'body', "")
         author = getattr(getattr(comment, "author", None), "name", None)
-        if (author in self.superstonk_moderators) and "sticky" in body:
+        if (author in self.superstonk_moderators) and "sticky" in body.lower():
             parent = await comment.parent()
             await parent.load()
             myself = await self.qvbot_reddit.user.me()
