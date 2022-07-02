@@ -44,7 +44,9 @@ class ApproveOldModqueueItems:
                 forces_manual_approval += [report[0] for report in item.mod_reports if
                                            report[0] not in auto_approvable_reports]
 
-                if (len(forces_manual_approval) == 0 and item.num_reports < 3) or removed(item):
+                if getattr(item, 'approved', True):
+                    continue
+                elif (len(forces_manual_approval) == 0 and item.num_reports < 3) or removed(item):
                     self._logger.warning(f"APPROVING {item.__class__.__name__} "
                                       f"from {created_utc.strftime('%m/%d/%Y, %H:%M:%S')} "
                                       f"with {item.num_reports} reports: {permalink(item)}")
