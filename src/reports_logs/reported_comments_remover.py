@@ -19,7 +19,7 @@ class ReportedCommentsRemover:
         scheduler.add_job(self.remove_sus_comments, "cron", minute="*")
 
     async def remove_sus_comments(self):
-        delete_post_actions = ['spamlink', 'removelink']
+        delete_post_actions = ['spamlink', 'removelink', 'lock']
         handled_post_ids = [log.target_fullname async for log in self.superstonk_subreddit.mod.log(limit=20)
                         if log.action in delete_post_actions]
 
