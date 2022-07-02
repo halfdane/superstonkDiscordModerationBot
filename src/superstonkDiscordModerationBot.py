@@ -176,7 +176,7 @@ class SuperstonkModerationBot(Bot):
         # await self.component(gme_ticker_as_user_name=GmeTickerAsUserName(**self.COMPONENTS))
         await self.component(trading_halts_reporter=TradingHaltsReporter(**self.COMPONENTS))
         await self.component(reported_comments_remover=ReportedCommentsRemover(**self.COMPONENTS))
-        # await self.component(approve_old_modqueue_items=ApproveOldModqueueItems(**self.COMPONENTS))
+        await self.component(approve_old_modqueue_items=ApproveOldModqueueItems(**self.COMPONENTS))
 
         # COGS
         hanami = Hanami(**self.COMPONENTS)

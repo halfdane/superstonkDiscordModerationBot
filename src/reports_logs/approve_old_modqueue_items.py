@@ -32,7 +32,8 @@ class ApproveOldModqueueItems:
             'DRS Positions & Buy Orders only, No Gain/Loss Porn',
             'No Mass-Shared Content',
             'Score of stickied comment has dropped below threshold',
-            'other'
+            'other',
+            'Self-Promotion Abuse'
         ]
         three_days_ago = datetime.utcnow() - timedelta(days=3)
         async for item in subreddit.mod.modqueue(limit=None):
@@ -51,6 +52,5 @@ class ApproveOldModqueueItems:
                         await item.mod.approve()
                 else:
                     self._logger.debug(f"Sending reported item {permalink(item)}")
-                    if self.is_live_environment:
-                        await self.send_discord_message(item=item, description_beginning="Report")
+                    await self.send_discord_message(item=item, description_beginning="Report")
 
