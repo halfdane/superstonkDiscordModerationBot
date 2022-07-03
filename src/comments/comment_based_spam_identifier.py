@@ -48,10 +48,12 @@ class CommentBasedSpamIdentifier(Handler):
         dups = self.index.get_near_dups(simhash)
 
         dup_items = [permalink(await self.readonly_reddit.comment(id=dub_id)) for dub_id in dups]
-        if len(dup_items) > 5:
+        if len(dup_items) > 3:
             self.send_discord_message(
                 item=item, description_beginning="Is this spam?",
-                fields={"duplicates": dup_items})
+                fields={"duplicates": dup_items},
+                auto_clean=False
+            )
 
         self.index.add(item.id, simhash)
 
