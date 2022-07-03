@@ -54,5 +54,5 @@ class ApproveOldModqueueItems:
                         await item.mod.approve()
                 else:
                     self._logger.debug(f"Sending reported item {permalink(item)}")
-                    await self.send_discord_message(item=item, description_beginning="Report")
+                    await self.send_discord_message(item=item, description_beginning="OLD Report")
 
