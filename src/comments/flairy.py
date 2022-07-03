@@ -83,7 +83,7 @@ class Flairy(Handler):
             return
 
         if self.detect_flairy_command.search(body):
-            is_mod = author in self.superstonk_moderators + ["Roid_Rage_Smurf"]
+            is_mod = author in self.superstonk_moderators
 
             self._logger.debug(
                 f"seems to be a flairy command from {author}. Treat like mod? {is_mod} {permalink(comment)}")

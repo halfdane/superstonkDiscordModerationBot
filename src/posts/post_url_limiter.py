@@ -17,7 +17,7 @@ class UrlPostLimiter(Handler):
 
     def __init__(self, post_repo, url_post_repo, qvbot_reddit,
                  is_live_environment, quality_vote_bot_configuration,
-                 send_discord_message, **kwargs):
+                 send_discord_message, superstonk_moderators, **kwargs):
         super().__init__()
         self.post_repo = post_repo
         self.url_post_repo = url_post_repo
@@ -25,6 +25,7 @@ class UrlPostLimiter(Handler):
         self.is_live_environment = is_live_environment
         self.quality_vote_bot_configuration = quality_vote_bot_configuration
         self.send_discord_message = send_discord_message
+        self.superstonk_moderators = superstonk_moderators
         self.active = False
 
     def wot_doing(self):
@@ -34,6 +35,10 @@ class UrlPostLimiter(Handler):
         self._logger.warning(self.wot_doing())
 
     async def take(self, item):
+        author = getattr(getattr(item, "author", None), "name", None)
+        if author in self.superstonk_moderators:
+            return 
+
         url = getattr(item, 'url', None)
         reduced = self.reduce_url(url)
         post_ids_with_same_url = await self.url_post_repo.fetch_like(url=reduced)
@@ -67,7 +72,7 @@ class UrlPostLimiter(Handler):
 
             await self.send_discord_message(
                 item=item,
-                item_description=f"Prevented {url} from being posted again  \n",
+                description_beginning=f"Prevented {url} from being posted again: {self.active}",
                 fields={'auto_clean': False})
             return True
 

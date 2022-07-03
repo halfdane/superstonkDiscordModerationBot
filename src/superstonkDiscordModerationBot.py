@@ -147,7 +147,9 @@ class SuperstonkModerationBot(Bot):
         subreddit_name_ = self.COMPONENTS["subreddit_name"]
         superstonk_subreddit = await self.COMPONENTS["readonly_reddit"].subreddit(subreddit_name_)
         await self.component(superstonk_subreddit=superstonk_subreddit)
-        await self.component(superstonk_moderators=[m async for m in superstonk_subreddit.moderator])
+        superstonk_moderators=[m async for m in superstonk_subreddit.moderator]
+        await self.component(superstonk_moderators_strict=superstonk_moderators)
+        await self.component(superstonk_moderators=superstonk_moderators + ["Roid_Rage_Smurf"])
 
         self.logger.warning(f"{subreddit_name_} => {superstonk_subreddit}")
 
@@ -347,7 +349,7 @@ class SuperstonkModerationBot(Bot):
 if __name__ == "__main__":
     logging.basicConfig(
         level=logging.INFO,
-        format='%(asctime)s [%(name)s]: %(message)s'
+        format='[%(name)s]: %(message)s'
     )
 
     configuration = ModerationBotConfiguration()
