@@ -12,7 +12,8 @@ class TestUrlPostLimiter:
         testee = UrlPostLimiter(post_repo=None, url_post_repo=None,
                                 qvbot_reddit=None,
                                 is_live_environment=None, quality_vote_bot_configuration=None,
-                                send_discord_message=None)
+                                send_discord_message=None,
+                                superstonk_moderators=None)
 
         # when
         for url in urls:

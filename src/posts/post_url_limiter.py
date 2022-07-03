@@ -37,7 +37,7 @@ class UrlPostLimiter(Handler):
     async def take(self, item):
         author = getattr(getattr(item, "author", None), "name", None)
         if author in self.superstonk_moderators:
-            return 
+            return
 
         url = getattr(item, 'url', None)
         reduced = self.reduce_url(url)

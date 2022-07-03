@@ -13,6 +13,7 @@ from disnake.ext.commands import Bot
 from cogs.hanami_mail_responder import Hanami
 from cogs.modqueue_cog import ModQueueCog
 from cogs.user_cog import UserCog
+from comments.comment_based_spam_identifier import CommentBasedSpamIdentifier
 from comments.comment_based_troll_identifier import CommentBasedTrollIdentifier
 from comments.comment_repository import Comments
 from comments.comment_repository_updater import CommentRepositoryUpdater
@@ -198,7 +199,10 @@ class SuperstonkModerationBot(Bot):
             name="Comments",
             item_fetch_function=superstonk_subreddit.stream.comments,
             item_repository=self.COMPONENTS['comment_repo'],
-            handlers=[Flairy(**self.COMPONENTS), RestickyQualityVoteBot(**self.COMPONENTS)]))
+            handlers=[
+                CommentBasedSpamIdentifier(**self.COMPONENTS),
+                Flairy(**self.COMPONENTS),
+                RestickyQualityVoteBot(**self.COMPONENTS)]))
 
         await self.component(reports_reader=RedditItemReader(
             name="Reports",
