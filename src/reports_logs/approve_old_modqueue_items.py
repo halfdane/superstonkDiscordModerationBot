@@ -48,11 +48,7 @@ class ApproveOldModqueueItems:
                     continue
                 elif (len(forces_manual_approval) == 0 and item.num_reports < 3) or removed(item):
                     self._logger.warning(f"APPROVING {item.__class__.__name__} "
-                                      f"from {created_utc.strftime('%m/%d/%Y, %H:%M:%S')} "
-                                      f"with {item.num_reports} reports: {permalink(item)}")
+                                         f"from {created_utc.strftime('%m/%d/%Y, %H:%M:%S')} "
+                                         f"with {item.num_reports} reports: {permalink(item)}")
                     if self.is_live_environment:
                         await item.mod.approve()
-                else:
-                    self._logger.debug(f"Sending reported item {permalink(item)}")
-                    await self.send_discord_message(item=item, description_beginning="OLD Report")
-
