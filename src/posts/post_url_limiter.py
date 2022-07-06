@@ -26,7 +26,6 @@ class UrlPostLimiter(Handler):
         self.quality_vote_bot_configuration = quality_vote_bot_configuration
         self.send_discord_message = send_discord_message
         self.superstonk_moderators = superstonk_moderators
-        self.active = False
 
     def wot_doing(self):
         return "Restrict the posting of similar URLs to 2"
@@ -59,23 +58,18 @@ class UrlPostLimiter(Handler):
             removal_comment_template = self.quality_vote_bot_configuration.config['url_limit_reached_comment']
             removal_comment = chevron.render(removal_comment_template, model)
 
-            self._logger.info(f"The URL is posted a lot: {removal_comment}")
-
-            if self.is_live_environment and self.active:
+            if self.is_live_environment:
                 item_from_qvbot_view = await self.qvbot_reddit.submission(item.id, fetch=False)
                 sticky = await item_from_qvbot_view.reply(removal_comment)
                 await sticky.mod.distinguish(how="yes", sticky=True)
                 await sticky.mod.ignore_reports()
                 await item_from_qvbot_view.mod.remove(spam=False, mod_note="url count limit reached")
-            else:
-                self._logger.info("Feature isn't active, so I'm not removing anything.")
 
             await self.send_discord_message(
                 item=item,
                 description_beginning=f"Prevented {url} from being posted again: {self.active}",
                 fields={'auto_clean': False})
             return True
-
         else:
             await self.url_post_repo.store(item)
 
