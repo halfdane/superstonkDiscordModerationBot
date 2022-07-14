@@ -96,6 +96,12 @@ class SuperstonkModerationBot(Bot):
         # CONFIGURATION VALUES
         await self.component(**self.moderation_bot_configuration)
 
+        # name
+        for guild in self.guilds:
+            if guild:
+                await guild.me.edit(nick="modbot")
+        await self.change_presence(
+            activity=disnake.Activity(type=disnake.ActivityType.watching, name="👁👁"))
 
         # CHANNELS
         self.logger.warning(f"report into the discord channel: {self.COMPONENTS['report_channel_id']}")
@@ -176,7 +182,7 @@ class SuperstonkModerationBot(Bot):
         await self.component(post_repository_updater=PostRepositoryUpdater(**self.COMPONENTS))
         await self.component(handled_items_unreporter=HandledItemsUnreporter(**self.COMPONENTS))
         await self.component(flairy_report=FlairyReport(**self.COMPONENTS))
-        # await self.component(gme_ticker_as_user_name=GmeTickerAsUserName(**self.COMPONENTS))
+
         await self.component(trading_halts_reporter=TradingHaltsReporter(**self.COMPONENTS))
         await self.component(reported_comments_remover=ReportedCommentsRemover(**self.COMPONENTS))
         await self.component(approve_old_modqueue_items=ApproveOldModqueueItems(**self.COMPONENTS))
