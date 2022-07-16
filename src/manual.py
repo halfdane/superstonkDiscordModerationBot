@@ -1,6 +1,7 @@
 import asyncio
 import logging
 from datetime import datetime, timedelta
+from pprint import pprint
 
 import asyncpraw
 from psaw import PushshiftAPI
@@ -40,9 +41,10 @@ async def main():
         print(f"Logged in as {redditor.name}")
         superstonk_subreddit = await reddit.subreddit("Superstonk")
 
-        approver = ApproveOldModqueueItems(subreddit_name="Superstonk", qvbot_reddit=reddit, send_discord_message=None)
-        await approver.handle_obsolete_modqueue_items()
+        s = await reddit.submission(
+            url="https://www.reddit.com/r/Superstonk/comments/vzxc0m/big_day_for_all_hodlers_right_now_once_in_a/")
 
+        pprint(vars(s))
 
 logging.basicConfig(
     level=logging.INFO,
@@ -52,3 +54,5 @@ logging.basicConfig(
 
 loop = asyncio.get_event_loop()
 loop.run_until_complete(main())
+
+"https://www.reddit.com/gallery/w0cb1r"

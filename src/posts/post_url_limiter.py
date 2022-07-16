@@ -86,6 +86,5 @@ class UrlPostLimiter(Handler):
         return f"{o.scheme}://{o.netloc}{o.path}"
 
     def reddit_image_server(self, url):
-        o=urlparse(url)
-        # https://preview.redd.it/tclsssbhvbb91.png?width=438&format=png&auto=webp&s=92f42b08be7c4a618c162bc88bbcc3cd67bf24c0
+        o = urlparse(url)
         return f"{o.scheme}://{o.netloc}{o.path}"
