@@ -105,8 +105,27 @@ class TestCommentBodyDatabaseIntegration:
         body = await testee.fetch_body("id2")
 
         # then
-        assert body == None
+        assert body is None
 
 
+    @pytest.mark.asyncio
+    async def test_remove(self):
+        # given
+        async with aiosqlite.connect(test_db) as db:
+            await db.executemany("INSERT INTO COMMENT_BODIES(id, body) VALUES (?, ?)",
+                             [("id1", "body1"), ("id2", "body2"), ("id3", "body3")])
+            await db.commit()
+
+        testee = CommentBodiesRepository(None, test_db)
+
+        # when
+        body = await testee.remove(["id3", "id2"])
+
+        # then
+        async with aiosqlite.connect(test_db) as db:
+            async with db.execute("select * from COMMENT_BODIES") as cursor:
+                rows = [row async for row in cursor]
+                assert len(rows) == 1
+                assert a_comment(1) in rows
 
 

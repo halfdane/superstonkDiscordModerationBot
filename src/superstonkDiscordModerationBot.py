@@ -15,6 +15,7 @@ from cogs.modqueue_cog import ModQueueCog
 from cogs.user_cog import UserCog
 from comments.comment_based_spam_identifier import CommentBasedSpamIdentifier
 from comments.comment_based_troll_identifier import CommentBasedTrollIdentifier
+from comments.comment_body_repository import CommentBodiesRepository
 from comments.comment_repository import Comments
 from comments.comment_repository_updater import CommentRepositoryUpdater
 from comments.flairy import Flairy
@@ -172,6 +173,7 @@ class SuperstonkModerationBot(Bot):
         await self.component(post_repo=Posts())
         await self.component(url_post_repo=UrlPosts(**self.COMPONENTS))
         await self.component(comment_repo=Comments())
+        await self.component(comment_body_repo=CommentBodiesRepository())
         await self.component(flairy_comment_repo=FlairyComments())
         await self.component(report_repo=Reports())
 

@@ -79,11 +79,23 @@ class Comments:
             async with db.execute(statement, condition_parameters) as cursor:
                 return [Comment(row[0], Author(row[1]), row[2], row[3], row[4], row[5], row[6]) async for row in cursor]
 
-    async def ids(self, since: datetime):
+    async def ids(self, since: datetime, before: datetime = None):
+        statement = 'select id from COMMENTS'
+        condition_statements = []
+        condition_parameters = {}
+        if since is not None:
+            condition_statements.append('created_utc >:since')
+            condition_parameters['since'] = since.timestamp()
+
+        if before is not None:
+            condition_statements.append('created_utc <:before')
+            condition_parameters['before'] = before.timestamp()
+
+        if len(condition_statements) > 0:
+            statement = f'{statement} where {" and ".join(condition_statements)};'
+
         async with aiosqlite.connect(self.database) as db:
-            statement = 'select id from COMMENTS where created_utc >:since;'
-            timestamp = since.timestamp()
-            async with db.execute(statement, {'since': timestamp}) as cursor:
+            async with db.execute(statement, condition_parameters) as cursor:
                 return [row[0] async for row in cursor]
 
     async def find_authors_with_removed_negative_comments(self, since: datetime):

@@ -12,9 +12,8 @@ COMMENT_BODIES_DB = f"{CONFIG_HOME}/comment_bodies.db"
 
 
 class CommentBodiesRepository:
-    def __init__(self, comment_repo, database=COMMENT_BODIES_DB):
+    def __init__(self, database=COMMENT_BODIES_DB):
         self.database = database
-        self.comment_repo = comment_repo
         self._logger = logging.getLogger(self.__class__.__name__)
 
     async def on_ready(self, **_):
@@ -41,8 +40,3 @@ class CommentBodiesRepository:
             for id in ids:
                 await db.execute(statement, {'id': id})
             await db.commit()
-
-    async def cleanup_database(self, before):
-        posts = await self.comment_repo.fetch(before=before)
-        ids = [post.id for post in posts]
-        await self.remove(ids)

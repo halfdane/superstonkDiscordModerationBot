@@ -214,3 +214,25 @@ class TestCommentDatabaseIntegration:
         assert comments[0] == f"id_1"
         assert comments[1] == f"id_3"
 
+    @pytest.mark.asyncio
+    async def test_fetch_ids_between(self):
+        # given
+        now = datetime.utcnow()
+        last_week = now - timedelta(weeks=1)
+        three_days_ago = now - timedelta(days=3)
+        two_days_ago = now - timedelta(days=2)
+
+        await add_test_data([a_comment(1, created=three_days_ago.timestamp()),
+                             a_comment(2, created=last_week.timestamp(), id='old'),
+                             a_comment(3, created=two_days_ago.timestamp())])
+
+        # when
+        five_days_ago = now - timedelta(days=5)
+        two_days_ago = now - timedelta(days=2)
+        testee = Comments(test_db)
+        comments = await testee.ids(since=five_days_ago, before=two_days_ago)
+
+        # then
+        assert len(comments) == 1
+        assert comments[0] == f"id_1"
+
