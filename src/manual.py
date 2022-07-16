@@ -6,9 +6,13 @@ from pprint import pprint
 import asyncpraw
 from psaw import PushshiftAPI
 
+from comments.comment_body_repository import CommentBodiesRepository
+from comments.comment_repository import Comments
 from helper.moderation_bot_configuration import ModerationBotConfiguration
 from reports_logs.approve_old_modqueue_items import ApproveOldModqueueItems
 from reports_logs.reported_comments_remover import ReportedCommentsRemover
+from datetime import timedelta, datetime
+from dateutil.relativedelta import relativedelta
 
 configuration = ModerationBotConfiguration()
 
@@ -41,10 +45,21 @@ async def main():
         print(f"Logged in as {redditor.name}")
         superstonk_subreddit = await reddit.subreddit("Superstonk")
 
-        s = await reddit.submission(
-            url="https://www.reddit.com/r/Superstonk/comments/vzxc0m/big_day_for_all_hodlers_right_now_once_in_a/")
+        this_month = datetime.now()
+        this_month = datetime(this_month.year, this_month.month, day=1)
+        last_month = this_month - relativedelta(months=1)
+        month_before_last = last_month - relativedelta(months=1)
 
-        pprint(vars(s))
+        comments = Comments()
+        comment_bodies = CommentBodiesRepository()
+
+        comment_ids_of_last_month = [f"t1_{c}" for c in await comments.ids(since=month_before_last)]
+        count = 0
+        async for c in reddit.info(comment_ids_of_last_month):
+            await comment_bodies.store(c.id, c.body)
+            count += 1
+            if count % 100 == 0:
+                print("stored 100")
 
 logging.basicConfig(
     level=logging.INFO,

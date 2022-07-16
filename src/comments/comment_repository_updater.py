@@ -36,7 +36,7 @@ class CommentRepositoryUpdater:
 
     async def cleanup_comment_bodies(self):
         this_month = datetime.now()
-        this_month = datetime(this_month.year, this_month.month)
+        this_month = datetime(this_month.year, this_month.month, day=1)
         last_month = this_month - relativedelta(months=1)
         month_before_last = last_month - relativedelta(months=1)
 
