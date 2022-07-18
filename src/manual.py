@@ -1,13 +1,16 @@
 import asyncio
 import logging
+import re
 from datetime import datetime, timedelta
 from pprint import pprint
+from simhash import Simhash, SimhashIndex
 
 import asyncpraw
 from psaw import PushshiftAPI
 
 from comments.comment_body_repository import CommentBodiesRepository
 from comments.comment_repository import Comments
+from helper.links import permalink
 from helper.moderation_bot_configuration import ModerationBotConfiguration
 from reports_logs.approve_old_modqueue_items import ApproveOldModqueueItems
 from reports_logs.reported_comments_remover import ReportedCommentsRemover
@@ -38,6 +41,12 @@ def pushshift():
         metadata='true'
     )
 
+def get_features(self, s):
+    width = 3
+    s = s.lower()
+    s = re.sub(r'[^\w]+', '', s)
+    return [s[i:i + width] for i in range(max(len(s) - width + 1, 1))]
+
 
 async def main():
     async with asyncreddit as reddit:
@@ -45,21 +54,30 @@ async def main():
         print(f"Logged in as {redditor.name}")
         superstonk_subreddit = await reddit.subreddit("Superstonk")
 
-        this_month = datetime.now()
-        this_month = datetime(this_month.year, this_month.month, day=1)
-        last_month = this_month - relativedelta(months=1)
-        month_before_last = last_month - relativedelta(months=1)
+        comment_repo = Comments()
+        comment_body_repo = CommentBodiesRepository()
+        now = datetime.utcnow()
+        last_hour = now - timedelta(hours=1)
+        ids = await comment_repo.ids(since=last_hour)
 
-        comments = Comments()
-        comment_bodies = CommentBodiesRepository()
+        index = SimhashIndex(objs={}, k=3)
 
-        comment_ids_of_last_month = [f"t1_{c}" for c in await comments.ids(since=month_before_last)]
-        count = 0
-        async for c in reddit.info(comment_ids_of_last_month):
-            await comment_bodies.store(c.id, c.body)
-            count += 1
-            if count % 100 == 0:
-                print("stored 100")
+        for id in ids:
+            body = await comment_body_repo.fetch_body(id)
+
+            features = get_features(body)
+            if len(features) == 1 and features[0] == "":
+                continue
+
+            simhash = Simhash(features)
+            dups = index.get_near_dups(simhash)
+
+            dup_items = [permalink(await reddit.comment(id=dub_id)) for dub_id in dups]
+            if len(dup_items) > 3:
+                print(dup_items)
+
+            index.add(id, simhash)
+
 
 logging.basicConfig(
     level=logging.INFO,

@@ -29,13 +29,7 @@ class CommentBasedSpamIdentifier(Handler):
         self._logger.warning(self.wot_doing())
 
     async def take(self, item):
-        author = getattr(getattr(item, "author", None), "name", None)
-        if author in self.superstonk_moderators:
-            self._logger.info("ignoring mod comment")
-            return
-
         body = getattr(item, 'body', '')
-
         await self.comment_body_repo.store(item.id, body)
 
     def get_features(self, s):

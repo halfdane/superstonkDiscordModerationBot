@@ -20,7 +20,7 @@ class TestCommentBodyDatabaseIntegration:
     async def before_each(self):
         # given
         Path(test_db).unlink(missing_ok=True)
-        testee = CommentBodiesRepository(None, test_db)
+        testee = CommentBodiesRepository(test_db)
         await testee.on_ready()
 
         # actual test
@@ -50,7 +50,7 @@ class TestCommentBodyDatabaseIntegration:
         store_posts = [("id1", "body1"), ("id2", "body2"), ("id3", "body3")]
 
         # when
-        testee = CommentBodiesRepository(None, test_db)
+        testee = CommentBodiesRepository(test_db)
         for p in store_posts:
             await testee.store(p[0], p[1])
 
@@ -80,7 +80,7 @@ class TestCommentBodyDatabaseIntegration:
                 assert a_comment(2) in rows
                 assert a_comment(3) in rows
 
-        testee = CommentBodiesRepository(None, test_db)
+        testee = CommentBodiesRepository(test_db)
 
         # when
         body = await testee.fetch_body("id2")
@@ -99,14 +99,13 @@ class TestCommentBodyDatabaseIntegration:
     @pytest.mark.asyncio
     async def test_fetch_missing_entry(self):
         # given
-        testee = CommentBodiesRepository(None, test_db)
+        testee = CommentBodiesRepository(test_db)
 
         # when
         body = await testee.fetch_body("id2")
 
         # then
         assert body is None
-
 
     @pytest.mark.asyncio
     async def test_remove(self):
@@ -116,7 +115,7 @@ class TestCommentBodyDatabaseIntegration:
                              [("id1", "body1"), ("id2", "body2"), ("id3", "body3")])
             await db.commit()
 
-        testee = CommentBodiesRepository(None, test_db)
+        testee = CommentBodiesRepository(test_db)
 
         # when
         body = await testee.remove(["id3", "id2"])
