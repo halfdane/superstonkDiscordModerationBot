@@ -36,19 +36,27 @@ class ApproveOldModqueueItems:
             'Self-Promotion Abuse'
         ]
         three_days_ago = datetime.utcnow() - timedelta(days=3)
+        six_days_ago = datetime.utcnow() - timedelta(days=6)
         async for item in subreddit.mod.modqueue(limit=None):
-            created_utc = datetime.utcfromtimestamp(item.created_utc)
-            if created_utc < three_days_ago:
-                forces_manual_approval = [report[0] for report in item.user_reports if
-                                          report[0] not in auto_approvable_reports]
-                forces_manual_approval += [report[0] for report in item.mod_reports if
-                                           report[0] not in auto_approvable_reports]
+            if getattr(item, 'approved', True):
+                continue
 
-                if getattr(item, 'approved', True):
-                    continue
-                elif (len(forces_manual_approval) == 0 and item.num_reports < 3) or removed(item):
-                    self._logger.warning(f"APPROVING {item.__class__.__name__} "
-                                         f"from {created_utc.strftime('%m/%d/%Y, %H:%M:%S')} "
-                                         f"with {item.num_reports} reports: {permalink(item)}")
-                    if self.is_live_environment:
-                        await item.mod.approve()
+            forces_manual_approval_unless_old = [report[0] for report in item.user_reports if
+                                                 report[0] not in auto_approvable_reports]
+            forces_manual_approval_unless_old += [report[0] for report in item.mod_reports if
+                                                  report[0] not in auto_approvable_reports]
+
+            created_utc = datetime.utcfromtimestamp(item.created_utc)
+
+            a_little_old_but_unimportant = created_utc < three_days_ago \
+                                           and len(forces_manual_approval_unless_old) == 0 \
+                                           and item.num_reports < 3
+            pretty_old = created_utc < six_days_ago
+            should_approve = a_little_old_but_unimportant or pretty_old or removed(item)
+
+            if should_approve:
+                self._logger.warning(f"APPROVING {item.__class__.__name__} "
+                                     f"from {created_utc.strftime('%m/%d/%Y, %H:%M:%S')} "
+                                     f"with {item.num_reports} reports: {permalink(item)}")
+                if self.is_live_environment:
+                    await item.mod.approve()
