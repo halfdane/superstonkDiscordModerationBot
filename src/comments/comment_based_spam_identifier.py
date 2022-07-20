@@ -49,13 +49,17 @@ class CommentBasedSpamIdentifier(Handler):
 
     async def bla(self):
         now = datetime.utcnow()
-        last_hour = now - timedelta(hours=12)
+        last_hour = now - timedelta(hours=1)
         ids = await self.comment_repo.ids(since=last_hour)
 
         index = SimhashIndex(objs={}, k=5)
         hashes = set()
 
         for i, id in enumerate(ids):
+            author = (await self.comment_repo.fetch(id=id)).author.name
+            if author in self.superstonk_moderators:
+                continue
+
             body = await self.comment_body_repo.fetch_body(id)
             if body is None or len(body) == 0:
                 body = ""
@@ -76,7 +80,7 @@ class CommentBasedSpamIdentifier(Handler):
             dups = index.get_near_dups(s)
             comments = [c async for c in self.readonly_reddit.info(dups)]
             author = comments[0].author
-            if author not in self.superstonk_moderators and all([c.author == author for c in comments]):
+            if all([c.author == author for c in comments]):
                 spammer[author] = [permalink(c) for c in comments]
 
         return spammer
