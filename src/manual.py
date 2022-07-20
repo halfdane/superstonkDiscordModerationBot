@@ -8,6 +8,7 @@ from simhash import Simhash, SimhashIndex
 import asyncpraw
 from psaw import PushshiftAPI
 
+from comments.comment_based_spam_identifier import CommentBasedSpamIdentifier
 from comments.comment_body_repository import CommentBodiesRepository
 from comments.comment_repository import Comments
 from helper.links import permalink
@@ -41,7 +42,7 @@ def pushshift():
         metadata='true'
     )
 
-def get_features(self, s):
+def get_features(s):
     width = 3
     s = s.lower()
     s = re.sub(r'[^\w]+', '', s)
@@ -52,31 +53,15 @@ async def main():
     async with asyncreddit as reddit:
         redditor = await reddit.user.me()
         print(f"Logged in as {redditor.name}")
-        superstonk_subreddit = await reddit.subreddit("Superstonk")
-
         comment_repo = Comments()
         comment_body_repo = CommentBodiesRepository()
-        now = datetime.utcnow()
-        last_hour = now - timedelta(hours=1)
-        ids = await comment_repo.ids(since=last_hour)
 
-        index = SimhashIndex(objs={}, k=3)
+        testee = CommentBasedSpamIdentifier(comment_repo, comment_body_repo, reddit, send_discord_message=None,
+                                                superstonk_moderators=["Superstonk_QV", "Roid_Rage_Smurf"])
 
-        for id in ids:
-            body = await comment_body_repo.fetch_body(id)
-
-            features = get_features(body)
-            if len(features) == 1 and features[0] == "":
-                continue
-
-            simhash = Simhash(features)
-            dups = index.get_near_dups(simhash)
-
-            dup_items = [permalink(await reddit.comment(id=dub_id)) for dub_id in dups]
-            if len(dup_items) > 3:
-                print(dup_items)
-
-            index.add(id, simhash)
+        spammers = await testee.bla()
+        for k,v in spammers.items():
+            print(f"{k}: {v}")
 
 
 logging.basicConfig(
