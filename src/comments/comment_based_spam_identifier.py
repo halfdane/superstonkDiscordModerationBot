@@ -10,6 +10,8 @@ from reddit_item_handler import Handler
 
 
 class CommentBasedSpamIdentifier(Handler):
+    drs_witnesses = ["Rockets2theMoon", "PhillyTheBeaut", "KnightsBridge_1896", "WrongScratch", "No-Vacation-654",
+                     "SimpleJack2021", ]
 
     def __init__(self, comment_repo: Comments = None,
                  comment_body_repo: CommentBodiesRepository = None,
@@ -49,6 +51,7 @@ class CommentBasedSpamIdentifier(Handler):
             )
 
     async def find_spammers(self):
+        self._logger.info("Starting to hunt for spammers")
         now = datetime.utcnow()
         last_hour = now - timedelta(hours=1)
         ids = await self.comment_repo.ids(since=last_hour)
@@ -58,7 +61,7 @@ class CommentBasedSpamIdentifier(Handler):
 
         for i, id in enumerate(ids):
             author = (await self.comment_repo.fetch(id=id))[0].author.name
-            if author in self.superstonk_moderators:
+            if author in self.superstonk_moderators or author in self.drs_witnesses:
                 continue
 
             body = await self.comment_body_repo.fetch_body(id)
