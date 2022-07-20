@@ -44,7 +44,7 @@ class CommentBasedSpamIdentifier(Handler):
     async def report_spammers(self):
         spammers = await self.find_spammers()
         for k, v in spammers.items():
-            self.send_discord_message(
+            await self.send_discord_message(
                 description_beginning="Is this a spammer?",
                 author=k,
                 fields={"duplicates": v}
