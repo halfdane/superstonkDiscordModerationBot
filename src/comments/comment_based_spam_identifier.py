@@ -27,6 +27,7 @@ class CommentBasedSpamIdentifier(Handler):
 
     async def on_ready(self, scheduler, **kwargs):
         self._logger.warning(self.wot_doing())
+        scheduler.add_job(self.report_spammers, "cron", hour="*")
 
     async def take(self, item):
         body = getattr(item, 'body', '')
@@ -38,16 +39,16 @@ class CommentBasedSpamIdentifier(Handler):
         s = re.sub(r'[^\w]+', '', s)
         return [s[i:i + width] for i in range(max(len(s) - width + 1, 1))]
 
+    async def report_spammers(self):
+        spammers = await self.find_spammers()
+        for k, v in spammers.items():
+            self.send_discord_message(
+                description_beginning="Is this a spammer?",
+                author=k,
+                fields={"duplicates": v}
+            )
+
     async def find_spammers(self):
-        spammers = await self.bla()
-        # self.send_discord_message(
-        #     description_beginning="Is this spam?",
-        #     fields={"duplicates": dup_items},
-        #     auto_clean=False
-        # )
-
-
-    async def bla(self):
         now = datetime.utcnow()
         last_hour = now - timedelta(hours=1)
         ids = await self.comment_repo.ids(since=last_hour)
@@ -84,4 +85,3 @@ class CommentBasedSpamIdentifier(Handler):
                 spammer[author] = [permalink(c) for c in comments]
 
         return spammer
-
