@@ -56,7 +56,7 @@ class CommentBasedSpamIdentifier(Handler):
         hashes = set()
 
         for i, id in enumerate(ids):
-            author = (await self.comment_repo.fetch(id=id)).author.name
+            author = (await self.comment_repo.fetch(id=id))[0].author.name
             if author in self.superstonk_moderators:
                 continue
 
