@@ -27,7 +27,7 @@ class ReportedCommentsRemover:
         async for post in self.qvbot_reddit.info(handled_post_ids):
             await post.load()
             await post.comments.replace_more(limit=None)
-            comments = [permalink(c) for c in post.comments if
+            comments = [c for c in post.comments if
                         len(getattr(c, 'user_reports', [])) > 0 or len(getattr(c, 'mod_reports', [])) > 0]
 
             for comment in comments:
@@ -40,5 +40,5 @@ class ReportedCommentsRemover:
             if len(comments) > 0:
                 await self.send_discord_message(
                     description_beginning="CLEANED UP comments from moderated post",
-                    fields={'comments': comments})
+                    fields={'comments': [permalink(c) for c in comments]})
 
