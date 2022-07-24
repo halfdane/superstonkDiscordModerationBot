@@ -22,7 +22,7 @@ class ReportedCommentsRemover:
     async def remove_sus_comments(self):
         delete_post_actions = ['spamlink', 'removelink', 'lock']
         handled_post_ids = [log.target_fullname async for log in self.superstonk_subreddit.mod.log(limit=20)
-                        if log.action in delete_post_actions]
+                        if log.action in delete_post_actions and log.target_fullname.startswith("t3")]
 
         async for post in self.qvbot_reddit.info(handled_post_ids):
             await post.load()
