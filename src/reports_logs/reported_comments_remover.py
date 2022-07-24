@@ -30,18 +30,25 @@ class ReportedCommentsRemover:
             comments = [c for c in post.comments if
                         len(getattr(c, 'user_reports', [])) > 0 or len(getattr(c, 'mod_reports', [])) > 0]
 
+            success = []
+            fail = []
+
             for comment in comments:
                 if self.is_live_environment:
                     item_from_qvbot_view = await self.qvbot_reddit.submission(comment.id, fetch=False)
                     try:
                         await item_from_qvbot_view.mod.remove(spam=False, mod_note="Cleaning up")
+                        success.append(comment)
                     except:
-                        self._logger.warning(f"Couldn't remove {permalink(comment)}")
+                        fail.append(comment)
                 else:
                     self._logger.info("Feature isn't active, so I'm not removing anything.")
 
             if len(comments) > 0:
                 await self.send_discord_message(
                     description_beginning="CLEANED UP comments from moderated post",
-                    fields={'comments': [permalink(c) for c in comments]})
+                    fields={
+                        'removed': [permalink(c) for c in comments],
+                        'ignored': [permalink(c) for c in comments]
+                    })
 
