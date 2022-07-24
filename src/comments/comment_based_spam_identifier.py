@@ -47,7 +47,10 @@ class CommentBasedSpamIdentifier(Handler):
             await self.send_discord_message(
                 description_beginning="Is this a spammer?",
                 author=k,
-                fields={"duplicates": v}
+                fields={
+                    "duplicates": v[0],
+                    "body": v[1],
+                }
             )
 
     async def find_spammers(self):
@@ -84,7 +87,8 @@ class CommentBasedSpamIdentifier(Handler):
             dups = index.get_near_dups(s)
             comments = [c async for c in self.readonly_reddit.info(dups)]
             author = comments[0].author
+            body = comments[0].body[:100]
             if all([c.author == author for c in comments]):
-                spammer[author] = [permalink(c) for c in comments]
+                spammer[author] = ([permalink(c) for c in comments], body)
 
         return spammer
