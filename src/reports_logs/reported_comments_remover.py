@@ -33,7 +33,10 @@ class ReportedCommentsRemover:
             for comment in comments:
                 if self.is_live_environment:
                     item_from_qvbot_view = await self.qvbot_reddit.submission(comment.id, fetch=False)
-                    await item_from_qvbot_view.mod.remove(spam=False, mod_note="Cleaning up")
+                    try:
+                        await item_from_qvbot_view.mod.remove(spam=False, mod_note="Cleaning up")
+                    except:
+                        self._logger.warning(f"Couldn't remove {permalink(comment)}")
                 else:
                     self._logger.info("Feature isn't active, so I'm not removing anything.")
 
