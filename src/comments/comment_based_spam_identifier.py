@@ -48,8 +48,8 @@ class CommentBasedSpamIdentifier(Handler):
                 description_beginning="Is this a spammer?",
                 author=k,
                 fields={
+                    "comment": v[1],
                     "duplicates": v[0],
-                    "body": v[1],
                 }
             )
 
