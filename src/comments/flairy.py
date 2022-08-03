@@ -208,7 +208,7 @@ class RandomFlairCommand:
                    "Bullish"]
 
         emojis = random.sample(_emojis, 2)
-        flair_text = f"{emojis[0]} {random.sample(_flairs, 1)[0]} {emojis[1]}"
+        flair_text = f"🧚🧚{emojis[0]} {random.sample(_flairs, 1)[0]} {emojis[1]}🧚🧚"
         color = random.sample(self.colors, 1)[0]
         message = f"""(✿☉｡☉) You didn't ask for a flair?! Lemme get one for you...   \n"""
         self._logger.info(f"Randomly assigning: {permalink(comment)}")
