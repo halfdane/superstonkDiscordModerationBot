@@ -191,21 +191,34 @@ class RandomFlairCommand:
                    '♾️', '🐵', '💙', '🍦💩🪑'
                    ]
 
-        _flairs = ["TOMORROW!", "Hola", "I'm here for the memes", "es mucho", "We're in the endgame now", "Gamecock",
-                   "FUCK YOU PAY ME", "Locked and loaded ", "Power to the Players", "Nothin But Time",
-                   "GME to the Moon! ",
+        _flairs = ["TOMORROW!", "I'm here for the memes", "We're in the endgame now", "Gamecock",
+                   "FUCK YOU PAY ME", "Locked and loaded ","Nothin But Time", "Today's the daaay",
+                   "GME to the Moon! ", "I am not a cat", "I like the stock. ", "Just Like the Stonk",
                    "Infinite Risk ", "Hang in There! ", "Power to the Players ", "Power to the Creators ",
-                   "Probably nothing", "Gimme me my money ", "GME ", "Apes together strong", "before the split",
+                   "Probably nothing", "Gimme me my money ", "GME", "Apes together strong", "GME go Brrrr ",
                    "Gamestop 4U", "Casual lurker until MOASS", "GMERICA ", "GME ", "Superstonk Ape", "GME to the Moon!",
-                   "Pepperidge Farm remembers", "LOVE GME ", "SuperApe ", "What’s an exit strategy", "C.R.E.A.M",
+                   "Pepperidge Farm remembers", "LOVE GME ", "SuperApe ", "What’s an exit strategy",
                    "ZEN APE ", "No Cell No Sell", "GameStop", "Power to the Players ", "Crayon Sniffer ",
-                   "Mods are sus",
-                   "DEEP FUCKING VALUE ", "Fuck no I’m not selling my GME!", "Fuck Citadel", "I just love the stock ",
+                   "Mods are sus", "Always has been", "Apes together strong ", "wen moon", "I just love the stock ",
+                   "DEEP FUCKING VALUE ", "Fuck no I’m not selling my GME!", "Fuck Citadel", "I SAID WE GREEN TODAY",
                    "FUD is the Mind-Killer", "No target, just up!", "We are in a completely fraudulent system ",
-                   "Get rich or die buyin’", "GME go Brrrr ", "Apes together strong ", "wen moon",
-                   "I SAID WE GREEN TODAY",
-                   "Buy now, ask questions later ", "I am not a cat", "I like the stock. ", "Just Like the Stonk",
-                   "Bullish"]
+                   "Get rich or die buyin’", "Buy now, ask questions later ", "Bullish",
+                   "👮 Hodl Patrodl 🚓 wee woo wee woo 🚨", "MELV-OUT", "Naked, 🩳 and 🦏",
+                   "SWAPPED FASTER THAN KENNY'S ALGO", "Gimme flair", "RYANS MY DAD",
+                   "We can stay retarded longer than they can stay solvent", "Fuel the Rocket!",
+                   "NFT = never felt a titty", "Pirate Bae", "Go Ahead. Make My Dip Day",
+                   "Melvin was only the beginning", "Yeet the Rich", "Swagasaurus FLEX",
+                   "Today is yesterday's tomorrow", "Tendie side of the M🌒🌘N", "99%’s Revenge 🦍",
+                   "My retardation > SHF solvency", "more like SHITadel, amirite?", "Hodl-eh-hewhooo", "Game On, Anon",
+                   "I FOOKIN LOVE GME", "Zero or Many Zeroes", "paperhand deez nuts", "Smooth 🧠 AF",
+                   "On our way to conquer Uranus", "Stay hydrated, drink hedgie tears!!", "Uranian Princess",
+                   "That's no moon, that's Uranus!", "No Surrender", "high noon at Mount MOASS", "MOASSMAN",
+                   "“Oops, MOASS?”", ":cs: :GS: :pwrup:", "( ^ ) ( ^ )", "eew eew llams a evah I", "Crayon Hog",
+                   "741piece", "Divide My Stride", "4X the Zen!", "Merry Splitmas!", "The Bee’s Knees Squeeze",
+                   "Show me your purple circle", "Buy now, ask questions later", "Ape’n’stein", "glorilla grip hands",
+                   "Unrealised Billionaire", "'Clueless' Investor", "MICRO APE", "Hedgies R Fuk", "Knights of Harambe",
+                   "Superstonk Ape", "Dip Split Dip Rip", "Who sneezed?",
+                   ]
 
         emojis = random.sample(_emojis, 2)
         flair_text = f"🧚🧚{emojis[0]} {random.sample(_flairs, 1)[0]} {emojis[1]}🧚🧚"
