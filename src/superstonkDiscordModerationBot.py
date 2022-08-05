@@ -208,7 +208,7 @@ class SuperstonkModerationBot(Bot):
             item_fetch_function=superstonk_subreddit.stream.comments,
             item_repository=self.COMPONENTS['comment_repo'],
             handlers=[
-                CommentBasedSpamIdentifier(**self.COMPONENTS),
+                # CommentBasedSpamIdentifier(**self.COMPONENTS),
                 Flairy(**self.COMPONENTS),
                 RestickyQualityVoteBot(**self.COMPONENTS)]))
 
