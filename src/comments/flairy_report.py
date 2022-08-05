@@ -14,16 +14,16 @@ class FlairyReport:
         self.send_discord_message = send_discord_message
 
     def wot_doing(self):
-        return "Create hourly flair reports"
+        return "Create daily flair reports"
 
     async def on_ready(self, scheduler, **kwargs):
         self._logger.warning(self.wot_doing())
-        scheduler.add_job(self.report_flairs, "cron", hour="*", next_run_time=datetime.now())
+        scheduler.add_job(self.report_flairs, "cron", day="*", next_run_time=datetime.now())
 
     async def report_flairs(self):
         self._logger.info("Running flairy report")
 
-        yesterday = datetime.now() - timedelta(hours=1)
+        yesterday = datetime.now() - timedelta(hours=24)
         message = f"Comments the flairy reacted to since {yesterday}:  \n"
         flairy_username = await self.flairy_reddit.user.me()
         comments = await self.comment_repo.fetch(since=yesterday, author=flairy_username)
