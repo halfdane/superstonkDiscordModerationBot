@@ -21,47 +21,36 @@ from dateutil.relativedelta import relativedelta
 configuration = ModerationBotConfiguration()
 
 asyncreddit = asyncpraw.Reddit(
-    **configuration.qvbot_reddit_settings(),
-    user_agent="com.halfdane.superstonk_moderation_bot:v0.1.1 (by u/half_dane)")
+    **configuration.readonly_reddit_settings(),
+    user_agent="com.halfdane.superstonk_moderation_bot:v0.xx (by u/half_dane)")
 
 
 COMPONENTS={}
 COMPONENTS.update(configuration)
 
-def pushshift():
-    pushshift_api = PushshiftAPI()
-
-    end_epoch = int(datetime.utcnow().timestamp())
-    start_epoch = int((datetime.utcnow() - timedelta(days=70)).timestamp())
-    start_epoch = int((datetime.utcnow() - timedelta(days=70)).timestamp())
-
-    posts = pushshift_api.search_submissions(
-        after=start_epoch,
-        before=end_epoch,
-        subreddit='Superstonk',
-        metadata='true'
-    )
-
-def get_features(s):
-    width = 3
-    s = s.lower()
-    s = re.sub(r'[^\w]+', '', s)
-    return [s[i:i + width] for i in range(max(len(s) - width + 1, 1))]
-
+async def deb(description_beginning, fields):
+    print(f"{description_beginning}")
+    print(fields)
 
 async def main():
     async with asyncreddit as reddit:
         redditor = await reddit.user.me()
+        superstonk_subreddit = await reddit.subreddit("Superstonk")
         print(f"Logged in as {redditor.name}")
         comment_repo = Comments()
         comment_body_repo = CommentBodiesRepository()
 
-        testee = CommentBasedSpamIdentifier(comment_repo, comment_body_repo, reddit, send_discord_message=None,
-                                                superstonk_moderators=["Superstonk_QV", "Roid_Rage_Smurf"])
 
-        spammers = await testee.bla()
-        for k,v in spammers.items():
-            print(f"{k}: {v}")
+        testee = ReportedCommentsRemover(superstonk_subreddit, reddit, send_discord_message=deb, is_live_environment=True)
+
+        p = await reddit.submission(url="https://new.reddit.com/r/Superstonk/comments/wgcmnt/")
+
+        # await testee.handle_post_ids([p.name])
+
+        # c = await reddit.comment(url="https://new.reddit.com/r/Superstonk/comments/wgcmnt/comment/iiz1u6n/")
+        # print(c.body)
+        # await c.mod.remove()
+
 
 
 logging.basicConfig(
@@ -72,5 +61,3 @@ logging.basicConfig(
 
 loop = asyncio.get_event_loop()
 loop.run_until_complete(main())
-
-"https://www.reddit.com/gallery/w0cb1r"

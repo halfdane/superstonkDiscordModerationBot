@@ -23,7 +23,9 @@ class ReportedCommentsRemover:
         delete_post_actions = ['spamlink', 'removelink', 'lock']
         handled_post_ids = [log.target_fullname async for log in self.superstonk_subreddit.mod.log(limit=10)
                         if log.action in delete_post_actions and log.target_fullname.startswith("t3")]
+        await self.handle_post_ids(handled_post_ids)
 
+    async def handle_post_ids(self, handled_post_ids):
         async for post in self.qvbot_reddit.info(handled_post_ids):
             await post.load()
             await post.comments.replace_more(limit=None)
@@ -35,9 +37,11 @@ class ReportedCommentsRemover:
 
             for comment in comments:
                 if self.is_live_environment and not removed(comment):
-                    item_from_qvbot_view = await self.qvbot_reddit.submission(comment.id, fetch=False)
+                    item_from_qvbot_view = await self.qvbot_reddit.comment(comment.id, fetch=False)
                     try:
-                        await item_from_qvbot_view.mod.remove(spam=False, mod_note="Cleaning up")
+                        await item_from_qvbot_view.mod.remove(
+                            spam=False,
+                            mod_note="Automatically removing reported comments from moderated posts")
                         success.append(comment)
                     except:
                         fail.append(comment)
@@ -45,10 +49,9 @@ class ReportedCommentsRemover:
                     self._logger.info("Feature isn't active, so I'm not removing anything.")
 
             if len(success) > 0 or len(fail) > 0:
-                await self.send_discord_message(
-                    description_beginning="CLEANED UP comments from moderated post",
-                    fields={
-                        'removed': [permalink(c) for c in success],
-                        'ignored': [permalink(c) for c in fail]
-                    })
+                self._logger.info(
+                    f"CLEANED UP comments from moderated post: \n"
+                    f"removed: {[permalink(c) for c in success]} \n"
+                    f"ignored: {[permalink(c) for c in fail]} \n"
+                    )
 
