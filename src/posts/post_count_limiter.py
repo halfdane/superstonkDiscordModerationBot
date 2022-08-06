@@ -77,17 +77,8 @@ class PostCountLimiter(Handler):
                 await item_from_qvbot_view.mod.remove(spam=False, mod_note="post count limit reached")
 
             await self.post_repo.do_not_count_to_limit(item)
-            await self.report_infraction(author_name, item)
 
             return True
-
-    async def report_infraction(self, author, item):
-        embed = Embed(colour=disnake.Colour(0).from_rgb(207, 206, 255))
-        embed.description = f"**Prevented {author} from posting {permalink(item)}**  \n"
-        embed.add_field("Redditor", f"[{author}](https://www.reddit.com/u/{author})", inline=False)
-
-        msg = await self.report_channel.send(embed=embed)
-        await self.add_reactions_to_discord_message(msg)
 
     async def fetch_config_from_wiki(self):
         wiki_page = await self.superstonk_subreddit.wiki.get_page("qualityvote")
