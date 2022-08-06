@@ -89,8 +89,6 @@ class TestPostCountLimiter:
 
         mock_post_repo.do_not_count_to_limit.assert_awaited_with(a_fake_post)
 
-        mock_report_channel.send.assert_awaited()
-
     @pytest.mark.asyncio
     async def test_ignore_over_limit_if_environment_isnt_live(self):
         # given
