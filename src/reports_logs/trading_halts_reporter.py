@@ -17,7 +17,7 @@ class TradingHaltsReporter():
 
     async def on_ready(self, scheduler, **kwargs):
         self._logger.warning(self.wot_doing())
-        scheduler.add_job(self.notify_trading_halt, "cron", minute="*", next_run_time=datetime.now())
+        scheduler.add_job(self.notify_trading_halt, "cron", minute="*/5", next_run_time=datetime.now())
 
     async def notify_trading_halt(self):
         self._logger.debug("checking if a trading halt has occured")
