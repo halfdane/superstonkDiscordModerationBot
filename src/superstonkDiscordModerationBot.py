@@ -223,7 +223,7 @@ class SuperstonkModerationBot(Bot):
             item_fetch_function=superstonk_subreddit.stream.submissions,
             item_repository=self.COMPONENTS['post_repo'],
             handlers=[
-                # FrontDeskSticky(),
+                FrontDeskSticky(),
                 PostCountLimiter(**self.COMPONENTS),
                 UrlPostLimiter(**self.COMPONENTS),
                 WeekendRestrictor(**self.COMPONENTS),
