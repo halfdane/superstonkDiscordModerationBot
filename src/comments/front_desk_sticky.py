@@ -8,10 +8,6 @@ from reddit_item_handler import Handler
 class FrontDeskSticky(Handler):
     _sticky_text = """**G**ooooood **M**orning **E**veryone!
 
-After lurking around in my home-turf of the Elbe-Weser-Dreieck 
-and the Baltic sea for almost two weeks, I feel ready to be your trusty 
-janitor again: just point me to the trolls so I can (politely) escort them to the door 😉
-
 # The Front Desk is open!
 
 """
