@@ -10,9 +10,6 @@ class FrontDeskSticky(Handler):
 
 # The Front Desk is open!
 
-Our ape historian u/Elegant-Remote6667 asks for help: https://www.reddit.com/r/Superstonk/comments/wt45ph/
-
-Tldr: can you see the post behind this ipfs link? https://bafybeibwxpaduwd5kxj6vmfbdetooemcxqpnuscqmk3s7ydj7bmim7jvge.ipfs.w3s.link/wssqzb_Superstonk_post.html
 """
 
     def __init__(self, **kwargs):
