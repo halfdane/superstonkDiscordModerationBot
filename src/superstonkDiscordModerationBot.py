@@ -13,7 +13,6 @@ from disnake.ext.commands import Bot
 from cogs.hanami_mail_responder import Hanami
 from cogs.modqueue_cog import ModQueueCog
 from cogs.user_cog import UserCog
-from comments.comment_based_spam_identifier import CommentBasedSpamIdentifier
 from comments.comment_based_troll_identifier import CommentBasedTrollIdentifier
 from comments.comment_body_repository import CommentBodiesRepository
 from comments.comment_repository import Comments
@@ -22,7 +21,7 @@ from comments.flairy import Flairy
 from comments.flairy_comment_repository import FlairyComments
 from comments.flairy_report import FlairyReport
 from comments.front_desk_sticky import FrontDeskSticky
-from comments.resticky_qv_bot import RestickyQualityVoteBot
+from qv_bot.resticky_qv_bot import RestickyQualityVoteBot
 from discordReactionHandlers.delete_reaction import DeleteReaction
 from discordReactionHandlers.help_reaction import HelpReaction
 from discordReactionHandlers.modnote_reaction import ModNoteReaction
@@ -37,16 +36,15 @@ from posts.post_repository import Posts
 from posts.post_repository_updater import PostRepositoryUpdater
 from posts.post_statistics import CalculatePostStatistics
 from posts.post_url_limiter import UrlPostLimiter
-from posts.qv_bot import QualityVoteBot
-from posts.qv_bot_configuration import QualityVoteBotConfiguration
-from posts.r_all_sticky_creator import RAllStickyCreator
+from qv_bot.qv_bot import QualityVoteBot
+from qv_bot.qv_bot_configuration import QualityVoteBotConfiguration
+from qv_bot.r_all_sticky_creator import RAllStickyCreator
 from posts.url_post_repository import UrlPosts
 from reddit_item_reader import RedditItemReader
 from reports_logs.approve_old_modqueue_items import ApproveOldModqueueItems
 from reports_logs.important_reports_handler import ImportantReports
 from reports_logs.report_repository import Reports
 from reports_logs.reported_comments_remover import ReportedCommentsRemover
-from reports_logs.trading_halts_reporter import TradingHaltsReporter
 from reports_logs.unreport_handled_items import HandledItemsUnreporter
 
 
