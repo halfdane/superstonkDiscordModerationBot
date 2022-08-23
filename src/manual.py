@@ -13,6 +13,8 @@ from comments.comment_body_repository import CommentBodiesRepository
 from comments.comment_repository import Comments
 from helper.links import permalink
 from helper.moderation_bot_configuration import ModerationBotConfiguration
+from qv_bot.qv_bot_configuration import QualityVoteBotConfiguration
+from qv_bot.require_qv_response import RequireQvResponse
 from reports_logs.approve_old_modqueue_items import ApproveOldModqueueItems
 from reports_logs.reported_comments_remover import ReportedCommentsRemover
 from datetime import timedelta, datetime
@@ -21,7 +23,7 @@ from dateutil.relativedelta import relativedelta
 configuration = ModerationBotConfiguration()
 
 asyncreddit = asyncpraw.Reddit(
-    **configuration.readonly_reddit_settings(),
+    **configuration.qvbot_reddit_settings(),
     user_agent="com.halfdane.superstonk_moderation_bot:v0.xx (by u/half_dane)")
 
 
@@ -35,21 +37,17 @@ async def deb(description_beginning, fields):
 async def main():
     async with asyncreddit as reddit:
         redditor = await reddit.user.me()
-        superstonk_subreddit = await reddit.subreddit("Superstonk")
         print(f"Logged in as {redditor.name}")
-        comment_repo = Comments()
-        comment_body_repo = CommentBodiesRepository()
+        subreddit_name_ = COMPONENTS["subreddit_name"]
+        superstonk_subreddit = await reddit.subreddit(subreddit_name_)
 
+        configuration = QualityVoteBotConfiguration(superstonk_subreddit)
+        await configuration.fetch_config_from_wiki()
+        require_qv_response = RequireQvResponse(reddit, None, configuration)
 
-        testee = ReportedCommentsRemover(superstonk_subreddit, reddit, send_discord_message=deb, is_live_environment=True)
+        p = await reddit.submission(url="https://new.reddit.com/r/testsubsuperstonk/comments/wvn9i7/test_for_response_to_qv_bot/")
 
-        p = await reddit.submission(url="https://new.reddit.com/r/Superstonk/comments/wgcmnt/")
-
-        # await testee.handle_post_ids([p.name])
-
-        # c = await reddit.comment(url="https://new.reddit.com/r/Superstonk/comments/wgcmnt/comment/iiz1u6n/")
-        # print(c.body)
-        # await c.mod.remove()
+        await require_qv_response.inspect_individual_post(p, datetime.utcnow())
 
 
 

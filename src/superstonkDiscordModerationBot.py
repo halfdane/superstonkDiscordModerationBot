@@ -21,6 +21,7 @@ from comments.flairy import Flairy
 from comments.flairy_comment_repository import FlairyComments
 from comments.flairy_report import FlairyReport
 from comments.front_desk_sticky import FrontDeskSticky
+from qv_bot.require_qv_response import RequireQvResponse
 from qv_bot.resticky_qv_bot import RestickyQualityVoteBot
 from discordReactionHandlers.delete_reaction import DeleteReaction
 from discordReactionHandlers.help_reaction import HelpReaction
@@ -182,6 +183,7 @@ class SuperstonkModerationBot(Bot):
         await self.component(post_repository_updater=PostRepositoryUpdater(**self.COMPONENTS))
         await self.component(handled_items_unreporter=HandledItemsUnreporter(**self.COMPONENTS))
         await self.component(flairy_report=FlairyReport(**self.COMPONENTS))
+        await self.component(require_qv_response=RequireQvResponse(**self.COMPONENTS))
 
        # await self.component(trading_halts_reporter=TradingHaltsReporter(**self.COMPONENTS))
         await self.component(reported_comments_remover=ReportedCommentsRemover(**self.COMPONENTS))
