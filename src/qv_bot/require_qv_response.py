@@ -29,7 +29,7 @@ class RequireQvResponse(Handler):
     async def check_recent_comments(self, ):
         self._logger.info("checking comments")
         now = datetime.utcnow()
-        interval = now - timedelta(minutes=15)
+        interval = now - timedelta(minutes=10)
         latest = now - timedelta(minutes=10)
 
         posts = await self.post_repo.fetch(since=interval)
