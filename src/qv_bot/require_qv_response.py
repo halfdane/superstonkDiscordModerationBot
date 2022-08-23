@@ -48,11 +48,11 @@ class RequireQvResponse(Handler):
         op_required_comment = self.quality_vote_bot_configuration.config.get(op_required_comment_key, None)
         post_requires_response = op_required_comment is not None
         if post_requires_response:
-            self._logger.info("Post requires a response")
+            self._logger.debug(f"Post requires a response: {permalink(post)}")
             qv_comment = await self.get_qv_comment(post)
             latest_op_response = await self.get_latest_op_response(qv_comment, post)
             if latest_op_response is not None:
-                self._logger.info(f"Got a response from Op: {latest_op_response.body}")
+                self._logger.debug(f"Got a response from Op: {latest_op_response.body}")
                 # use body of response and put it into the qv_body
                 model = {'op_response': latest_op_response.body}
                 await qv_comment.edit(chevron.render(op_required_comment, model))
@@ -63,7 +63,7 @@ class RequireQvResponse(Handler):
                 if latest > created_utc:
                     await post.report("got no response after 10 minutes")
         else:
-            self._logger.info(f"Post with {flair_id} doesn't require a response")
+            self._logger.debug(f"Post with {flair_id} doesn't require a response")
 
 
     async def get_qv_comment(self, post):
