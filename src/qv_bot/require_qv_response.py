@@ -12,12 +12,13 @@ def author(item):
 
 
 class RequireQvResponse(Handler):
-    def __init__(self, qvbot_reddit, post_repo, quality_vote_bot_configuration, **kwargs):
+    def __init__(self, qvbot_reddit, post_repo, quality_vote_bot_configuration, automod_configuration, **kwargs):
         super().__init__()
         self._logger = logging.getLogger(self.__class__.__name__)
         self.qvbot_reddit = qvbot_reddit
         self.post_repo = post_repo
         self.quality_vote_bot_configuration = quality_vote_bot_configuration
+        self.automod_configuration = automod_configuration
 
     def wot_doing(self):
         return "Remove post if QVbot didn't get a response in the allotted time - replaces 'op_response' in template"
@@ -27,9 +28,8 @@ class RequireQvResponse(Handler):
         scheduler.add_job(self.check_recent_comments, "cron", minute="*")
 
     async def check_recent_comments(self, ):
-        self._logger.info("checking comments")
         now = datetime.utcnow()
-        interval = now - timedelta(minutes=10)
+        interval = now - timedelta(minutes=12)
         latest = now - timedelta(minutes=10)
 
         posts = await self.post_repo.fetch(since=interval)
@@ -52,16 +52,23 @@ class RequireQvResponse(Handler):
             qv_comment = await self.get_qv_comment(post)
             latest_op_response = await self.get_latest_op_response(qv_comment, post)
             if latest_op_response is not None:
-                self._logger.debug(f"Got a response from Op: {latest_op_response.body}")
-                # use body of response and put it into the qv_body
-                model = {'op_response': latest_op_response.body}
-                await qv_comment.edit(chevron.render(op_required_comment, model))
+                user_provided_string = latest_op_response.body
+                self._logger.debug(f"Got a response from Op: {user_provided_string}")
+
+                if self.automod_configuration.is_forbidden_user_message(user_provided_string):
+                    await latest_op_response.report(f"Cowardly refusing to use prohibited user input: {user_provided_string}")
+                else:
+                    # use body of response and put it into the qv_body
+                    model = {'op_response': user_provided_string}
+                    await qv_comment.edit(chevron.render(op_required_comment, model))
             else:
                 # if now is over: report or remove post
                 created_utc = datetime.utcfromtimestamp(post.created_utc)
 
                 if latest > created_utc:
-                    await post.report("got no response after 10 minutes")
+                    await post.mod.remove(
+                        spam=False,
+                        mod_note="Automatically removing after timeout without response")
         else:
             self._logger.debug(f"Post with {flair_id} doesn't require a response")
 
