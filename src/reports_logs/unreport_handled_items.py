@@ -4,7 +4,7 @@ from datetime import datetime
 import disnake
 from asyncpraw.exceptions import InvalidURL
 
-from helper.links import permalink
+from helper.links import permalink, removed
 
 
 class HandledItemsUnreporter:
@@ -48,16 +48,14 @@ class HandledItemsUnreporter:
         async def __was_removed(message):
             url = message.embeds[0].url if len(getattr(message, 'embeds', [])) > 0 else None
             was_removed = False
-
             if url:
                 try:
                     comment = await self.readonly_reddit.comment(url=url)
-                    was_removed = (comment.body == '[deleted]') or comment.removed or (
-                            getattr(comment, "ban_note", None) is not None)
+                    was_removed = removed(comment)
                 except InvalidURL:
                     try:
                         submission = await self.readonly_reddit.submission(url=url)
-                        was_removed = getattr(submission, 'removed_by_category', None) is not None
+                        was_removed = removed(submission)
                     except InvalidURL:
                         pass
             return was_removed
