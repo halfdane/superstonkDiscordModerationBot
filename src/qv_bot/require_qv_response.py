@@ -49,15 +49,12 @@ class RequireQvResponse(Handler):
         op_required_comment = self.quality_vote_bot_configuration.config.get(op_required_comment_key, None)
         post_requires_response = op_required_comment is not None
         if post_requires_response:
-            await self.send_discord_message(description_beginning="Post requires a response", item=post)
             self._logger.debug(f"Post requires a response: {permalink(post)}")
             qv_comment = await self.get_qv_comment(post)
             latest_op_response = await self.get_latest_op_response(qv_comment, post)
             if latest_op_response is not None:
                 user_provided_string = latest_op_response.body
                 self._logger.debug(f"Got a response from Op: {user_provided_string}")
-                await self.send_discord_message(description_beginning="Got a response from Op", item=latest_op_response)
-
                 if self.automod_configuration.is_forbidden_user_message(user_provided_string):
                     await latest_op_response.report(f"Cowardly refusing to use prohibited user input: {user_provided_string}")
                 else:
