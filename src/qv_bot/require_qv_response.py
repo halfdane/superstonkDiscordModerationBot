@@ -47,6 +47,9 @@ class RequireQvResponse(Handler):
         flair_id = getattr(post, 'link_flair_template_id', 'NONE')
         op_required_comment_key = 'op_required_response_comment_' + flair_id
         op_required_comment = self.quality_vote_bot_configuration.config.get(op_required_comment_key, None)
+
+        is_link = getattr(post, 'domain', '') != "reddit.com"
+
         post_requires_response = op_required_comment is not None
         if post_requires_response:
             self._logger.debug(f"Post requires a response: {permalink(post)}")
