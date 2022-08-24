@@ -1,8 +1,16 @@
 from disnake.utils import escape_markdown
+from asyncpraw.models.reddit.modmail import ModmailConversation
 
 
 def permalink(item):
-    return f"https://new.reddit.com{getattr(item, 'permalink', getattr(item, 'target_permalink', '/'+str(item)))}"
+    if hasattr(item, 'permalink'):
+        return f"https://new.reddit.com{item.permalink}"
+    elif hasattr(item, 'target_permalink'):
+        return f"https://new.reddit.com{item.target_permalink}"
+    elif isinstance(item, ModmailConversation):
+        return f"https://mod.reddit.com/mail/all/{item.id}"
+    else:
+        return f"https://new.reddit.com/{str(item)}"
 
 
 def user_page(redditor):
