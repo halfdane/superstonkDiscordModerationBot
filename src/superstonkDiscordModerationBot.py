@@ -10,6 +10,7 @@ from disnake import Message
 from disnake.ext import commands
 from disnake.ext.commands import Bot
 
+from automod_configuration import AutomodConfiguration
 from cogs.hanami_mail_responder import Hanami
 from cogs.modqueue_cog import ModQueueCog
 from cogs.user_cog import UserCog
@@ -166,8 +167,6 @@ class SuperstonkModerationBot(Bot):
         testsubsuperstonk = await self.COMPONENTS["readonly_reddit"].subreddit("testsubsuperstonk")
         await self.component(superstonk_TEST_subreddit=testsubsuperstonk)
 
-        await self.component(quality_vote_bot_configuration=QualityVoteBotConfiguration(**self.COMPONENTS))
-
         # DATABASE
         await self.component(post_repo=Posts())
         await self.component(url_post_repo=UrlPosts(**self.COMPONENTS))
@@ -177,6 +176,9 @@ class SuperstonkModerationBot(Bot):
         await self.component(report_repo=Reports())
 
         # SCHEDULED COMPONENTS
+        await self.component(quality_vote_bot_configuration=QualityVoteBotConfiguration(**self.COMPONENTS))
+        await self.component(automod_configuration=AutomodConfiguration(**self.COMPONENTS))
+
         await self.component(calculate_post_statistics=CalculatePostStatistics(**self.COMPONENTS))
         await self.component(comment_based_troll_identifier=CommentBasedTrollIdentifier(**self.COMPONENTS))
         await self.component(comment_repository_updater=CommentRepositoryUpdater(**self.COMPONENTS))
@@ -236,16 +238,7 @@ class SuperstonkModerationBot(Bot):
             item_repository=None,
             handlers=[RAllStickyCreator(**self.COMPONENTS)]))
 
-        automod_config = await superstonk_subreddit.wiki.get_page("config/automoderator")
-        for rule in automod_config.content_md.split("---"):
-            y = yaml.safe_load(rule)
-            if y and y.get('action', "") == 'remove':
-                self.automod_rules += [re.compile(r) for k, v in y.items() if "regex" in k for r in v]
-        self.logger.warning(f"Read {len(self.automod_rules)} removal rules from automod rules")
         await self.send_discord_message(description_beginning="Moderation bot restarted")
-
-    def is_forbidden_comment_message(self, comment_message):
-        return any(rule.search(comment_message) for rule in self.automod_rules)
 
     async def on_message(self, msg: Message):
         if msg.author.bot or msg.channel.id != self.COMPONENTS['user_investigation_channel_id']:

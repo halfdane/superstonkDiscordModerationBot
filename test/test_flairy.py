@@ -1,5 +1,4 @@
-import logging
-from unittest.mock import patch, AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock
 from unittest.mock import ANY
 
 import pytest
@@ -24,10 +23,10 @@ def default_comment():
     return mock_comment
 
 
-def returns(return_value):
-    the_function = MagicMock()
-    the_function.return_value = return_value
-    return the_function
+def automod(forbid_everything):
+    automod_configuration = MagicMock()
+    automod_configuration.is_forbidden_comment_message.return_value = forbid_everything
+    return automod_configuration
 
 
 class TestFlairy:
@@ -43,7 +42,7 @@ class TestFlairy:
 
         # when
         testee = Flairy(flairy_reddit=flairy_reddit,
-                        is_forbidden_comment_message=returns(False),
+                        automod_configuration=automod(forbid_everything=False),
                         flairy_comment_repo=AsyncMock(),
                         add_reactions_to_discord_message=AsyncMock())
         await testee.on_ready()
@@ -67,7 +66,7 @@ class TestFlairy:
 
         # when
         testee = Flairy(flairy_reddit=flairy_reddit,
-                        is_forbidden_comment_message=returns(True),
+                        automod_configuration=automod(forbid_everything=True),
                         flairy_comment_repo=AsyncMock(),
                         add_reactions_to_discord_message=AsyncMock())
         await testee.on_ready()
@@ -86,7 +85,7 @@ class TestFlairy:
 
         # when
         testee = Flairy(flairy_reddit=flairy_reddit,
-                        is_forbidden_comment_message=returns(False),
+                        automod_configuration=automod(forbid_everything=False),
                         flairy_comment_repo=AsyncMock(),
                         add_reactions_to_discord_message=AsyncMock())
         await testee.on_ready()
@@ -109,7 +108,7 @@ class TestFlairy:
 
         # when
         testee = Flairy(flairy_reddit=flairy_reddit,
-                        is_forbidden_comment_message=returns(False),
+                        automod_configuration=automod(forbid_everything=False),
                         flairy_comment_repo=AsyncMock(),
                         add_reactions_to_discord_message=AsyncMock())
         await testee.on_ready()
@@ -132,7 +131,7 @@ class TestFlairy:
 
         # when
         testee = Flairy(flairy_reddit=flairy_reddit,
-                        is_forbidden_comment_message=returns(False),
+                        automod_configuration=automod(forbid_everything=False),
                         is_live_environment=True,
                         flairy_comment_repo=AsyncMock(),
                         add_reactions_to_discord_message=AsyncMock())
@@ -166,7 +165,7 @@ class TestFlairy:
         # when
         testee = Flairy(flairy_reddit=flairy_reddit,
                         flairy_comment_repo=AsyncMock(),
-                        is_forbidden_comment_message=returns(False),
+                        automod_configuration=automod(forbid_everything=False),
                         add_reactions_to_discord_message=AsyncMock())
         testee.flair_user = flair_user
         await testee.on_ready()
@@ -193,7 +192,7 @@ class TestFlairy:
 
         # when
         testee = Flairy(flairy_reddit=flairy_reddit,
-                        is_forbidden_comment_message=returns(False),
+                        automod_configuration=automod(forbid_everything=False),
                         flairy_comment_repo=AsyncMock(),
                         add_reactions_to_discord_message=AsyncMock())
         testee.flair_user = flair_user
@@ -223,7 +222,7 @@ class TestFlairy:
 
         # when
         testee = Flairy(flairy_reddit=flairy_reddit,
-                        is_forbidden_comment_message=returns(False),
+                        automod_configuration=automod(forbid_everything=False),
                         is_live_environment=True,
                         flairy_comment_repo=AsyncMock(),
                         add_reactions_to_discord_message=AsyncMock())

@@ -18,7 +18,7 @@ class Flairy(Handler):
     _default_color = "black"
 
     def __init__(self, superstonk_moderators=[], flairy_reddit=None,
-                 is_forbidden_comment_message=None, is_live_environment=False,
+                 automod_configuration=None, is_live_environment=False,
                  flairy_comment_repo=None, flairy_reddit_username=None,
                  subreddit_name=None,
                  **kwargs):
@@ -29,7 +29,7 @@ class Flairy(Handler):
         self.subreddit_name = subreddit_name
         self.flairy_reddit_username = flairy_reddit_username
         self.is_live_environment = is_live_environment
-        self.is_forbidden_comment_message = is_forbidden_comment_message
+        self.automod_configuration = automod_configuration
         self.flairy_comment_repo = flairy_comment_repo
 
         self.flairy_detect_user_flair_change = None
@@ -63,7 +63,7 @@ class Flairy(Handler):
             RandomFlairCommand(flairy_command_detection, regex_flags, self.flair_user, colors),
             WrongColorCommand(self.flairy_reddit, flair_command, regex_flags, colors),
             FlairTooLongCommand(self.flairy_detect_user_flair_change, self.flairy_reddit),
-            FlairContainsForbiddenPhraseCommand(self.is_forbidden_comment_message,
+            FlairContainsForbiddenPhraseCommand(self.automod_configuration,
                                                 self.flairy_detect_user_flair_change),
             ApplyFlairCommand(self.flairy_detect_user_flair_change, self.flair_user)
         ]
@@ -342,9 +342,9 @@ class FlairTooLongCommand:
 
 
 class FlairContainsForbiddenPhraseCommand:
-    def __init__(self, is_forbidden_comment_message, flairy_detect_user_flair_change):
+    def __init__(self, automod_configuration, flairy_detect_user_flair_change):
         self._logger = logging.getLogger(self.__class__.__name__)
-        self.is_forbidden_comment_message = is_forbidden_comment_message
+        self.automod_configuration = automod_configuration
         self.flairy_detect_user_flair_change = flairy_detect_user_flair_change
 
     async def handled(self, body, comment, is_mod):
@@ -354,7 +354,7 @@ class FlairContainsForbiddenPhraseCommand:
 
         flairy = self.flairy_detect_user_flair_change.match(body)
         flair_text = flairy.group(1)
-        if self.is_forbidden_comment_message(flair_text):
+        if self.automod_configuration.is_forbidden_comment_message(flair_text):
             self._logger.info(f"Silently refusing to grant flair with restricted content: {flair_text}")
             return True
 
