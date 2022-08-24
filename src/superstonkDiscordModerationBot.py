@@ -11,7 +11,6 @@ from disnake.ext import commands
 from disnake.ext.commands import Bot
 
 from automod_configuration import AutomodConfiguration
-from cogs.hanami_mail_responder import Hanami
 from cogs.modqueue_cog import ModQueueCog
 from cogs.user_cog import UserCog
 from comments.comment_based_troll_identifier import CommentBasedTrollIdentifier
@@ -191,9 +190,6 @@ class SuperstonkModerationBot(Bot):
         await self.component(approve_old_modqueue_items=ApproveOldModqueueItems(**self.COMPONENTS))
 
         # COGS
-        hanami = Hanami(**self.COMPONENTS)
-        await self.component(hanami=hanami)
-        super().add_cog(hanami)
         super().add_cog(UserCog(**self.COMPONENTS))
         super().add_cog(ModQueueCog(**self.COMPONENTS))
 
