@@ -69,7 +69,8 @@ class RequireQvResponse(Handler):
                     await self.send_discord_message(description_beginning="Removing post due to missing response", item=post)
                     await post.mod.remove(
                         spam=False,
-                        mod_note="Automatically removing after timeout without response")
+                        mod_note="Automatically removing after timeout without response",
+                        fields={'auto_clean': False})
         else:
             self._logger.debug(f"Post with {flair_id} doesn't require a response")
 
