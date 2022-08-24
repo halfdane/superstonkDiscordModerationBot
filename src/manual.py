@@ -8,6 +8,7 @@ from simhash import Simhash, SimhashIndex
 import asyncpraw
 from psaw import PushshiftAPI
 
+from automod_configuration import AutomodConfiguration
 from comments.comment_based_spam_identifier import CommentBasedSpamIdentifier
 from comments.comment_body_repository import CommentBodiesRepository
 from comments.comment_repository import Comments
@@ -40,14 +41,9 @@ async def main():
         print(f"Logged in as {redditor.name}")
         subreddit_name_ = COMPONENTS["subreddit_name"]
         superstonk_subreddit = await reddit.subreddit(subreddit_name_)
+        automod_configuration = AutomodConfiguration(superstonk_subreddit)
 
-        configuration = QualityVoteBotConfiguration(superstonk_subreddit)
-        await configuration.fetch_config_from_wiki()
-        require_qv_response = RequireQvResponse(reddit, None, configuration)
-
-        p = await reddit.submission(url="https://new.reddit.com/r/testsubsuperstonk/comments/wvn9i7/test_for_response_to_qv_bot/")
-
-        await require_qv_response.inspect_individual_post(p, datetime.utcnow())
+        await automod_configuration.fetch_config_from_wiki()
 
 
 

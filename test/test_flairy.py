@@ -8,8 +8,8 @@ from comments.flairy import Flairy
 
 def default_bot():
     mock_bot = AsyncMock()
-    mock_bot.is_forbidden_comment_message = MagicMock()
-    mock_bot.is_forbidden_comment_message.return_value = False
+    mock_bot.is_forbidden_user_message = MagicMock()
+    mock_bot.is_forbidden_user_message.return_value = False
     return mock_bot
 
 
@@ -25,7 +25,7 @@ def default_comment():
 
 def automod(forbid_everything):
     automod_configuration = MagicMock()
-    automod_configuration.is_forbidden_comment_message.return_value = forbid_everything
+    automod_configuration.is_forbidden_user_message.return_value = forbid_everything
     return automod_configuration
 
 

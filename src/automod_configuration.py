@@ -6,13 +6,13 @@ import yaml
 
 class AutomodConfiguration:
 
-    automod_rules = []
-
-    def __init__(self, superstonk_subreddit, **kwargs):
+    def __init__(self, superstonk_subreddit, automod_rules=[], domain_filter=[], **kwargs):
         super().__init__()
         self._logger = logging.getLogger(self.__class__.__name__)
         self.superstonk_subreddit = superstonk_subreddit
         self.config = None
+        self.automod_rules = automod_rules
+        self.domain_filter = domain_filter
 
     def wot_doing(self):
         return "Read the Automod-Configuration every 10 minutes"
@@ -31,7 +31,12 @@ class AutomodConfiguration:
             y = yaml.safe_load(rule)
             if y and y.get('action', "") == 'remove':
                 self.automod_rules += [re.compile(r) for k, v in y.items() if "regex" in k for r in v]
-        self._logger.warning(f"Read {len(self.automod_rules)} removal rules from automod rules")
+                self.domain_filter += [r for k, v in y.items() if "domain" in k and not "regex" in k for r in v]
 
-    def is_forbidden_comment_message(self, comment_message):
-        return any(rule.search(comment_message) for rule in self.automod_rules)
+        self._logger.warning(
+            f"Read {len(self.automod_rules)} removal rules and {len(self.domain_filter)} domain filters from automod rules")
+
+    def is_forbidden_user_message(self, comment_message):
+        matches_regexes = any(rule.search(comment_message) for rule in self.automod_rules)
+        matches_domain = any(rule in comment_message for rule in self.domain_filter)
+        return matches_regexes or matches_domain

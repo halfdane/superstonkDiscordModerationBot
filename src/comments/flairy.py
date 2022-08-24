@@ -354,7 +354,7 @@ class FlairContainsForbiddenPhraseCommand:
 
         flairy = self.flairy_detect_user_flair_change.match(body)
         flair_text = flairy.group(1)
-        if self.automod_configuration.is_forbidden_comment_message(flair_text):
+        if self.automod_configuration.is_forbidden_user_message(flair_text):
             self._logger.info(f"Silently refusing to grant flair with restricted content: {flair_text}")
             return True
 

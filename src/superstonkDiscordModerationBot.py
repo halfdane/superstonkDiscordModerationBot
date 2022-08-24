@@ -141,7 +141,6 @@ class SuperstonkModerationBot(Bot):
         # FUNCTION COMPONENTS
         await self.component(add_reactions_to_discord_message=self.add_reactions)
         await self.component(get_discord_cogs=lambda: self.cogs)
-        await self.component(is_forbidden_comment_message=self.is_forbidden_comment_message)
         await self.component(send_discord_message=self.send_discord_message)
 
         # FUNDAMENTAL COMPONENTS WITHOUT DEPENDENCIES
