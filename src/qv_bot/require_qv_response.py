@@ -12,13 +12,14 @@ def author(item):
 
 
 class RequireQvResponse(Handler):
-    def __init__(self, qvbot_reddit, post_repo, quality_vote_bot_configuration, automod_configuration, **kwargs):
+    def __init__(self, qvbot_reddit, post_repo, quality_vote_bot_configuration, automod_configuration, send_discord_message, **kwargs):
         super().__init__()
         self._logger = logging.getLogger(self.__class__.__name__)
         self.qvbot_reddit = qvbot_reddit
         self.post_repo = post_repo
         self.quality_vote_bot_configuration = quality_vote_bot_configuration
         self.automod_configuration = automod_configuration
+        self.send_discord_message = send_discord_message
 
     def wot_doing(self):
         return "Remove post if QVbot didn't get a response in the allotted time - replaces 'op_response' in template"
@@ -48,12 +49,14 @@ class RequireQvResponse(Handler):
         op_required_comment = self.quality_vote_bot_configuration.config.get(op_required_comment_key, None)
         post_requires_response = op_required_comment is not None
         if post_requires_response:
+            await self.send_discord_message(description_beginning="Post requires a response", item=post)
             self._logger.debug(f"Post requires a response: {permalink(post)}")
             qv_comment = await self.get_qv_comment(post)
             latest_op_response = await self.get_latest_op_response(qv_comment, post)
             if latest_op_response is not None:
                 user_provided_string = latest_op_response.body
                 self._logger.debug(f"Got a response from Op: {user_provided_string}")
+                await self.send_discord_message(description_beginning="Got a response from Op", item=latest_op_response)
 
                 if self.automod_configuration.is_forbidden_user_message(user_provided_string):
                     await latest_op_response.report(f"Cowardly refusing to use prohibited user input: {user_provided_string}")
@@ -66,6 +69,7 @@ class RequireQvResponse(Handler):
                 created_utc = datetime.utcfromtimestamp(post.created_utc)
 
                 if latest > created_utc:
+                    await self.send_discord_message(description_beginning="Removing post due to missing response", item=post)
                     await post.mod.remove(
                         spam=False,
                         mod_note="Automatically removing after timeout without response")
