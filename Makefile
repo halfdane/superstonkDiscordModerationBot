@@ -2,7 +2,6 @@ SHELL := /bin/bash
 
 .PHONY: run
 run: venv
-	-/usr/bin/pkill -f "python src/superstonkDiscordModerationBot.py" || true
 	venv/bin/python src/superstonkDiscordModerationBot.py
 
 .PHONY: force_pull
