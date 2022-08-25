@@ -289,8 +289,7 @@ class SuperstonkModerationBot(Bot):
             params['description'] = f"[{description}]({params['url']})"
 
         if tag is not None:
-            user = await super().fetch_user(tag)
-            params['description'] += f"<@{tag}> {user.mention}"
+            params['description'] += f"<@&{tag}>"
 
         e = Embed(**params)
 
