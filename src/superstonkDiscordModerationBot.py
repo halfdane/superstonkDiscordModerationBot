@@ -21,6 +21,7 @@ from comments.flairy import Flairy
 from comments.flairy_comment_repository import FlairyComments
 from comments.flairy_report import FlairyReport
 from comments.front_desk_sticky import FrontDeskSticky
+from modmail.HighlightMailNotification import HighlightMailNotification
 from qv_bot.require_qv_response import RequireQvResponse
 from qv_bot.resticky_qv_bot import RestickyQualityVoteBot
 from discordReactionHandlers.delete_reaction import DeleteReaction
@@ -140,7 +141,7 @@ class SuperstonkModerationBot(Bot):
         # FUNCTION COMPONENTS
         await self.component(add_reactions_to_discord_message=self.add_reactions)
         await self.component(get_discord_cogs=lambda: self.cogs)
-        await self.component(send_discord_message=self.send_discord_message)
+        await self.component(send_discord_message=self.send_discord_message)r   
 
         # FUNDAMENTAL COMPONENTS WITHOUT DEPENDENCIES
         logging.getLogger('apscheduler').setLevel(logging.WARN)
@@ -185,9 +186,11 @@ class SuperstonkModerationBot(Bot):
         await self.component(flairy_report=FlairyReport(**self.COMPONENTS))
         await self.component(require_qv_response=RequireQvResponse(**self.COMPONENTS))
 
-       # await self.component(trading_halts_reporter=TradingHaltsReporter(**self.COMPONENTS))
+        # await self.component(trading_halts_reporter=TradingHaltsReporter(**self.COMPONENTS))
         await self.component(reported_comments_remover=ReportedCommentsRemover(**self.COMPONENTS))
         await self.component(approve_old_modqueue_items=ApproveOldModqueueItems(**self.COMPONENTS))
+
+        await self.component(highlight_mail_notification=HighlightMailNotification(**self.COMPONENTS))
 
         # COGS
         super().add_cog(UserCog(**self.COMPONENTS))

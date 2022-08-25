@@ -14,6 +14,7 @@ from comments.comment_body_repository import CommentBodiesRepository
 from comments.comment_repository import Comments
 from helper.links import permalink
 from helper.moderation_bot_configuration import ModerationBotConfiguration
+from modmail.HighlightMailNotification import HighlightMailNotification
 from qv_bot.qv_bot_configuration import QualityVoteBotConfiguration
 from qv_bot.require_qv_response import RequireQvResponse
 from reports_logs.approve_old_modqueue_items import ApproveOldModqueueItems
@@ -41,11 +42,9 @@ async def main():
         print(f"Logged in as {redditor.name}")
         subreddit_name_ = COMPONENTS["subreddit_name"]
         superstonk_subreddit = await reddit.subreddit(subreddit_name_)
-        automod_configuration = AutomodConfiguration(superstonk_subreddit)
+        highlighter = HighlightMailNotification(superstonk_subreddit, None, None)
 
-        await automod_configuration.fetch_config_from_wiki()
-
-
+        await highlighter.check_recent_mails()
 
 logging.basicConfig(
     level=logging.INFO,
