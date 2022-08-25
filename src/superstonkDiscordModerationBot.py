@@ -141,7 +141,7 @@ class SuperstonkModerationBot(Bot):
         # FUNCTION COMPONENTS
         await self.component(add_reactions_to_discord_message=self.add_reactions)
         await self.component(get_discord_cogs=lambda: self.cogs)
-        await self.component(send_discord_message=self.send_discord_message)r   
+        await self.component(send_discord_message=self.send_discord_message)
 
         # FUNDAMENTAL COMPONENTS WITHOUT DEPENDENCIES
         logging.getLogger('apscheduler').setLevel(logging.WARN)
