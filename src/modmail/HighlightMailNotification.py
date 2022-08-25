@@ -33,7 +33,7 @@ class HighlightMailNotification:
                     await self.send_discord_message(
                         description_beginning='Highlighed modmail',
                         item=convo,
-                        tag=1012252468698153022
+                        tag=829007443584483368
                     )
 
     def is_highlighted(self, conversation):
