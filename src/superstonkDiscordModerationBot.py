@@ -275,6 +275,7 @@ class SuperstonkModerationBot(Bot):
                                    description_beginning='[EMPTY]',
                                    author=None,
                                    fields=None,
+                                   tag=None,
                                    **kwargs):
         params = {
             'colour': Colour(0).from_rgb(207, 206, 255),
@@ -286,6 +287,10 @@ class SuperstonkModerationBot(Bot):
             description = f"{item.__class__.__name__}: {getattr(item, 'title', getattr(item, 'body', ''))[:75]}"
             description = f"**{params['description']}** {description}"
             params['description'] = f"[{description}]({params['url']})"
+
+        if tag is not None:
+            user = await super().fetch_user(tag)
+            params['description'] += {user.mention}
 
         e = Embed(**params)
 

@@ -31,8 +31,10 @@ class HighlightMailNotification:
                 highlight_date = datetime.fromisoformat(highlight.date)
                 if highlight_date > a_minute_ago:
                     await self.send_discord_message(
-                        description_beginning='halfdane.eth#7622 check this out',
-                        item=convo)
+                        description_beginning='Highlighed modmail',
+                        item=convo,
+                        tag=407102579059851284
+                    )
 
     def is_highlighted(self, conversation):
         mod_actions = conversation.mod_actions
