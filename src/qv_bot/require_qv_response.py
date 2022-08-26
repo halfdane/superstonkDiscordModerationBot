@@ -102,5 +102,5 @@ class RequireQvResponse(Handler):
         if len(all_replies) > 0:
             print([c for c in all_replies])
             op_responses = [c for c in all_replies if author_name == author(c)]
-            op_responses.sort(key=lambda c: c.created_utc)
+            op_responses.sort(key=lambda c: c.created_utc, reverse=True)
             return op_responses[0]
