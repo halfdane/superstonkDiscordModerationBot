@@ -1,4 +1,5 @@
 import logging
+import chevron
 
 import yaml
 
@@ -12,6 +13,12 @@ class QualityVoteBotConfiguration:
 
     def wot_doing(self):
         return "Reload QV-Bot's configuration every 10 minutes"
+
+    def render(self, template, **kwargs):
+        model: dict = self.config.copy()
+        for name, value in kwargs.items():
+            model[name] = value
+        return chevron.render(template, model)
 
     async def on_ready(self, scheduler, **kwargs):
         self._logger.warning(self.wot_doing())

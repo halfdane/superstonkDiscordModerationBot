@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 
 import chevron
 
-from helper.links import permalink
+from helper.links import permalink, removed
 from reddit_item_handler import Handler
 
 
@@ -12,7 +12,8 @@ def author(item):
 
 
 class RequireQvResponse(Handler):
-    def __init__(self, qvbot_reddit, post_repo, quality_vote_bot_configuration, automod_configuration, send_discord_message, **kwargs):
+    def __init__(self, qvbot_reddit, post_repo, quality_vote_bot_configuration, automod_configuration,
+                 send_discord_message, **kwargs):
         super().__init__()
         self._logger = logging.getLogger(self.__class__.__name__)
         self.qvbot_reddit = qvbot_reddit
@@ -30,7 +31,7 @@ class RequireQvResponse(Handler):
 
     async def check_recent_comments(self, ):
         now = datetime.utcnow()
-        interval = now - timedelta(minutes=12)
+        interval = now - timedelta(minutes=20)
         latest = now - timedelta(minutes=10)
 
         posts = await self.post_repo.fetch(since=interval)
@@ -48,9 +49,7 @@ class RequireQvResponse(Handler):
         op_required_comment_key = 'op_required_response_comment_' + flair_id
         op_required_comment = self.quality_vote_bot_configuration.config.get(op_required_comment_key, None)
 
-        is_link = getattr(post, 'domain', '') != "reddit.com"
-
-        post_requires_response = op_required_comment is not None
+        post_requires_response = op_required_comment is not None and not removed(post)
         if post_requires_response:
             self._logger.debug(f"Post requires a response: {permalink(post)}")
             qv_comment = await self.get_qv_comment(post)
@@ -59,11 +58,13 @@ class RequireQvResponse(Handler):
                 user_provided_string = latest_op_response.body
                 self._logger.debug(f"Got a response from Op: {user_provided_string}")
                 if self.automod_configuration.is_forbidden_user_message(user_provided_string):
-                    await latest_op_response.report(f"Cowardly refusing to use prohibited user input: {user_provided_string}")
+                    await latest_op_response.report(
+                        f"Cowardly refusing to use prohibited user input: {user_provided_string}")
                 else:
                     # use body of response and put it into the qv_body
-                    model = {'op_response': user_provided_string}
-                    await qv_comment.edit(chevron.render(op_required_comment, model))
+                    body = self.quality_vote_bot_configuration.render(op_required_comment,
+                                                                      op_response=user_provided_string)
+                    await qv_comment.edit(body)
             else:
                 # if now is over: report or remove post
                 created_utc = datetime.utcfromtimestamp(post.created_utc)
@@ -78,9 +79,12 @@ class RequireQvResponse(Handler):
                         spam=False,
                         mod_note="Automatically removing after timeout without response",
                     )
+                    removal_append = \
+                        self.quality_vote_bot_configuration.config.get("required_response_missing_comment")
+                    body = self.quality_vote_bot_configuration.render(removal_append, original_comment=qv_comment.body)
+                    await qv_comment.edit(body)
         else:
             self._logger.debug(f"Post with {flair_id} doesn't require a response")
-
 
     async def get_qv_comment(self, post):
         qv_user = await self.qvbot_reddit.user.me()
@@ -99,6 +103,3 @@ class RequireQvResponse(Handler):
             op_responses = [c for c in all_replies if author_name == author(c)]
             op_responses.sort(key=lambda c: c.created_utc)
             return op_responses[0]
-
-
-
