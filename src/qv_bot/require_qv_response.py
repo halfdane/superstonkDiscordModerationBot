@@ -1,8 +1,6 @@
 import logging
 from datetime import datetime, timedelta
 
-import chevron
-
 from helper.links import permalink, removed
 from reddit_item_handler import Handler
 
@@ -53,6 +51,9 @@ class RequireQvResponse(Handler):
         if post_requires_response:
             self._logger.debug(f"Post requires a response: {permalink(post)}")
             qv_comment = await self.get_qv_comment(post)
+            if qv_comment is None:
+                return
+
             latest_op_response = await self.get_latest_op_response(qv_comment, post)
             if latest_op_response is not None:
                 user_provided_string = latest_op_response.body
@@ -90,8 +91,8 @@ class RequireQvResponse(Handler):
         qv_user = await self.qvbot_reddit.user.me()
         if len(post.comments) > 0 and post.comments[0].stickied and author(post.comments[0]) == qv_user.name:
             return post.comments[0]
-        else:
-            raise Exception(f"No qv comment found in {permalink(post)}")
+        self._logger.warning(f"None of these is the qv comment?! {post.comments}")
+        return None
 
     async def get_latest_op_response(self, qv_comment, post):
         author_name = author(post)
