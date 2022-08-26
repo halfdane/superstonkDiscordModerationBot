@@ -1,7 +1,7 @@
 import datetime
 import re
 
-from helper.item_helper import permalink
+from helper.item_helper import permalink, author
 from helper.mod_notes import fetch_modnotes
 from reddit_item_handler import Handler
 
@@ -42,10 +42,10 @@ class ImportantReports(Handler):
 
     async def __send_ban_list(self, mods_reporting_rule_1, item):
         modnotes = fetch_modnotes(reddit=self.readonly_reddit,
-                                  redditor_param=item.author,
+                                  redditor_param=author(item),
                                   only='banuser',
                                   subreddit_name=self.subreddit_name)
-        bans = f"All bans of {item.author}   "
+        bans = f"All bans of {author(item)}   "
         async for k, v in modnotes:
             bans += f"- **{k}**: {v}   \n"
         bans += "\n\nThat's all"
@@ -54,4 +54,4 @@ class ImportantReports(Handler):
         for reporting_mod in mods_reporting_rule_1:
             mod = await self.readonly_reddit.redditor(reporting_mod)
 
-            await mod.message(f"Bans of {item.author} at {formatted_string}", bans)
+            await mod.message(f"Bans of {author(item)} at {formatted_string}", bans)

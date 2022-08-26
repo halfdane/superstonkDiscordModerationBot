@@ -5,7 +5,7 @@ import disnake
 import yaml
 from disnake import Embed
 
-from helper.item_helper import permalink
+from helper.item_helper import permalink, author
 from reddit_item_handler import Handler
 
 REMOVAL_COMMENT = """
@@ -52,7 +52,7 @@ class PostCountLimiter(Handler):
         scheduler.add_job(self.fetch_config_from_wiki, "cron", minute="6-59/10", next_run_time=datetime.now())
 
     async def take(self, item):
-        author_name = getattr(item.author, 'name', str(item.author))
+        author_name = author(item)
         yesterday = datetime.utcnow() - timedelta(hours=24)
         posts = await self.post_repo.fetch(author=author_name, since=yesterday)
         posts_that_count = list(filter(lambda p: p.count_to_limit, posts))

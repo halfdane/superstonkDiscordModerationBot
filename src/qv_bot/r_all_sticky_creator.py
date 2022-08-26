@@ -1,6 +1,6 @@
 from datetime import timedelta
 
-from helper.item_helper import permalink
+from helper.item_helper import permalink, author
 from reddit_item_handler import Handler
 
 
@@ -41,7 +41,7 @@ class RAllStickyCreator(Handler):
         if has_comments:
             first_comment = submission.comments[0]
             missing_sticky = not first_comment.stickied
-            is_qv_sticky = first_comment.author.name == myself.name
+            is_qv_sticky = author(first_comment) == myself.name
             isnot_rall_comment = 'r/all' not in getattr(first_comment, 'body', "")
 
             return missing_sticky or (is_qv_sticky and isnot_rall_comment)

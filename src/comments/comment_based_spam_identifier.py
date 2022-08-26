@@ -5,7 +5,7 @@ from simhash import Simhash, SimhashIndex
 
 from comments.comment_body_repository import CommentBodiesRepository
 from comments.comment_repository import Comments
-from helper.item_helper import permalink
+from helper.item_helper import permalink, author
 from reddit_item_handler import Handler
 
 
@@ -63,8 +63,8 @@ class CommentBasedSpamIdentifier(Handler):
         hashes = set()
 
         for i, id in enumerate(ids):
-            author = (await self.comment_repo.fetch(id=id))[0].author.name
-            if author in self.superstonk_moderators or author in self.drs_witnesses:
+            author_name = author((await self.comment_repo.fetch(id=id))[0])
+            if author_name in self.superstonk_moderators or author_name in self.drs_witnesses:
                 continue
 
             body = await self.comment_body_repo.fetch_body(id)
@@ -86,9 +86,9 @@ class CommentBasedSpamIdentifier(Handler):
             s = Simhash(h)
             dups = index.get_near_dups(s)
             comments = [c async for c in self.readonly_reddit.info(dups)]
-            author = comments[0].author
+            author_name = author(comments[0])
             body = comments[0].body[:100]
-            if all([c.author == author for c in comments]):
-                spammer[author] = ([permalink(c) for c in comments], body)
+            if all([author(c) == author_name for c in comments]):
+                spammer[author_name] = ([permalink(c) for c in comments], body)
 
         return spammer

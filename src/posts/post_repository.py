@@ -4,6 +4,7 @@ from datetime import datetime
 
 import aiosqlite
 
+from helper.item_helper import author
 from helper.moderation_bot_configuration import CONFIG_HOME
 
 POSTS_DB = f"{CONFIG_HOME}/posts.db"
@@ -24,7 +25,7 @@ class Posts:
             try:
                 return (
                     post.id,
-                    getattr(post.author, 'name', str(post.author)),
+                    author(post),
                     getattr(post, 'link_flair_text', "NONE"),
                     post.created_utc,
                     post.score,

@@ -29,7 +29,7 @@ from discordReactionHandlers.help_reaction import HelpReaction
 from discordReactionHandlers.modnote_reaction import ModNoteReaction
 from discordReactionHandlers.user_history_reaction import UserHistoryReaction
 from discordReactionHandlers.wip_reaction import WipReaction
-from helper.item_helper import permalink, user_page
+from helper.item_helper import permalink, user_page, author
 from helper.moderation_bot_configuration import ModerationBotConfiguration, CONFIG_HOME
 from helper.redditor_extractor import extract_redditor
 from posts.WeekendRestrictor import WeekendRestrictor
@@ -273,7 +273,7 @@ class SuperstonkModerationBot(Bot):
                                    channel='report_channel',
                                    item=None,
                                    description_beginning='[EMPTY]',
-                                   author=None,
+                                   author_value=None,
                                    fields=None,
                                    tag=None,
                                    **kwargs):
@@ -293,11 +293,10 @@ class SuperstonkModerationBot(Bot):
 
         e = Embed(**params)
 
-        if author is None:
-            author_attr = getattr(item, 'author', None)
-            author = getattr(author_attr, 'name', author_attr)
-        if author:
-            e.add_field("Redditor", f"[{author}]({user_page(author)})", inline=False)
+        if author_value is None:
+            author_value = author(item)
+        if author_value:
+            e.add_field("Redditor", f"[{author_value}]({user_page(author_value)})", inline=False)
 
         user_reports_attr = getattr(item, 'user_reports', None)
         if user_reports_attr:
@@ -316,7 +315,7 @@ class SuperstonkModerationBot(Bot):
             e.add_field("Score:", str(score))
 
         comments = getattr(item, 'comments', None)
-        if comments is not None and len(comments) > 0 and comments[0].author.name == "Superstonk_QV":
+        if comments is not None and len(comments) > 0 and author(comments[0]) == "Superstonk_QV":
             qv_score = str(comments[0].score)
             e.add_field("QV Score:", qv_score)
 

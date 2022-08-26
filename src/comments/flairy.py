@@ -2,7 +2,7 @@ import logging
 import random
 import re
 
-from helper.item_helper import permalink, make_safe
+from helper.item_helper import permalink, make_safe, author
 from reddit_item_handler import Handler
 
 
@@ -98,12 +98,12 @@ class Flairy(Handler):
         color = (flair_color or self._default_color).lower().strip()
         template = (template or self._templates[color])
         previous_flair = getattr(comment, 'author_flair_text', "")
-        log_message = f"[{make_safe(comment.author)}] [{make_safe(previous_flair)}] => [{make_safe(flair_text)}] in {color}"
+        log_message = f"[{make_safe(author(comment))}] [{make_safe(previous_flair)}] => [{make_safe(flair_text)}] in {color}"
         subreddit_from_flairies_view = await self.flairy_reddit.subreddit(self.subreddit_name)
 
         if self.is_live_environment:
             await subreddit_from_flairies_view.flair.set(
-                redditor=comment.author,
+                redditor=author(comment),
                 text=flair_text,
                 flair_template_id=template)
             message += rf'(✿\^‿\^)━☆ﾟ.*･｡ﾟ {flair_text}'
@@ -280,7 +280,7 @@ class ClearCommand:
             self._logger.info(f"Clearing flair: {permalink(comment)}")
 
             subreddit_from_flairies_view = await self.flairy_reddit.subreddit(self.subreddit_name)
-            await subreddit_from_flairies_view.flair.delete(redditor=comment.author)
+            await subreddit_from_flairies_view.flair.delete(redditor=author(comment))
             comment_from_flairies_view = await self.flairy_reddit.comment(comment.id, fetch=False)
             await comment_from_flairies_view.reply(message)
             return True

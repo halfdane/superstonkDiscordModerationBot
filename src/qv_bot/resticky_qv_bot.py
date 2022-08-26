@@ -24,7 +24,7 @@ class RestickyQualityVoteBot(Handler):
             parent = await comment.parent()
             await parent.load()
             myself = await self.qvbot_reddit.user.me()
-            is_qv_comment = parent.author.name == myself.name
+            is_qv_comment = author(parent) == myself.name
             if is_qv_comment:
                 sticky = await self.qvbot_reddit.comment(parent.id)
                 self._logger.info(f"re-stickying qv comment: {permalink(sticky)}")

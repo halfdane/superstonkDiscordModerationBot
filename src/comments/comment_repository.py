@@ -6,6 +6,7 @@ from typing import List
 import aiosqlite
 from asyncpraw.models.reddit.comment import Comment
 
+from helper.item_helper import author
 from helper.moderation_bot_configuration import CONFIG_HOME
 
 COMMENTS_DB = f"{CONFIG_HOME}/comments.db"
@@ -28,7 +29,7 @@ class Comments:
             mod_removed = comment.removed or (getattr(comment, "ban_note", None) is not None)
             return (
                 comment.id,
-                getattr(comment.author, 'name', str(comment.author)),
+                author(comment),
                 comment.created_utc,
                 now if comment.body == '[deleted]' else None,
                 now if mod_removed else None,

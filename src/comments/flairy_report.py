@@ -1,7 +1,7 @@
 import logging
 from datetime import datetime, timedelta
 
-from helper.item_helper import permalink, make_safe, user_page
+from helper.item_helper import permalink, make_safe, user_page, author
 
 
 class FlairyReport:
@@ -42,7 +42,7 @@ class FlairyReport:
                 body = comment_parent.body
             comment_parent_from_own_db = await self.comment_repo.fetch(id=comment_parent.id)
 
-            author_name = comment_parent_from_own_db[0].author.name
+            author_name = author(comment_parent_from_own_db[0])
             message += f"\n- [{author_name}]({user_page(author_name)}): [{make_safe(body)}]({permalink(comment_parent)})"
             if len(message) > 3000:
                 await self.send_discord_message(description_beginning=message)
