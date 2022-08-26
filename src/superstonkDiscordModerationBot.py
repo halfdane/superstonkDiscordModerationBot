@@ -22,6 +22,8 @@ from comments.flairy_comment_repository import FlairyComments
 from comments.flairy_report import FlairyReport
 from comments.front_desk_sticky import FrontDeskSticky
 from modmail.HighlightMailNotification import HighlightMailNotification
+from modmail.modmail_notification import ModmailNotification
+from modmail.modmailconversation_repository import ModmailConversationRepository
 from qv_bot.require_qv_response import RequireQvResponse
 from qv_bot.resticky_qv_bot import RestickyQualityVoteBot
 from discordReactionHandlers.delete_reaction import DeleteReaction
@@ -173,6 +175,7 @@ class SuperstonkModerationBot(Bot):
         await self.component(comment_body_repo=CommentBodiesRepository())
         await self.component(flairy_comment_repo=FlairyComments())
         await self.component(report_repo=Reports())
+        await self.component(modmailconversation_repo=ModmailConversationRepository())
 
         # SCHEDULED COMPONENTS
         await self.component(quality_vote_bot_configuration=QualityVoteBotConfiguration(**self.COMPONENTS))
@@ -236,6 +239,12 @@ class SuperstonkModerationBot(Bot):
             item_repository=None,
             handlers=[RAllStickyCreator(**self.COMPONENTS)]))
 
+        await self.component(modmail_conversations_reader=RedditItemReader(
+            name="modmail_conversations",
+            item_fetch_function=superstonk_subreddit.mod.stream.modmail_conversations,
+            item_repository=self.COMPONENTS['modmailconversation_repo'],
+            handlers=[ModmailNotification(**self.COMPONENTS)]))
+
         await self.send_discord_message(description_beginning="Moderation bot restarted")
 
     async def on_message(self, msg: Message):
@@ -284,7 +293,7 @@ class SuperstonkModerationBot(Bot):
 
         if item:
             params['url'] = permalink(item)
-            description = f"{item.__class__.__name__}: {getattr(item, 'title', getattr(item, 'body', ''))[:75]}"
+            description = f"{item.__class__.__name__}: {getattr(item, 'subject', getattr(item, 'title', getattr(item, 'body', '')))[:75]}"
             description = f"**{params['description']}** {description}"
             params['description'] = f"[{description}]({params['url']})"
 

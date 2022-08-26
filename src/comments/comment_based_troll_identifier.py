@@ -20,7 +20,6 @@ class CommentBasedTrollIdentifier:
     async def on_ready(self, scheduler, **kwargs):
         self._logger.warning(self.wot_doing())
         scheduler.add_job(self.identify_comment_removers, "cron", minute="1-59/10")
-        scheduler.add_job(self.identify_heavily_downvoted_comments, "cron", hour="*", next_run_time=datetime.now())
 
     async def identify_comment_removers(self):
         self._logger.info(f"checking database for people who have lots of downvoted comments that are then removed")
@@ -43,17 +42,3 @@ class CommentBasedTrollIdentifier:
                 author=author,
                 description_beginning="Found a possible comment deleting troll",
                 fields={"Comments": f"[{ids}]({link_to_history})"})
-
-    async def identify_heavily_downvoted_comments(self):
-        now = datetime.utcnow()
-        since = now - timedelta(hours=1)
-        self._logger.info(f"checking database for heavily downvoted comments since {since} ({since.timestamp()})")
-        downvoted_ids = [f"t1_{c}" for c in
-                         await self.persist_comments.heavily_downvoted_comments(since=since, limit=-15)]
-
-        downvoted_comments = [c async for c in self.readonly_reddit.info(downvoted_ids)]
-        for comment in downvoted_comments:
-            await self.send_discord_message(
-                item=comment,
-                description_beginning="Heavily downvoted comment",
-                channel='report_comments_channel')

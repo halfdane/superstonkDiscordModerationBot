@@ -25,7 +25,7 @@ from dateutil.relativedelta import relativedelta
 configuration = ModerationBotConfiguration()
 
 asyncreddit = asyncpraw.Reddit(
-    **configuration.qvbot_reddit_settings(),
+    **configuration.readonly_reddit_settings(),
     user_agent="com.halfdane.superstonk_moderation_bot:v0.xx (by u/half_dane)")
 
 
@@ -42,9 +42,9 @@ async def main():
         print(f"Logged in as {redditor.name}")
         subreddit_name_ = COMPONENTS["subreddit_name"]
         superstonk_subreddit = await reddit.subreddit(subreddit_name_)
-        highlighter = HighlightMailNotification(superstonk_subreddit, None, None)
+        comment = await reddit.comment(id='ilufv6q')
+        print(vars(comment))
 
-        await highlighter.check_recent_mails()
 
 logging.basicConfig(
     level=logging.INFO,

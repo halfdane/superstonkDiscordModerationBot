@@ -3,6 +3,7 @@ from datetime import datetime
 
 import disnake
 from asyncpraw.exceptions import InvalidURL
+from asyncprawcore.exceptions import Forbidden
 
 from helper.item_helper import permalink, removed
 
@@ -57,6 +58,8 @@ class HandledItemsUnreporter:
                         submission = await self.readonly_reddit.submission(url=url)
                         was_removed = removed(submission)
                     except InvalidURL:
+                        pass
+                    except Forbidden:
                         pass
             return was_removed
 

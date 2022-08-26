@@ -34,5 +34,6 @@ def removed(item):
 
 
 def author(item):
-    return getattr(item.author, 'name', str(item.author))
+    author_attr = getattr(item, 'author', getattr(item, 'participant', None))
+    return getattr(author_attr, 'name', author_attr)
 
