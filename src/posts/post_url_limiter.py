@@ -67,7 +67,7 @@ class UrlPostLimiter(Handler):
 
             await self.send_discord_message(
                 item=item,
-                description_beginning=f"Prevented {url} from being posted again: {self.active}",
+                description_beginning=f"Prevented {url} from being posted again",
                 fields={'auto_clean': False})
             return True
         else:
