@@ -2,7 +2,7 @@ import logging
 import random
 import re
 
-from helper.links import permalink, make_safe
+from helper.item_helper import permalink, make_safe
 from reddit_item_handler import Handler
 
 

@@ -1,7 +1,7 @@
 import logging
 from datetime import datetime, timedelta
 
-from helper.links import permalink, removed
+from helper.item_helper import permalink, removed
 
 
 class ApproveOldModqueueItems:

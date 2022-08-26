@@ -4,7 +4,7 @@ from datetime import datetime
 import disnake
 from asyncpraw.exceptions import InvalidURL
 
-from helper.links import permalink, removed
+from helper.item_helper import permalink, removed
 
 
 class HandledItemsUnreporter:

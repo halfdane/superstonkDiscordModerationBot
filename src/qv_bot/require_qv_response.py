@@ -1,12 +1,8 @@
 import logging
 from datetime import datetime, timedelta
 
-from helper.links import permalink, removed
+from helper.item_helper import author, removed, permalink
 from reddit_item_handler import Handler
-
-
-def author(item):
-    return getattr(item.author, 'name', str(item.author))
 
 
 class RequireQvResponse(Handler):

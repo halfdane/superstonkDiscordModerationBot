@@ -1,7 +1,7 @@
 import datetime
 import re
 
-from helper.links import permalink
+from helper.item_helper import permalink
 from helper.mod_notes import fetch_modnotes
 from reddit_item_handler import Handler
 

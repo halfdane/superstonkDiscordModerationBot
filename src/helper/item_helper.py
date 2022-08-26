@@ -31,3 +31,8 @@ def removed(item):
     comment_author_banned = getattr(item, "ban_note", None) is not None
 
     return submission_removed or comment_deleted or comment_removed or comment_author_banned
+
+
+def author(item):
+    return getattr(item.author, 'name', str(item.author))
+

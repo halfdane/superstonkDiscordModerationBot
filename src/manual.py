@@ -12,7 +12,7 @@ from automod_configuration import AutomodConfiguration
 from comments.comment_based_spam_identifier import CommentBasedSpamIdentifier
 from comments.comment_body_repository import CommentBodiesRepository
 from comments.comment_repository import Comments
-from helper.links import permalink
+from helper.item_helper import permalink
 from helper.moderation_bot_configuration import ModerationBotConfiguration
 from modmail.HighlightMailNotification import HighlightMailNotification
 from qv_bot.qv_bot_configuration import QualityVoteBotConfiguration

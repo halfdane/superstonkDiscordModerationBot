@@ -1,7 +1,7 @@
 import logging
 from datetime import datetime, timedelta
 
-from helper.links import permalink, make_safe, user_page
+from helper.item_helper import permalink, make_safe, user_page
 
 
 class FlairyReport:

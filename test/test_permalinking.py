@@ -1,6 +1,6 @@
 from collections import namedtuple
 
-from helper.links import permalink
+from helper.item_helper import permalink
 
 
 class TestPermalinks:

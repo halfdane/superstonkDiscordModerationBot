@@ -3,7 +3,7 @@ from urllib.parse import urlparse
 
 import chevron
 
-from helper.links import permalink
+from helper.item_helper import permalink
 from reddit_item_handler import Handler
 
 

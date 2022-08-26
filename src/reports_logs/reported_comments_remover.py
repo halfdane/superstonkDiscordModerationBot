@@ -1,6 +1,6 @@
 import logging
 
-from helper.links import permalink, removed
+from helper.item_helper import permalink, removed
 
 
 class ReportedCommentsRemover:

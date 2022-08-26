@@ -29,7 +29,7 @@ from discordReactionHandlers.help_reaction import HelpReaction
 from discordReactionHandlers.modnote_reaction import ModNoteReaction
 from discordReactionHandlers.user_history_reaction import UserHistoryReaction
 from discordReactionHandlers.wip_reaction import WipReaction
-from helper.links import permalink, user_page
+from helper.item_helper import permalink, user_page
 from helper.moderation_bot_configuration import ModerationBotConfiguration, CONFIG_HOME
 from helper.redditor_extractor import extract_redditor
 from posts.WeekendRestrictor import WeekendRestrictor

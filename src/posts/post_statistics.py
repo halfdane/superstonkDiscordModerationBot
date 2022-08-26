@@ -4,7 +4,7 @@ from datetime import datetime
 import disnake
 from dateutil.relativedelta import relativedelta
 
-from helper.links import permalink, make_safe
+from helper.item_helper import permalink, make_safe
 
 
 class CalculatePostStatistics:

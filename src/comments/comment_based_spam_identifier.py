@@ -5,7 +5,7 @@ from simhash import Simhash, SimhashIndex
 
 from comments.comment_body_repository import CommentBodiesRepository
 from comments.comment_repository import Comments
-from helper.links import permalink
+from helper.item_helper import permalink
 from reddit_item_handler import Handler
 
 

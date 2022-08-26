@@ -5,7 +5,7 @@ import disnake
 import yaml
 from disnake import Embed
 
-from helper.links import permalink
+from helper.item_helper import permalink
 from reddit_item_handler import Handler
 
 REMOVAL_COMMENT = """

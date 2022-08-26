@@ -2,7 +2,7 @@ import re
 from collections import namedtuple
 
 from automod_configuration import AutomodConfiguration
-from helper.links import permalink
+from helper.item_helper import permalink
 
 
 class TestAutomodConfiguration:

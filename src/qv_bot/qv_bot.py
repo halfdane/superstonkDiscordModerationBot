@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 
 import chevron
 
-from helper.links import permalink
+from helper.item_helper import permalink
 from reddit_item_handler import Handler
 
 
