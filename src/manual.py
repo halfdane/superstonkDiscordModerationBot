@@ -42,8 +42,9 @@ async def main():
         print(f"Logged in as {redditor.name}")
         subreddit_name_ = COMPONENTS["subreddit_name"]
         superstonk_subreddit = await reddit.subreddit(subreddit_name_)
-        comment = await reddit.comment(id='ilufv6q')
-        print(vars(comment))
+
+        async for message in superstonk_subreddit.mod.stream.modmail_conversations():
+            print(f"{vars(message)}")
 
 
 logging.basicConfig(

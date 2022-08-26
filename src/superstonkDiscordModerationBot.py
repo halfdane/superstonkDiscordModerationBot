@@ -9,6 +9,9 @@ from disnake import Embed, Colour
 from disnake import Message
 from disnake.ext import commands
 from disnake.ext.commands import Bot
+from disnake.ui.button import ButtonStyle, Button
+from disnake.ui.text_input import TextInputStyle
+from disnake.components import SelectOption
 
 from automod_configuration import AutomodConfiguration
 from cogs.modqueue_cog import ModQueueCog
@@ -117,10 +120,12 @@ class SuperstonkModerationBot(Bot):
         self.logger.warning(f"use this discord channel for flairy{self.COMPONENTS['flairy_channel_id']}")
         await self.component(flairy_channel=self.get_channel(self.COMPONENTS['flairy_channel_id']))
 
-        self.logger.warning(f"use this discord channel for debugging messages: {self.COMPONENTS['logging_output_channel_id']}")
+        self.logger.warning(
+            f"use this discord channel for debugging messages: {self.COMPONENTS['logging_output_channel_id']}")
         await self.component(logging_output_channel=self.get_channel(self.COMPONENTS['logging_output_channel_id']))
 
-        self.logger.warning(f"listen for user mentions in this discord channel: {self.COMPONENTS['user_investigation_channel_id']}")
+        self.logger.warning(
+            f"listen for user mentions in this discord channel: {self.COMPONENTS['user_investigation_channel_id']}")
 
         self.logger.warning(f"Read configuration from {CONFIG_HOME}")
 
@@ -156,7 +161,7 @@ class SuperstonkModerationBot(Bot):
         subreddit_name_ = self.COMPONENTS["subreddit_name"]
         superstonk_subreddit = await self.COMPONENTS["readonly_reddit"].subreddit(subreddit_name_)
         await self.component(superstonk_subreddit=superstonk_subreddit)
-        superstonk_moderators=[m async for m in superstonk_subreddit.moderator]
+        superstonk_moderators = [m async for m in superstonk_subreddit.moderator]
         await self.component(superstonk_moderators_strict=superstonk_moderators)
         await self.component(superstonk_moderators=superstonk_moderators + ["Roid_Rage_Smurf"])
 
@@ -285,6 +290,7 @@ class SuperstonkModerationBot(Bot):
                                    author_value=None,
                                    fields=None,
                                    tag=None,
+                                   view=None,
                                    **kwargs):
         params = {
             'colour': Colour(0).from_rgb(207, 206, 255),
@@ -337,7 +343,7 @@ class SuperstonkModerationBot(Bot):
                 e.add_field(key, value)
 
         try:
-            msg = await self.COMPONENTS[channel].send(embed=e)
+            msg = await self.COMPONENTS[channel].send(embed=e, view=view)
             await self.add_reactions(msg)
         except disnake.errors.HTTPException:
             for f in e.fields:
