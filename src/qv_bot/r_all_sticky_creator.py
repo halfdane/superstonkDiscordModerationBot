@@ -1,6 +1,7 @@
 from datetime import timedelta
 
 from helper.item_helper import permalink, author
+from qv_bot.__init import get_qv_comment
 from reddit_item_handler import Handler
 
 
@@ -21,29 +22,19 @@ class RAllStickyCreator(Handler):
     async def take(self, item):
         subreddit = item.subreddit
         await item.load()
-        if subreddit == "SuperStonk" and await self.__needs_r_all_comment(item):
+        if subreddit == "SuperStonk" and (qv_comment := await get_qv_comment(self.qvbot_reddit, item)):
+            qv_comment_body = getattr(qv_comment, 'body', "")
+            is_already_rall_comment = 'r/all' in qv_comment_body
+            if is_already_rall_comment:
+                return
+
             await self.send_discord_message(item=item, description_beginning="NEW ON R/ALL")
-            post_from_qbots_view = await self.qvbot_reddit.submission(item.id, fetch=False)
 
             if self.is_live_environment:
                 self._logger.info(f"adding r/all comment to {permalink(item)}")
                 r_all_comment = self.quality_vote_bot_configuration.config['r_all_comment']
-                sticky = await post_from_qbots_view.reply(r_all_comment)
-                await sticky.mod.distinguish(how="yes", sticky=True)
-                await sticky.mod.ignore_reports()
+
+                body = self.quality_vote_bot_configuration.render(r_all_comment, original_comment=qv_comment_body)
+                await qv_comment.edit(body)
             else:
                 self._logger.info(f"NOT adding r/all comment to {permalink(item)}")
-
-    async def __needs_r_all_comment(self, submission):
-        myself = await self.qvbot_reddit.user.me()
-        has_comments = len(submission.comments) > 0
-
-        if has_comments:
-            first_comment = submission.comments[0]
-            missing_sticky = not first_comment.stickied
-            is_qv_sticky = author(first_comment) == myself.name
-            isnot_rall_comment = 'r/all' not in getattr(first_comment, 'body', "")
-
-            return missing_sticky or (is_qv_sticky and isnot_rall_comment)
-        else:
-            return True

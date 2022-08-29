@@ -2,6 +2,7 @@ import logging
 from datetime import datetime, timedelta
 
 from helper.item_helper import author, removed, permalink
+from qv_bot.__init import get_qv_comment
 from reddit_item_handler import Handler
 
 
@@ -46,7 +47,7 @@ class RequireQvResponse(Handler):
         post_requires_response = op_required_comment is not None and not removed(post)
         if post_requires_response:
             self._logger.debug(f"Post requires a response: {permalink(post)}")
-            qv_comment = await self.get_qv_comment(post)
+            qv_comment = await get_qv_comment(self.qvbot_reddit, post)
             if qv_comment is None:
                 return
 
@@ -82,13 +83,6 @@ class RequireQvResponse(Handler):
                     await qv_comment.edit(body)
         else:
             self._logger.debug(f"Post with {flair_id} doesn't require a response")
-
-    async def get_qv_comment(self, post):
-        qv_user = await self.qvbot_reddit.user.me()
-        if len(post.comments) > 0 and post.comments[0].stickied and author(post.comments[0]) == qv_user.name:
-            return post.comments[0]
-        self._logger.warning(f"None of these is the qv comment?! {post.comments}")
-        return None
 
     async def get_latest_op_response(self, qv_comment, post):
         author_name = author(post)
