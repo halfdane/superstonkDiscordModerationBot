@@ -15,6 +15,7 @@ from comments.comment_repository import Comments
 from helper.item_helper import permalink
 from helper.moderation_bot_configuration import ModerationBotConfiguration
 from modmail.HighlightMailNotification import HighlightMailNotification
+from qv_bot.__init import get_qv_comment
 from qv_bot.qv_bot_configuration import QualityVoteBotConfiguration
 from qv_bot.require_qv_response import RequireQvResponse
 from reports_logs.approve_old_modqueue_items import ApproveOldModqueueItems
@@ -25,7 +26,7 @@ from dateutil.relativedelta import relativedelta
 configuration = ModerationBotConfiguration()
 
 asyncreddit = asyncpraw.Reddit(
-    **configuration.readonly_reddit_settings(),
+    **configuration.qvbot_reddit_settings(),
     user_agent="com.halfdane.superstonk_moderation_bot:v0.xx (by u/half_dane)")
 
 
@@ -43,8 +44,11 @@ async def main():
         subreddit_name_ = COMPONENTS["subreddit_name"]
         superstonk_subreddit = await reddit.subreddit(subreddit_name_)
 
-        async for message in superstonk_subreddit.mod.stream.modmail_conversations():
-            print(f"{vars(message)}")
+        p = await reddit.submission(url='https://www.reddit.com/r/Superstonk/comments/x0rjcm/if_only_there_was_a_superstar_company_working_on')
+        r = RequireQvResponse(None, None, None, None, None)
+        comment = await get_qv_comment(reddit, p)
+        op = await r.get_latest_op_response(comment, p)
+        print(op)
 
 
 logging.basicConfig(

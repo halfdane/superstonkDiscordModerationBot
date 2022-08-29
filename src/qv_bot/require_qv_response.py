@@ -88,7 +88,7 @@ class RequireQvResponse(Handler):
         author_name = author(post)
         comments = qv_comment.replies
         await comments.replace_more(limit=None)
-        all_replies = await comments.list()
+        all_replies = comments.list()
         if len(all_replies) > 0:
             op_responses = [c for c in all_replies if author_name == author(c)]
             op_responses.sort(key=lambda c: c.created_utc, reverse=True)
