@@ -103,7 +103,7 @@ class Flairy(Handler):
 
         if self.is_live_environment:
             await subreddit_from_flairies_view.flair.set(
-                redditor=author(comment),
+                redditor=comment.author,
                 text=flair_text,
                 flair_template_id=template)
             message += rf'(✿\^‿\^)━☆ﾟ.*･｡ﾟ {flair_text}'
@@ -280,7 +280,7 @@ class ClearCommand:
             self._logger.info(f"Clearing flair: {permalink(comment)}")
 
             subreddit_from_flairies_view = await self.flairy_reddit.subreddit(self.subreddit_name)
-            await subreddit_from_flairies_view.flair.delete(redditor=author(comment))
+            await subreddit_from_flairies_view.flair.delete(redditor=comment.author)
             comment_from_flairies_view = await self.flairy_reddit.comment(comment.id, fetch=False)
             await comment_from_flairies_view.reply(message)
             return True
