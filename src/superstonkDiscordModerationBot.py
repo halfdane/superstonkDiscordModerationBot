@@ -25,6 +25,7 @@ from comments.flairy_comment_repository import FlairyComments
 from comments.flairy_report import FlairyReport
 from comments.front_desk_sticky import FrontDeskSticky
 from modmail.HighlightMailNotification import HighlightMailNotification
+from modmail.hanami_config import HanamiConfiguration
 from modmail.modmail_notification import ModmailNotification
 from modmail.modmailconversation_repository import ModmailConversationRepository
 from qv_bot.require_qv_response import RequireQvResponse
@@ -185,6 +186,7 @@ class SuperstonkModerationBot(Bot):
         # SCHEDULED COMPONENTS
         await self.component(quality_vote_bot_configuration=QualityVoteBotConfiguration(**self.COMPONENTS))
         await self.component(automod_configuration=AutomodConfiguration(**self.COMPONENTS))
+        await self.component(hanami_configuration=HanamiConfiguration(**self.COMPONENTS))
 
         await self.component(calculate_post_statistics=CalculatePostStatistics(**self.COMPONENTS))
         await self.component(comment_based_troll_identifier=CommentBasedTrollIdentifier(**self.COMPONENTS))
