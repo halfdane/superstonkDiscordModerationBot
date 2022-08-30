@@ -59,7 +59,7 @@ class ModmailNotification(Handler):
         selection_holder = SelectionHolder(options, self.on_select)
 
         await self.send_discord_message(item=modmail,
-                                        description_beginning="NEW",
-                                        channel='report_comments_channel',
+                                        description_beginning="Received",
                                         fields={'lastmessage': modmail.messages[len(modmail.messages) - 1].body_markdown},
-                                        view=selection_holder)
+                                        # view=selection_holder
+                                        )
