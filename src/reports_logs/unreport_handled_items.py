@@ -83,10 +83,7 @@ class HandledItemsUnreporter:
                 if __may_be_removed_automatically(message) and \
                         (__was_confirmed(message) or (await __was_removed(message))):
                     try:
-                        self._logger.debug(f'removing report for {message.embeds[0].url}')
                         await message.delete()
                         removed_count += 1
                     except (disnake.errors.NotFound, disnake.errors.Forbidden):
                         pass
-
-            self._logger.debug(f'removed {removed_count} reports')

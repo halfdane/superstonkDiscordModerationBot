@@ -17,6 +17,7 @@ from comments.comment_repository import Comments
 from helper.item_helper import permalink
 from helper.moderation_bot_configuration import ModerationBotConfiguration
 from modmail.HighlightMailNotification import HighlightMailNotification
+from modmail.__init import modmail_state
 from qv_bot.__init import get_qv_comment
 from modmail.hanami_config import HanamiConfiguration
 from qv_bot.qv_bot_configuration import QualityVoteBotConfiguration
@@ -25,20 +26,22 @@ from reports_logs.approve_old_modqueue_items import ApproveOldModqueueItems
 from reports_logs.reported_comments_remover import ReportedCommentsRemover
 from datetime import timedelta, datetime
 from dateutil.relativedelta import relativedelta
+from urllib.parse import urlparse
 
 configuration = ModerationBotConfiguration()
 
 asyncreddit = asyncpraw.Reddit(
-    **configuration.qvbot_reddit_settings(),
+    **configuration.readonly_reddit_settings(),
     user_agent="com.halfdane.superstonk_moderation_bot:v0.xx (by u/half_dane)")
 
-
-COMPONENTS={}
+COMPONENTS = {}
 COMPONENTS.update(configuration)
+
 
 async def deb(description_beginning, fields):
     print(f"{description_beginning}")
     print(fields)
+
 
 async def main():
     async with asyncreddit as reddit:
@@ -47,16 +50,20 @@ async def main():
         subreddit_name_ = COMPONENTS["subreddit_name"]
         superstonk_subreddit = await reddit.subreddit(subreddit_name_)
 
-        configuration = HanamiConfiguration(superstonk_subreddit=superstonk_subreddit)
-        await configuration.on_ready(MagicMock())
+        url = 'https://mod.reddit.com/mail/all/16aqey'
+        o = urlparse(url)
+        id = o.path.rpartition('/')[2]
 
+        convo = await superstonk_subreddit.modmail(id)
+
+        print(f"[... skipping  {len(convo.messages) - 1} older messages]")
+        print(convo.messages[len(convo.messages) - 1].body_markdown)
 
 
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s [%(name)s]: %(message)s'
 )
-
 
 loop = asyncio.get_event_loop()
 loop.run_until_complete(main())

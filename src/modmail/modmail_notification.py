@@ -1,3 +1,4 @@
+from modmail.__init import modmail_state
 from reddit_item_handler import Handler
 import disnake
 from disnake.components import SelectOption
@@ -47,10 +48,16 @@ class ModmailNotification(Handler):
         await interaction.response.send_message('\n\n'.join(response))
 
     async def take(self, item):
+        state = modmail_state(item)
+        if state.archived is not None:
+            return
+
         options = [SelectOption(label='Hey', default=True), SelectOption(label='Bye', default=True)]
         options += [SelectOption(label=i) for i in self.hanami_configuration.config]
         selection_holder = SelectionHolder(options, self.on_select)
+
         await self.send_discord_message(item=item,
                                         description_beginning="NEW",
                                         channel='report_comments_channel',
+                                        fields={'lastmessage': item.messages[len(item.messages) - 1].body_markdown},
                                         view=selection_holder)
