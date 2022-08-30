@@ -1,6 +1,8 @@
 import logging
 from datetime import datetime, timedelta, timezone
 
+from modmail.__init import modmail_state
+
 
 class HighlightMailNotification:
     def __init__(self, superstonk_subreddit, qvbot_reddit, send_discord_message, **kwargs):
@@ -21,28 +23,12 @@ class HighlightMailNotification:
         async for convo in self.superstonk_subreddit.modmail.conversations(state="highlighted"):
             now = datetime.now(timezone.utc).astimezone()
             a_minute_ago = now - timedelta(minutes=1)
-
             conversation = await self.superstonk_subreddit.modmail(convo.id)
-            print(vars(convo))
-            print(vars(conversation))
 
-            highlight = self.is_highlighted(conversation)
-            if highlight is not None:
-                highlight_date = datetime.fromisoformat(highlight.date)
-                if highlight_date > a_minute_ago:
-                    await self.send_discord_message(
-                        description_beginning='Highlighed modmail',
-                        item=convo,
-                        tag=829007443584483368
-                    )
-
-    def is_highlighted(self, conversation):
-        mod_actions = conversation.mod_actions
-        mod_actions.sort(key=lambda c: datetime.fromisoformat(c.date), reverse=True)
-        for a in mod_actions:
-            if a.action_type_id == 0:
-                return a
-            elif a.action_type_id == 1:
-                return None
-        return None
-
+            state = modmail_state(conversation)
+            if state.highlighted is not None and state.highlighted > a_minute_ago:
+                await self.send_discord_message(
+                    description_beginning='Highlighed modmail',
+                    item=convo,
+                    tag=829007443584483368
+                )
