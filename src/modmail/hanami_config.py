@@ -11,31 +11,27 @@ class HanamiConfiguration:
         super().__init__()
         self._logger = logging.getLogger(self.__class__.__name__)
         self.superstonk_subreddit = superstonk_subreddit
-        self.hanami_configs = re.compile(r'hanami_config/(.+)')
         self.config = None
-        self.ready = False
+        self.greeting = None
+        self.bye = None
 
     def wot_doing(self):
         return "Reload Hanami's configuration every 10 minutes"
 
     async def on_ready(self, scheduler, **kwargs):
         self._logger.warning(self.wot_doing())
-        scheduler.add_job(self.fetch_config_from_wiki, "cron", minute="3-59/10", next_run_time=datetime.now())
+        scheduler.add_job(self.fetch_config_from_wiki, "cron", minute="3-59/10")
+        # Instead of using next_run_time=datetime.now() in the scheduler, delay the startup
+        # until the qv config has been read, so that qvbot has the comment templates
+        # already available when the first items come streaming in
+        await self.fetch_config_from_wiki()
+
 
     async def fetch_config_from_wiki(self):
-        config = dict()
-        config['types'] = dict()
-
-        print(f"iterating {self.superstonk_subreddit.wiki}")
-        async for wikipage in self.superstonk_subreddit.wiki:
-            print(f"handling {wikipage}")
-            await wikipage.load()
-            if hanami_config := self.hanami_configs.match(wikipage.name):
-                self._logger.info(f"Reading {self.superstonk_subreddit} {wikipage.name}")
-                wiki_config = yaml.safe_load(wikipage.content_md)
-                config['types'][hanami_config.group(1)] = wiki_config
-            else:
-                self._logger.info(f"Ignoring {self.superstonk_subreddit} {wikipage.name}")
-
-        self.config = config
-
+        wiki_page = await self.superstonk_subreddit.wiki.get_page("hanami_config")
+        wiki_config_text = wiki_page.content_md
+        wiki_config = yaml.safe_load(wiki_config_text)
+        self.config = {k: wiki_config[k] for k in wiki_config if k not in ['hey', 'bye']}
+        self.greeting = wiki_config['hey']
+        self.bye = wiki_config['bye']
+        self._logger.info(f"reloaded config with {len(self.config)} entries")

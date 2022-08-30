@@ -3,6 +3,8 @@ import logging
 import re
 from datetime import datetime, timedelta
 from pprint import pprint
+from unittest.mock import MagicMock
+
 from simhash import Simhash, SimhashIndex
 
 import asyncpraw
@@ -16,6 +18,7 @@ from helper.item_helper import permalink
 from helper.moderation_bot_configuration import ModerationBotConfiguration
 from modmail.HighlightMailNotification import HighlightMailNotification
 from qv_bot.__init import get_qv_comment
+from modmail.hanami_config import HanamiConfiguration
 from qv_bot.qv_bot_configuration import QualityVoteBotConfiguration
 from qv_bot.require_qv_response import RequireQvResponse
 from reports_logs.approve_old_modqueue_items import ApproveOldModqueueItems
@@ -44,12 +47,8 @@ async def main():
         subreddit_name_ = COMPONENTS["subreddit_name"]
         superstonk_subreddit = await reddit.subreddit(subreddit_name_)
 
-        p = await reddit.submission(url='https://www.reddit.com/r/Superstonk/comments/x0p6p9/day_90_the_dtcc_has_their_own_twitter_account_i/')
-        r = RequireQvResponse(None, None, None, None, None)
-        comment = await get_qv_comment(reddit, p)
-        op = await r.get_latest_op_response(comment, p)
-        print(f'post created {datetime.utcfromtimestamp(p.created_utc).strftime("%m/%d/%Y, %H:%M:%S")}')
-        print(f'respose was {datetime.utcfromtimestamp(op.created_utc).strftime("%m/%d/%Y, %H:%M:%S")}')
+        configuration = HanamiConfiguration(superstonk_subreddit=superstonk_subreddit)
+        await configuration.on_ready(MagicMock())
 
 
 
