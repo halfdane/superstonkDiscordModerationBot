@@ -44,11 +44,13 @@ async def main():
         subreddit_name_ = COMPONENTS["subreddit_name"]
         superstonk_subreddit = await reddit.subreddit(subreddit_name_)
 
-        p = await reddit.submission(url='https://www.reddit.com/r/Superstonk/comments/x0rjcm/if_only_there_was_a_superstar_company_working_on')
+        p = await reddit.submission(url='https://www.reddit.com/r/Superstonk/comments/x0p6p9/day_90_the_dtcc_has_their_own_twitter_account_i/')
         r = RequireQvResponse(None, None, None, None, None)
         comment = await get_qv_comment(reddit, p)
         op = await r.get_latest_op_response(comment, p)
-        print(op)
+        print(f'post created {datetime.utcfromtimestamp(p.created_utc).strftime("%m/%d/%Y, %H:%M:%S")}')
+        print(f'respose was {datetime.utcfromtimestamp(op.created_utc).strftime("%m/%d/%Y, %H:%M:%S")}')
+
 
 
 logging.basicConfig(
