@@ -24,8 +24,9 @@ class SelectionHolder(disnake.ui.View):
 
 class ModmailNotification(Handler):
 
-    def __init__(self, send_discord_message, hanami_configuration, **kwargs):
+    def __init__(self, superstonk_subreddit, send_discord_message, hanami_configuration, **kwargs):
         super().__init__()
+        self.superstonk_subreddit = superstonk_subreddit
         self.send_discord_message = send_discord_message
         self.hanami_configuration = hanami_configuration
 
@@ -47,8 +48,9 @@ class ModmailNotification(Handler):
             response += [self.hanami_configuration.bye]
         await interaction.response.send_message('\n\n'.join(response))
 
-    async def take(self, item):
-        state = modmail_state(item)
+    async def take(self, modmail_conversation):
+        modmail = await self.superstonk_subreddit.modmail(modmail_conversation.id)
+        state = modmail_state(modmail)
         if state.archived is not None:
             return
 
@@ -56,8 +58,8 @@ class ModmailNotification(Handler):
         options += [SelectOption(label=i) for i in self.hanami_configuration.config]
         selection_holder = SelectionHolder(options, self.on_select)
 
-        await self.send_discord_message(item=item,
+        await self.send_discord_message(item=modmail,
                                         description_beginning="NEW",
                                         channel='report_comments_channel',
-                                        fields={'lastmessage': item.messages[len(item.messages) - 1].body_markdown},
+                                        fields={'lastmessage': modmail.messages[len(modmail.messages) - 1].body_markdown},
                                         view=selection_holder)

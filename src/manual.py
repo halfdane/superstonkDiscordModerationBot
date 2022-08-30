@@ -18,6 +18,7 @@ from helper.item_helper import permalink
 from helper.moderation_bot_configuration import ModerationBotConfiguration
 from modmail.HighlightMailNotification import HighlightMailNotification
 from modmail.__init import modmail_state
+from modmail.modmail_notification import ModmailNotification
 from qv_bot.__init import get_qv_comment
 from modmail.hanami_config import HanamiConfiguration
 from qv_bot.qv_bot_configuration import QualityVoteBotConfiguration
@@ -50,14 +51,13 @@ async def main():
         subreddit_name_ = COMPONENTS["subreddit_name"]
         superstonk_subreddit = await reddit.subreddit(subreddit_name_)
 
-        url = 'https://mod.reddit.com/mail/all/16aqey'
-        o = urlparse(url)
-        id = o.path.rpartition('/')[2]
+        configuration = HanamiConfiguration(superstonk_subreddit)
+        await configuration.on_ready(MagicMock())
+        notification = ModmailNotification(superstonk_subreddit, None, configuration)
 
-        convo = await superstonk_subreddit.modmail(id)
-
-        print(f"[... skipping  {len(convo.messages) - 1} older messages]")
-        print(convo.messages[len(convo.messages) - 1].body_markdown)
+        async for item in superstonk_subreddit.mod.stream.modmail_conversations():
+            m = await superstonk_subreddit.modmail(item.id)
+            await notification.take(item)
 
 
 logging.basicConfig(

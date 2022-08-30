@@ -4,7 +4,7 @@ from urllib.parse import urlparse
 
 
 def modmail_state(conversation):
-    mod_actions = getattr(conversation, 'mod_actions', [])
+    mod_actions = conversation.mod_actions
     mod_actions.sort(key=lambda c: datetime.fromisoformat(c.date))
     ModmailState = namedtuple("ModmailState", ['highlighted', 'filtered', 'archived'])
     state = ModmailState(None, None, None)
