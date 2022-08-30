@@ -6,6 +6,7 @@ from asyncpraw.exceptions import InvalidURL
 from asyncprawcore.exceptions import Forbidden
 
 from helper.item_helper import permalink, removed
+from modmail.__init import modmail_id_from_url, modmail_state
 
 
 class HandledItemsUnreporter:
@@ -53,14 +54,17 @@ class HandledItemsUnreporter:
                 try:
                     comment = await self.readonly_reddit.comment(url=url)
                     was_removed = removed(comment)
-                except InvalidURL:
+                except Exception:
                     try:
                         submission = await self.readonly_reddit.submission(url=url)
                         was_removed = removed(submission)
-                    except InvalidURL:
-                        pass
-                    except Forbidden:
-                        pass
+                    except Exception:
+                        try:
+                            id_from_url = modmail_id_from_url(url=url)
+                            modmail = await self.readonly_reddit.modmail(id_from_url)
+                            was_removed = modmail_state(modmail).archived is not None
+                        except Exception:
+                            pass
             return was_removed
 
         def __may_be_removed_automatically(message):
