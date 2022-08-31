@@ -46,11 +46,11 @@ class HandledItemsUnreporter:
         async for message in self.report_channel \
                 .history(limit=100) \
                 .filter(lambda r: isinstance(self.message_url(r), str)) \
-                .filter(lambda r: self.may_be_removed_automatically(r)) \
-                .filter(lambda r: await self.was_removed(self.message_url(r))):
+                .filter(lambda r: self.may_be_removed_automatically(r)):
             try:
-                self._logger.info(f"Removing message with url {self.message_url(message)}")
-                await message.delete()
+                if await self.was_removed(self.message_url(r)):
+                    self._logger.info(f"Removing message with url {self.message_url(message)}")
+                    await message.delete()
             except (disnake.errors.NotFound, disnake.errors.Forbidden):
                 pass
 
