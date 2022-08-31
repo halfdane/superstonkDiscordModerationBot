@@ -48,7 +48,7 @@ class HandledItemsUnreporter:
                 .filter(lambda r: isinstance(self.message_url(r), str)) \
                 .filter(lambda r: self.may_be_removed_automatically(r)):
             try:
-                if await self.was_removed(self.message_url(r)):
+                if await self.was_removed(self.message_url(message)):
                     self._logger.info(f"Removing message with url {self.message_url(message)}")
                     await message.delete()
             except (disnake.errors.NotFound, disnake.errors.Forbidden):
