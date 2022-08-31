@@ -34,40 +34,28 @@ class HandledItemsUnreporter:
                         if log.action in unreport_actions]
         async for message in self.report_channel \
                 .history(limit=200) \
-                .filter(lambda r: len(getattr(r, 'embeds', [])) > 0 and r.embeds[0].url in handled_urls):
+                .filter(lambda r: self.message_url(r) in handled_urls) \
+                .filter(lambda r: self.may_be_removed_automatically(r)):
             try:
                 await message.delete()
+                self._logger.debug(f'removed report for {self.message_url(message)}')
             except disnake.errors.NotFound:
                 self._logger.debug("Message that should be deleted is already gone - works for me.")
 
-            self._logger.debug(f'removed report for {message.embeds[0].url}')
-
     async def remove_handled_items(self):
-        removed_count = 1_000
-        while removed_count > 0:
-            removed_count = 0
-            async for message in self.report_channel.history(limit=100):
-                url = message.embeds[0].url if len(getattr(message, 'embeds', [])) > 0 else Embed.Empty
+        async for message in self.report_channel \
+                .history(limit=100) \
+                .filter(lambda r: isinstance(self.message_url(r), str)) \
+                .filter(lambda r: self.may_be_removed_automatically(r)) \
+                .filter(lambda r: await self.was_removed(self.message_url(r))):
+            try:
+                self._logger.info(f"Removing message with url {self.message_url(message)}")
+                await message.delete()
+            except (disnake.errors.NotFound, disnake.errors.Forbidden):
+                pass
 
-                if not isinstance(url, str):
-                    continue
-
-                auto_clean = self.may_be_removed_automatically(message)
-                checkmarked = self.was_confirmed(message)
-                handled = await self.was_removed(url)
-                if auto_clean and (checkmarked or handled):
-                    try:
-                        self._logger.info(f"Removing message with url {url}")
-                        await message.delete()
-                        removed_count += 1
-                    except (disnake.errors.NotFound, disnake.errors.Forbidden):
-                        pass
-
-    def was_confirmed(self, message):
-        bot_message = message.author.id == self.discord_bot_user.id
-        additional_reactions = [r.emoji for r in message.reactions if r.count >= 2]
-        confirmed = '✅' in additional_reactions
-        return bot_message and confirmed
+    def message_url(self, message):
+        return message.embeds[0].url if len(getattr(message, 'embeds', [])) > 0 else None
 
     async def was_removed(self, url):
         item = await self.get_item(url)

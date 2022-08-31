@@ -34,7 +34,6 @@ from discordReactionHandlers.delete_reaction import DeleteReaction
 from discordReactionHandlers.help_reaction import HelpReaction
 from discordReactionHandlers.modnote_reaction import ModNoteReaction
 from discordReactionHandlers.user_history_reaction import UserHistoryReaction
-from discordReactionHandlers.wip_reaction import WipReaction
 from helper.item_helper import permalink, user_page, author
 from helper.moderation_bot_configuration import ModerationBotConfiguration, CONFIG_HOME
 from helper.redditor_extractor import extract_redditor
@@ -208,7 +207,7 @@ class SuperstonkModerationBot(Bot):
 
         # REACTIONS
         self.GENERIC_REACTIONS = (
-            HelpReaction(**self.COMPONENTS), WipReaction(**self.COMPONENTS), DeleteReaction(**self.COMPONENTS))
+            HelpReaction(**self.COMPONENTS), DeleteReaction(**self.COMPONENTS))
         self.USER_REACTIONS = (ModNoteReaction(**self.COMPONENTS), UserHistoryReaction(**self.COMPONENTS))
         self.ALL_REACTIONS = self.GENERIC_REACTIONS + self.USER_REACTIONS
 
