@@ -29,6 +29,8 @@ from datetime import timedelta, datetime
 from dateutil.relativedelta import relativedelta
 from urllib.parse import urlparse
 
+from reports_logs.unreport_handled_items import HandledItemsUnreporter
+
 configuration = ModerationBotConfiguration()
 
 asyncreddit = asyncpraw.Reddit(
@@ -51,13 +53,12 @@ async def main():
         subreddit_name_ = COMPONENTS["subreddit_name"]
         superstonk_subreddit = await reddit.subreddit(subreddit_name_)
 
-        configuration = HanamiConfiguration(superstonk_subreddit)
-        await configuration.on_ready(MagicMock())
-        notification = ModmailNotification(superstonk_subreddit, None, configuration)
+        r = HandledItemsUnreporter(reddit, superstonk_subreddit, None, None)
+        url='https://mod.reddit.com/mail/all/16co9k'
 
-        async for item in superstonk_subreddit.mod.stream.modmail_conversations():
-            m = await superstonk_subreddit.modmail(item.id)
-            await notification.take(item)
+        item = await r.was_removed(url)
+        print(f"Found a {type(item)}")
+        print(item)
 
 
 logging.basicConfig(
