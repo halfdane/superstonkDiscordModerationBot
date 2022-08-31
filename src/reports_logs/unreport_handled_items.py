@@ -34,7 +34,7 @@ class HandledItemsUnreporter:
                         if log.action in unreport_actions]
         async for message in self.report_channel \
                 .history(limit=200) \
-                .filter(lambda r: self.first_embed(r).url in handled_urls and self.may_be_removed_automatically(r)):
+                .filter(lambda r: len(getattr(r, 'embeds', [])) > 0 and r.embeds[0].url in handled_urls):
             try:
                 await message.delete()
             except disnake.errors.NotFound:
@@ -47,7 +47,7 @@ class HandledItemsUnreporter:
         while removed_count > 0:
             removed_count = 0
             async for message in self.report_channel.history(limit=100):
-                url = self.first_embed(message).url
+                url = message.embeds[0].url if len(getattr(message, 'embeds', [])) > 0 else Embed.Empty
 
                 if not isinstance(url, str):
                     continue
@@ -62,9 +62,6 @@ class HandledItemsUnreporter:
                         removed_count += 1
                     except (disnake.errors.NotFound, disnake.errors.Forbidden):
                         pass
-
-    def first_embed(self, message):
-        return message.embeds[0] if len(getattr(message, 'embeds', [])) > 0 else Embed.Empty
 
     def was_confirmed(self, message):
         bot_message = message.author.id == self.discord_bot_user.id
@@ -83,7 +80,10 @@ class HandledItemsUnreporter:
         return False
 
     def may_be_removed_automatically(self, message):
-        for field in self.first_embed(message).fields:
+        e: disnake.Embed = message.embeds[0] if len(getattr(message, 'embeds', [])) > 0 else None
+        if e is None:
+            return True
+        for field in e.fields:
             if field.name == "auto_clean":
                 return str(field.value) == 'True'
         return True
