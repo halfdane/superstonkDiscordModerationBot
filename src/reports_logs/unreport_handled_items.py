@@ -43,7 +43,6 @@ class HandledItemsUnreporter:
             self._logger.debug(f'removed report for {message.embeds[0].url}')
 
     async def remove_handled_items(self):
-        self._logger.info("Removing handled items")
         removed_count = 1_000
         while removed_count > 0:
             removed_count = 0
