@@ -1,10 +1,24 @@
+import disnake
+from disnake import TextInputStyle
+from disnake.components import SelectOption
+from disnake.ui import View
+
 from modmail.__init import modmail_state
 from reddit_item_handler import Handler
-import disnake
-from disnake.components import SelectOption, ActionRow
-from disnake.ui import Modal, View
-from disnake.ext import commands
-from disnake import TextInputStyle
+
+EVERYONE_TEST_GUILD = 952157731614249040
+ADMIN = 829007443584483368
+GENERAL_MOD = 829007921555046461
+LIMITED_MOD = 943655369715109948
+ALLOWED_ROLES = [ADMIN, GENERAL_MOD, LIMITED_MOD]
+
+
+def is_mod_or_admin(roles):
+    role_ids = [role.id for role in roles]
+    for allowed_role in ALLOWED_ROLES:
+        if allowed_role in role_ids:
+            return True
+    return False
 
 
 class TextSnippetSelection(disnake.ui.Select):
@@ -43,9 +57,14 @@ class TextSnippetSelection(disnake.ui.Select):
                 super().__init__(title="This would be your response", components=components)
 
             async def callback(self, modal_interaction: disnake.ModalInteraction):
-                moderator_name = modal_interaction.author
-                await modal_interaction.response.send_message("Sending response")
-                await on_select(modmail, moderator_name, modal_interaction.text_values['adjusted_text'])
+                message_author = modal_interaction.author
+                if is_mod_or_admin(message_author.roles):
+                    await modal_interaction.response.send_message("Done")
+                    await on_select(modmail, message_author, modal_interaction.text_values['adjusted_text'])
+                else:
+                    await modal_interaction.response.send_message(
+                        f"Only admins and mod roles are allowed to do that, {message_author}.\n\n"
+                        f"Your roles are {message_author.roles}, but one of {ALLOWED_ROLES} is needed")
 
         await inter.response.send_modal(modal=MailResponseEditor())
 
