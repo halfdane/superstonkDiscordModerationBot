@@ -8,46 +8,56 @@ from disnake import TextInputStyle
 
 
 class TextSnippetSelection(disnake.ui.Select):
-    def __init__(self, options, on_select):
+    def __init__(self, options, on_select, modmail, hanami_configuration):
         super().__init__(
             options=options,
             max_values=len(options),
             placeholder="Compose the response")
         self.on_select = on_select
+        self.hanami_configuration = hanami_configuration
+        self.modmail = modmail
 
-    async def callback(self, inter: disnake.ModalInteraction):
-        await self.on_select(inter, self.values)
+    async def callback(self, inter: disnake.MessageInteraction):
+        everything_but_hey_and_bye = [i for i in self.values if i not in ['Hey', 'Bye']]
+        response = []
+        if 'Hey' in self.values:
+            response += [self.hanami_configuration.greeting]
 
+        response += [self.hanami_configuration.config[i] for i in everything_but_hey_and_bye]
 
-class MailResponseEditor(disnake.ui.Modal):
-    def __init__(self, response):
-        components = [
-            disnake.ui.TextInput(
-                label="response",
-                custom_id="NOT SENDING THIS YET",
-                value='\n\n'.join(response),
-                style=TextInputStyle.paragraph
-            )]
-        super().__init__(title="This would be your response", components=components)
+        if 'Bye' in self.values:
+            response += [self.hanami_configuration.bye]
 
-    async def callback(self, inter: disnake.ModalInteraction):
-        embed = disnake.Embed(title="Tag Creation")
-        for key, value in inter.text_values.items():
-            embed.add_field(
-                name=key.capitalize(),
-                value=value[:1024],
-                inline=False,
-            )
-        await inter.response.send_message(embed=embed)
+        on_select = self.on_select
+        modmail = self.modmail
+
+        class MailResponseEditor(disnake.ui.Modal):
+            def __init__(self):
+                components = [
+                    disnake.ui.TextInput(
+                        label="response",
+                        custom_id="adjusted_text",
+                        value='\n\n'.join(response),
+                        style=TextInputStyle.paragraph
+                    )]
+                super().__init__(title="This would be your response", components=components)
+
+            async def callback(self, modal_interaction: disnake.ModalInteraction):
+                moderator_name = modal_interaction.author
+                await modal_interaction.response.send_message("Sending response")
+                await on_select(modmail, moderator_name, modal_interaction.text_values['adjusted_text'])
+
+        await inter.response.send_modal(modal=MailResponseEditor())
 
 
 class ModmailNotification(Handler):
 
-    def __init__(self, superstonk_subreddit, send_discord_message, hanami_configuration, **kwargs):
+    def __init__(self, qvbot_reddit, superstonk_subreddit, send_discord_message, hanami_configuration, **kwargs):
         super().__init__()
         self.superstonk_subreddit = superstonk_subreddit
         self.send_discord_message = send_discord_message
         self.hanami_configuration = hanami_configuration
+        self.qvbot_reddit = qvbot_reddit
 
     def wot_doing(self):
         return "Notify on discord when modmails happen"
@@ -55,20 +65,10 @@ class ModmailNotification(Handler):
     async def on_ready(self, **kwargs):
         self._logger.warning(self.wot_doing())
 
-    async def on_select(self, interaction, selected):
-        everything_but_hey_and_bye = [i for i in selected if i not in ['Hey', 'Bye']]
-        response = []
-        if 'Hey' in selected:
-            response += [self.hanami_configuration.greeting]
-
-        response += [self.hanami_configuration.config[i] for i in everything_but_hey_and_bye]
-
-        if 'Bye' in selected:
-            response += [self.hanami_configuration.bye]
-
-
-
-        await interaction.response.send_modal(modal=MailResponseEditor(response))
+    async def on_select(self, modmail, moderator_name, response):
+        await modmail.reply(body=f"sending on behalf of {moderator_name}", internal=True)
+        await modmail.reply(body=response, author_hidden=True)
+        await modmail.archive()
 
     async def take(self, modmail_conversation):
         modmail = await self.superstonk_subreddit.modmail(modmail_conversation.id)
@@ -79,7 +79,9 @@ class ModmailNotification(Handler):
         options = [SelectOption(label='Hey', default=True), SelectOption(label='Bye', default=True)]
         options += [SelectOption(label=i) for i in self.hanami_configuration.config]
         selection_holder = View()
-        selection_holder.add_item(TextSnippetSelection(options=options, on_select=self.on_select))
+        selection_holder.add_item(TextSnippetSelection(options=options, on_select=self.on_select,
+                                                       hanami_configuration=self.hanami_configuration,
+                                                       modmail=modmail))
 
         await self.send_discord_message(item=modmail,
                                         description_beginning="Received",
