@@ -22,9 +22,9 @@ class RAllStickyCreator(Handler):
     async def take(self, item):
         subreddit = item.subreddit
         await item.load()
-        if subreddit == "SuperStonk" and (qv_comment := await get_qv_comment(self.qvbot_reddit, item)):
-            qv_comment_body = getattr(qv_comment, 'body', "")
-            is_already_rall_comment = 'r/all' in qv_comment_body
+        post_from_qbots_view = await self.qvbot_reddit.submission(id=item.id)
+        if subreddit == "SuperStonk" and (qv_comment := await get_qv_comment(self.qvbot_reddit, item)) is not None:
+            is_already_rall_comment = 'r/all' in getattr(qv_comment, 'body', "")
             if is_already_rall_comment:
                 return
 
@@ -33,8 +33,8 @@ class RAllStickyCreator(Handler):
             if self.is_live_environment:
                 self._logger.info(f"adding r/all comment to {permalink(item)}")
                 r_all_comment = self.quality_vote_bot_configuration.config['r_all_comment']
-
-                body = self.quality_vote_bot_configuration.render(r_all_comment, original_comment=qv_comment_body)
-                await qv_comment.edit(body)
+                sticky = await post_from_qbots_view.reply(r_all_comment)
+                await sticky.mod.distinguish(how="yes", sticky=True)
+                await sticky.mod.ignore_reports()
             else:
                 self._logger.info(f"NOT adding r/all comment to {permalink(item)}")
