@@ -6,14 +6,12 @@ import asyncpraw
 
 class PostRepositoryUpdater:
 
-    def __init__(self, post_repo=None, superstonk_subreddit=None, comment_repo=None, readonly_reddit=None,
-                 report_channel=None, **kwargs):
+    def __init__(self, post_repo=None, superstonk_subreddit=None, comment_repo=None, readonly_reddit=None, **kwargs):
         self._logger = logging.getLogger(self.__class__.__name__)
         self.persist_posts = post_repo
         self.comment_repo = comment_repo
         self.superstonk_subreddit = superstonk_subreddit
         self.readonly_reddit = readonly_reddit
-        self.report_channel = report_channel
 
     def wot_doing(self):
         return "Hourly post statistics update"

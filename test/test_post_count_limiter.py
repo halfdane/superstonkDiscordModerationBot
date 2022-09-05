@@ -23,9 +23,7 @@ class TestPostCountLimiter:
         mock_reddit = AsyncMock()
 
         testee = PostCountLimiter(post_repo=mock_post_repo, qvbot_reddit=mock_reddit, is_live_environment=True,
-                                  superstonk_subreddit=None, add_reactions_to_discord_message=None,
-                                  report_channel=None)
-
+                                  superstonk_subreddit=None, report_channel=None)
         # when
         await testee.take(fake_post())
 
@@ -43,8 +41,7 @@ class TestPostCountLimiter:
         mock_reddit = AsyncMock()
 
         testee = PostCountLimiter(post_repo=mock_post_repo, qvbot_reddit=mock_reddit, is_live_environment=True,
-                                  superstonk_subreddit=None, add_reactions_to_discord_message=None,
-                                  report_channel=None)
+                                  superstonk_subreddit=None, report_channel=None)
 
         # when
         await testee.take(fake_post())
@@ -70,7 +67,6 @@ class TestPostCountLimiter:
 
         testee = PostCountLimiter(post_repo=mock_post_repo, qvbot_reddit=mock_reddit,
                                   report_channel=mock_report_channel, is_live_environment=True,
-                                  add_reactions_to_discord_message=AsyncMock(),
                                   superstonk_subreddit=None)
 
         # when
@@ -100,7 +96,6 @@ class TestPostCountLimiter:
         local = "local"
         testee = PostCountLimiter(post_repo=mock_post_repo, qvbot_reddit=mock_reddit,
                                   report_channel=AsyncMock(), is_live_environment=False,
-                                  add_reactions_to_discord_message=AsyncMock(),
                                   superstonk_subreddit=None)
         # when
         await testee.take(fake_post())

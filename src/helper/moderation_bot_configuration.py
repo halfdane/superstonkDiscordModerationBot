@@ -18,9 +18,6 @@ class ModerationBotConfiguration(dict):
         self['is_live_environment'] = (self['environment'] == 'live')
         self.__as_int('discord_guild_id')
         self.__as_int('report_channel_id')
-        self.__as_int('report_comments_channel_id')
-        self.__as_int('flairy_channel_id')
-        self.__as_int('logging_output_channel_id')
         self.__as_int('user_investigation_channel_id')
 
         self.readonly_reddit_settings = self.__reddit_settings('reddit')

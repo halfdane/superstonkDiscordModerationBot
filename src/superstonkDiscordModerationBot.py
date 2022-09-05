@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import re
 
@@ -112,18 +113,6 @@ class SuperstonkModerationBot(Bot):
         # CHANNELS
         self.logger.warning(f"report into the discord channel: {self.COMPONENTS['report_channel_id']}")
         await self.component(report_channel=self.get_channel(self.COMPONENTS['report_channel_id']))
-
-        self.logger.warning(
-            f"use this discord channel for experimental comment stuff: {self.COMPONENTS['report_comments_channel_id']}")
-        await self.component(report_comments_channel=self.get_channel(self.COMPONENTS['report_comments_channel_id']))
-
-        self.logger.warning(f"use this discord channel for flairy{self.COMPONENTS['flairy_channel_id']}")
-        await self.component(flairy_channel=self.get_channel(self.COMPONENTS['flairy_channel_id']))
-
-        self.logger.warning(
-            f"use this discord channel for debugging messages: {self.COMPONENTS['logging_output_channel_id']}")
-        await self.component(logging_output_channel=self.get_channel(self.COMPONENTS['logging_output_channel_id']))
-
         self.logger.warning(
             f"listen for user mentions in this discord channel: {self.COMPONENTS['user_investigation_channel_id']}")
 
@@ -146,8 +135,6 @@ class SuperstonkModerationBot(Bot):
         await self.component(asyncio_loop=self.loop)
 
         # FUNCTION COMPONENTS
-        await self.component(add_reactions_to_discord_message=self.add_reactions)
-        await self.component(get_discord_cogs=lambda: self.cogs)
         await self.component(send_discord_message=self.send_discord_message)
 
         # FUNDAMENTAL COMPONENTS WITHOUT DEPENDENCIES
@@ -202,12 +189,12 @@ class SuperstonkModerationBot(Bot):
         await self.component(highlight_mail_notification=HighlightMailNotification(**self.COMPONENTS))
 
         # COGS
-        super().add_cog(UserCog(**self.COMPONENTS))
+        super().add_cog(UserCog(add_reactions_to_discord_message=self.add_reactions, **self.COMPONENTS))
         super().add_cog(ModQueueCog(**self.COMPONENTS))
 
         # REACTIONS
         self.GENERIC_REACTIONS = (
-            HelpReaction(**self.COMPONENTS), DeleteReaction(**self.COMPONENTS))
+            HelpReaction(get_discord_cogs=self.cogs), DeleteReaction(**self.COMPONENTS))
         self.USER_REACTIONS = (ModNoteReaction(**self.COMPONENTS), UserHistoryReaction(**self.COMPONENTS))
         self.ALL_REACTIONS = self.GENERIC_REACTIONS + self.USER_REACTIONS
 
@@ -380,3 +367,5 @@ if __name__ == "__main__":
         test_guilds=[configuration['discord_guild_id']]
     )
     bot.run(configuration['discord_bot_token'])
+
+

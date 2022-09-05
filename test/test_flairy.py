@@ -43,8 +43,7 @@ class TestFlairy:
         # when
         testee = Flairy(flairy_reddit=flairy_reddit,
                         automod_configuration=automod(forbid_everything=False),
-                        flairy_comment_repo=AsyncMock(),
-                        add_reactions_to_discord_message=AsyncMock())
+                        flairy_comment_repo=AsyncMock())
         await testee.on_ready()
         await testee.take(mock_comment)
 
@@ -67,8 +66,7 @@ class TestFlairy:
         # when
         testee = Flairy(flairy_reddit=flairy_reddit,
                         automod_configuration=automod(forbid_everything=True),
-                        flairy_comment_repo=AsyncMock(),
-                        add_reactions_to_discord_message=AsyncMock())
+                        flairy_comment_repo=AsyncMock())
         await testee.on_ready()
         await testee.take(mock_comment)
 
@@ -86,8 +84,7 @@ class TestFlairy:
         # when
         testee = Flairy(flairy_reddit=flairy_reddit,
                         automod_configuration=automod(forbid_everything=False),
-                        flairy_comment_repo=AsyncMock(),
-                        add_reactions_to_discord_message=AsyncMock())
+                        flairy_comment_repo=AsyncMock())
         await testee.on_ready()
         await testee.take(mock_comment)
 
@@ -109,8 +106,7 @@ class TestFlairy:
         # when
         testee = Flairy(flairy_reddit=flairy_reddit,
                         automod_configuration=automod(forbid_everything=False),
-                        flairy_comment_repo=AsyncMock(),
-                        add_reactions_to_discord_message=AsyncMock())
+                        flairy_comment_repo=AsyncMock())
         await testee.on_ready()
         await testee.take(mock_comment)
 
@@ -133,8 +129,7 @@ class TestFlairy:
         testee = Flairy(flairy_reddit=flairy_reddit,
                         automod_configuration=automod(forbid_everything=False),
                         is_live_environment=True,
-                        flairy_comment_repo=AsyncMock(),
-                        add_reactions_to_discord_message=AsyncMock())
+                        flairy_comment_repo=AsyncMock())
         await testee.on_ready()
         await testee.take(mock_comment)
 
@@ -165,8 +160,7 @@ class TestFlairy:
         # when
         testee = Flairy(flairy_reddit=flairy_reddit,
                         flairy_comment_repo=AsyncMock(),
-                        automod_configuration=automod(forbid_everything=False),
-                        add_reactions_to_discord_message=AsyncMock())
+                        automod_configuration=automod(forbid_everything=False))
         testee.flair_user = flair_user
         await testee.on_ready()
         await testee.take(mock_comment)
@@ -193,8 +187,7 @@ class TestFlairy:
         # when
         testee = Flairy(flairy_reddit=flairy_reddit,
                         automod_configuration=automod(forbid_everything=False),
-                        flairy_comment_repo=AsyncMock(),
-                        add_reactions_to_discord_message=AsyncMock())
+                        flairy_comment_repo=AsyncMock())
         testee.flair_user = flair_user
         await testee.on_ready()
         await testee.take(mock_comment)
@@ -224,8 +217,7 @@ class TestFlairy:
         testee = Flairy(flairy_reddit=flairy_reddit,
                         automod_configuration=automod(forbid_everything=False),
                         is_live_environment=True,
-                        flairy_comment_repo=AsyncMock(),
-                        add_reactions_to_discord_message=AsyncMock())
+                        flairy_comment_repo=AsyncMock())
         await testee.on_ready()
         await testee.take(mock_comment)
 

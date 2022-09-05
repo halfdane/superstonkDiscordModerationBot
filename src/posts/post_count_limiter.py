@@ -32,14 +32,11 @@ async def _post_to_string(post):
 class PostCountLimiter(Handler):
     _interval = timedelta(hours=24)
 
-    def __init__(self, add_reactions_to_discord_message, post_repo, qvbot_reddit,
-                 report_channel, is_live_environment,
-                 superstonk_subreddit, **kwargs):
+    def __init__(self, post_repo, qvbot_reddit,
+                 is_live_environment, superstonk_subreddit, **kwargs):
         super().__init__()
         self.post_repo = post_repo
         self.qvbot_reddit = qvbot_reddit
-        self.report_channel = report_channel
-        self.add_reactions_to_discord_message = add_reactions_to_discord_message
         self.is_live_environment = is_live_environment
         self.superstonk_subreddit = superstonk_subreddit
         self.post_limit_reached_comment = REMOVAL_COMMENT
