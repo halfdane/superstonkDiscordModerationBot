@@ -59,6 +59,8 @@ class SuperstonkModerationBot(Bot):
     automod_rules = []
 
     ALL_REACTIONS = None
+    USER_REACTIONS = None
+    GENERIC_REACTIONS = None
 
     def __init__(self, moderation_bot_configuration, **options):
         intents = disnake.Intents.default()
@@ -192,13 +194,18 @@ class SuperstonkModerationBot(Bot):
         super().add_cog(await self.component(modbot_list_cog=(ModbotListCog(self.COMPONENTS))))
 
         # REACTIONS
-        self.ALL_REACTIONS = \
+        self.USER_REACTIONS = \
+            (
+                await self.component(discord_modnote_reaction=ModNoteReaction(**self.COMPONENTS)),
+                await self.component(discord_user_history_reaction=UserHistoryReaction(**self.COMPONENTS)))
+
+        self.GENERIC_REACTIONS = \
             (
                 await self.component(discord_help_reaction=HelpReaction(get_discord_cogs=self.cogs)),
                 await self.component(discord_delete_reaction=DeleteReaction(**self.COMPONENTS)),
-                await self.component(discord_old_reddit_reaction=OldRedditReaction(**self.COMPONENTS)),
-                await self.component(discord_modnote_reaction=ModNoteReaction(**self.COMPONENTS)),
-                await self.component(discord_user_history_reaction=UserHistoryReaction(**self.COMPONENTS)))
+                await self.component(discord_old_reddit_reaction=OldRedditReaction(**self.COMPONENTS)))
+
+        self.ALL_REACTIONS = self.GENERIC_REACTIONS + self.USER_REACTIONS
 
         # STREAMING REDDIT ITEMS INTO HANDLERS
         await self.component(comments_reader=RedditItemReader(
