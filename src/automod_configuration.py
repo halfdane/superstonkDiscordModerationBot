@@ -15,10 +15,9 @@ class AutomodConfiguration:
         self.domain_filter = domain_filter
 
     def wot_doing(self):
-        return "Read the Automod-Configuration every 10 minutes"
+        return "[internal] Read the Automod-Configuration every 10 minutes"
 
     async def on_ready(self, scheduler, **kwargs):
-        self._logger.warning(self.wot_doing())
         scheduler.add_job(self.fetch_config_from_wiki, "cron", minute="3-59/10")
         # Instead of using next_run_time=datetime.now() in the scheduler, delay the startup
         # until the configuration has been read, so that the rules are

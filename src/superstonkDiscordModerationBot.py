@@ -9,6 +9,7 @@ from disnake.ext import commands
 from disnake.ext.commands import Bot
 
 from automod_configuration import AutomodConfiguration
+from cogs.modbot_list import ModbotListCog
 from cogs.modqueue_cog import ModQueueCog
 from cogs.user_cog import UserCog
 from comments.comment_based_troll_identifier import CommentBasedTrollIdentifier
@@ -72,11 +73,14 @@ class SuperstonkModerationBot(Bot):
     async def component(self, **kwargs):
         for name, component in kwargs.items():
             if component is not None:
-                async def no_op(**_): pass
-
-                on_ready = getattr(component, 'on_ready', no_op)
-                await on_ready(**self.COMPONENTS)
+                if hasattr(component, 'on_ready'):
+                    await component.on_ready(**self.COMPONENTS)
                 self.COMPONENTS[name] = component
+                if hasattr(component, 'wot_doing'):
+                    logging.getLogger(name).warning(component.wot_doing())
+
+        for name, component in kwargs.items():
+            return component
 
     async def on_ready(self):
         self.COMPONENTS['superstonk_discord_moderation_bot'] = self
@@ -182,14 +186,19 @@ class SuperstonkModerationBot(Bot):
         await self.component(highlight_mail_notification=HighlightMailNotification(**self.COMPONENTS))
 
         # COGS
-        super().add_cog(UserCog(add_reactions_to_discord_message=self.add_reactions, **self.COMPONENTS))
-        super().add_cog(ModQueueCog(**self.COMPONENTS))
+        super().add_cog(await self.component(user_cog=(
+            UserCog(add_reactions_to_discord_message=self.add_reactions, **self.COMPONENTS))))
+        super().add_cog(await self.component(mod_queue_cog=(ModQueueCog(**self.COMPONENTS))))
+        super().add_cog(await self.component(modbot_list_cog=(ModbotListCog(self.COMPONENTS))))
 
         # REACTIONS
-        self.ALL_REACTIONS = (
-            HelpReaction(get_discord_cogs=self.cogs), DeleteReaction(**self.COMPONENTS),
-            OldRedditReaction(**self.COMPONENTS),
-            ModNoteReaction(**self.COMPONENTS), UserHistoryReaction(**self.COMPONENTS))
+        self.ALL_REACTIONS = \
+            (
+                await self.component(discord_help_reaction=HelpReaction(get_discord_cogs=self.cogs)),
+                await self.component(discord_delete_reaction=DeleteReaction(**self.COMPONENTS)),
+                await self.component(discord_old_reddit_reaction=OldRedditReaction(**self.COMPONENTS)),
+                await self.component(discord_modnote_reaction=ModNoteReaction(**self.COMPONENTS)),
+                await self.component(discord_user_history_reaction=UserHistoryReaction(**self.COMPONENTS)))
 
         # STREAMING REDDIT ITEMS INTO HANDLERS
         await self.component(comments_reader=RedditItemReader(
@@ -198,38 +207,40 @@ class SuperstonkModerationBot(Bot):
             item_repository=self.COMPONENTS['comment_repo'],
             handlers=[
                 # CommentBasedSpamIdentifier(**self.COMPONENTS),
-                Flairy(**self.COMPONENTS),
-                RestickyQualityVoteBot(**self.COMPONENTS)]))
+                await self.component(flairy=Flairy(**self.COMPONENTS)),
+                await self.component(resticky_qv_comment=RestickyQualityVoteBot(**self.COMPONENTS))]))
 
         await self.component(reports_reader=RedditItemReader(
             name="Reports",
             item_fetch_function=superstonk_subreddit.mod.stream.reports,
             item_repository=self.COMPONENTS['report_repo'],
-            handlers=[ImportantReports(**self.COMPONENTS)]))
+            handlers=[await self.component(important_reports=ImportantReports(**self.COMPONENTS))]))
 
         await self.component(posts_reader=RedditItemReader(
             name="Posts",
             item_fetch_function=superstonk_subreddit.stream.submissions,
             item_repository=self.COMPONENTS['post_repo'],
             handlers=[
-                FrontDeskSticky(),
-                PostCountLimiter(**self.COMPONENTS),
-                UrlPostLimiter(**self.COMPONENTS),
-                WeekendRestrictor(**self.COMPONENTS),
-                QualityVoteBot(**self.COMPONENTS),
+                await self.component(front_dest_sticky=FrontDeskSticky()),
+                await self.component(post_count_limiter=PostCountLimiter(**self.COMPONENTS)),
+                await self.component(url_post_limiter=UrlPostLimiter(**self.COMPONENTS)),
+                await self.component(weekend_restrictor=WeekendRestrictor(**self.COMPONENTS)),
+                await self.component(quality_vote_bot=QualityVoteBot(**self.COMPONENTS)),
             ]))
 
         await self.component(r_all_reader=RedditItemReader(
             name="r/all-Posts",
             item_fetch_function=lambda: r_all_subreddit.hot(limit=50),
             item_repository=None,
-            handlers=[RAllStickyCreator(**self.COMPONENTS)]))
+            handlers=[
+                await self.component(r_all_sticky_creator=RAllStickyCreator(**self.COMPONENTS))]))
 
         await self.component(modmail_conversations_reader=RedditItemReader(
             name="modmail_conversations",
             item_fetch_function=superstonk_subreddit.mod.stream.modmail_conversations,
             item_repository=self.COMPONENTS['modmailconversation_repo'],
-            handlers=[ModmailNotification(**self.COMPONENTS)]))
+            handlers=[
+                await self.component(modmail_notification=ModmailNotification(**self.COMPONENTS))]))
 
         await self.send_discord_message(description_beginning="Moderation bot restarted")
 

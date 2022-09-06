@@ -37,3 +37,8 @@ class UserCog(commands.Cog):
 
         msg = await ctx.original_message()
         await self.add_reactions_to_discord_message(msg)
+
+    def wot_doing(self):
+        return f"discord command `/user`: Display some helpful links for the given redditor"
+
+

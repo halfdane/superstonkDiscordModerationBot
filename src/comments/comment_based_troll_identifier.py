@@ -18,7 +18,6 @@ class CommentBasedTrollIdentifier:
         return "Identify possible trolls that delete their comments"
 
     async def on_ready(self, scheduler, **kwargs):
-        self._logger.warning(self.wot_doing())
         scheduler.add_job(self.identify_comment_removers, "cron", minute="1-59/10")
 
     async def identify_comment_removers(self):

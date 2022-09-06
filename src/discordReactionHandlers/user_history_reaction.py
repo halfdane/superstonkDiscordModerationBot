@@ -24,6 +24,9 @@ class UserHistoryReaction(Reaction):
         except disnake.errors.HTTPException as e:
             self._logger.exception(f"Something went wrong: {e.response}")
 
+    def wot_doing(self):
+        return f"{self.emoji} on discord messages: {self.description()}"
+
     @staticmethod
     def description():
         return "Fetch some statistics from the user's history"

@@ -21,7 +21,6 @@ class RequireQvResponse(Handler):
         return "Remove post if QVbot didn't get a response in the allotted time - replaces 'op_response' in template"
 
     async def on_ready(self, scheduler, **kwargs):
-        self._logger.warning(self.wot_doing())
         scheduler.add_job(self.check_recent_comments, "cron", minute="*")
 
     async def check_recent_comments(self, ):

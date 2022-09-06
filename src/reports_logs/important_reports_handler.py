@@ -19,9 +19,6 @@ class ImportantReports(Handler):
     def wot_doing(self):
         return "Discord notification for posts with more that 3 and comments with more than 2 reports"
 
-    async def on_ready(self, **kwargs):
-        self._logger.warning(self.wot_doing())
-
     async def take(self, item):
         user_report_count = sum([r[1] for r in item.user_reports])
         mod_report_count = len([r[1] for r in item.mod_reports if r[1] != "AutoModerator"])

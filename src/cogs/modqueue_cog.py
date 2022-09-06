@@ -36,3 +36,7 @@ class ModQueueCog(commands.Cog):
         await self.send_discord_message(description_beginning="Fetching modqueue!")
         await self.fetch_top_modqueue()
         await self.send_discord_message(description_beginning="Done modqueue!")
+
+    def wot_doing(self):
+        return f"discord command `/modq`: Fetch the top items from the mod queue"
+

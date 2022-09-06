@@ -73,7 +73,6 @@ class Flairy(Handler):
 
     async def on_ready(self, **kwargs):
         self.setup_commands()
-        self._logger.warning(self.wot_doing())
 
     async def take(self, comment):
         body = getattr(comment, 'body', "")

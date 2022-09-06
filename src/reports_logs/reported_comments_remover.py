@@ -16,7 +16,6 @@ class ReportedCommentsRemover:
         return "Remove reported comments if the post was removed or locked."
 
     async def on_ready(self, scheduler, **kwargs):
-        self._logger.info(f"Scheduling cleanup of handled reports")
         scheduler.add_job(self.remove_sus_comments, "cron", minute="*")
 
     async def remove_sus_comments(self):

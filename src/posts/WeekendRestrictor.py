@@ -27,9 +27,6 @@ class WeekendRestrictor(Handler):
     def wot_doing(self):
         return "Remove posts with weekend-only flairs"
 
-    async def on_ready(self, scheduler, **kwargs):
-        self._logger.warning(self.wot_doing())
-
     async def take(self, item):
         config = self.quality_vote_bot_configuration.config
         if getattr(item, 'link_flair_template_id', None) in config['restrict_flair_to_weekend'] and \

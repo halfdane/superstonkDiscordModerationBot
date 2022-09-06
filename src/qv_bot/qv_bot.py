@@ -17,10 +17,9 @@ class QualityVoteBot(Handler):
         self.quality_vote_bot_configuration = quality_vote_bot_configuration
 
     def wot_doing(self):
-        return "Add QV comments to every post"
+        return "Add QV comments to every post and report when they are downvoted"
 
     async def on_ready(self, scheduler, **kwargs):
-        self._logger.warning(self.wot_doing())
         scheduler.add_job(self.check_recent_comments, "cron", minute="4-59/10",
                           next_run_time=datetime.now() + timedelta(minutes=1))
 

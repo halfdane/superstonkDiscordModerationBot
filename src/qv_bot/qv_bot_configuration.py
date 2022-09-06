@@ -12,7 +12,7 @@ class QualityVoteBotConfiguration:
         self.config = None
 
     def wot_doing(self):
-        return "Reload QV-Bot's configuration every 10 minutes"
+        return "[internal] Reload QV-Bot's configuration every 10 minutes"
 
     def render(self, template, **kwargs):
         model: dict = self.config.copy()
@@ -21,7 +21,6 @@ class QualityVoteBotConfiguration:
         return chevron.render(template, model)
 
     async def on_ready(self, scheduler, **kwargs):
-        self._logger.warning(self.wot_doing())
         scheduler.add_job(self.fetch_config_from_wiki, "cron", minute="3-59/10")
         # Instead of using next_run_time=datetime.now() in the scheduler, delay the startup
         # until the qv config has been read, so that qvbot has the comment templates

@@ -16,7 +16,6 @@ class HighlightMailNotification:
         return "Send discord notifications when modmails get highlighted"
 
     async def on_ready(self, scheduler, **kwargs):
-        self._logger.warning(self.wot_doing())
         scheduler.add_job(self.check_recent_mails, "cron", minute="*")
 
     async def check_recent_mails(self):

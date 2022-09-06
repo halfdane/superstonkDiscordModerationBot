@@ -24,7 +24,6 @@ class HandledItemsUnreporter:
         return "Clean up discord notifications of handled reports"
 
     async def on_ready(self, scheduler, **kwargs):
-        self._logger.warning(self.wot_doing())
         scheduler.add_job(self.unreport_items, "cron", minute="*")
         scheduler.add_job(self.remove_handled_items, "cron", minute="*", next_run_time=datetime.now())
 

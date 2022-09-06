@@ -23,6 +23,9 @@ class HelpReaction(Reaction):
 
         await user.send("\n".join(explanations))
 
+    def wot_doing(self):
+        return f"{self.emoji} on discord messages: {self.description()}"
+
     @staticmethod
     def description():
         return "Provide some friendly help texts"

@@ -28,7 +28,6 @@ class CommentBasedSpamIdentifier(Handler):
         return "Identify spammers"
 
     async def on_ready(self, scheduler, **kwargs):
-        self._logger.warning(self.wot_doing())
         scheduler.add_job(self.report_spammers, "cron", hour="*", next_run_time=datetime.now())
 
     async def take(self, item):

@@ -29,7 +29,6 @@ class ApproveOldModqueueItems:
         return "Approve obsolete modqueue items"
 
     async def on_ready(self, scheduler, **kwargs):
-        self._logger.warning(self.wot_doing())
         scheduler.add_job(self.handle_obsolete_modqueue_items, "cron", minute="17", next_run_time=datetime.now())
 
     async def handle_obsolete_modqueue_items(self):

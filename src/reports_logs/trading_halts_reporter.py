@@ -16,7 +16,6 @@ class TradingHaltsReporter():
         return "Discord notification when trading halts occur"
 
     async def on_ready(self, scheduler, **kwargs):
-        self._logger.warning(self.wot_doing())
         scheduler.add_job(self.notify_trading_halt, "cron", minute="*/5", next_run_time=datetime.now())
 
     async def notify_trading_halt(self):

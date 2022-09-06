@@ -18,9 +18,6 @@ class FrontDeskSticky(Handler):
     def wot_doing(self):
         return "Create Front Desk comments"
 
-    async def on_ready(self, **kwargs):
-        self._logger.warning(self.wot_doing())
-
     async def take(self, item):
         if await self.needs_front_desk(item):
             await asyncio.sleep(randint(30, 600))

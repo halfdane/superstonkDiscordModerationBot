@@ -17,10 +17,9 @@ class CommentRepositoryUpdater:
         self.readonly_reddit = readonly_reddit
 
     def wot_doing(self):
-        return "Update comments every 10 mins and clean up database"
+        return "[internal] Update comments every 10 mins and clean up database"
 
     async def on_ready(self, scheduler, **kwargs):
-        self._logger.warning(self.wot_doing())
         scheduler.add_job(self.update_comments, "cron", minute="*/10")
         scheduler.add_job(self.cleanup_comment_bodies, "cron", day="1", hour="07")
 

@@ -30,9 +30,6 @@ class UrlPostLimiter(Handler):
     def wot_doing(self):
         return "Restrict the posting of similar URLs to 2"
 
-    async def on_ready(self, scheduler, **kwargs):
-        self._logger.warning(self.wot_doing())
-
     async def take(self, item):
         author = getattr(getattr(item, "author", None), "name", None)
         if author in self.superstonk_moderators:

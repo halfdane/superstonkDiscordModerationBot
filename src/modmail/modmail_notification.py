@@ -81,9 +81,6 @@ class ModmailNotification(Handler):
     def wot_doing(self):
         return "Notify on discord when modmails happen"
 
-    async def on_ready(self, **kwargs):
-        self._logger.warning(self.wot_doing())
-
     async def on_select(self, modmail, moderator_name, response):
         await modmail.reply(body=f"sending on behalf of {moderator_name}", internal=True)
         await modmail.reply(body=response, author_hidden=True)

@@ -14,9 +14,6 @@ class RestickyQualityVoteBot(Handler):
     def wot_doing(self):
         return "Re-sticky QV comment if a mod responds 'sticky'"
 
-    async def on_ready(self, scheduler, **kwargs):
-        self._logger.warning(self.wot_doing())
-
     async def take(self, comment):
         body = getattr(comment, 'body', "")
         author = getattr(getattr(comment, "author", None), "name", None)

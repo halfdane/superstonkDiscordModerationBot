@@ -16,10 +16,9 @@ class HanamiConfiguration:
         self.bye = None
 
     def wot_doing(self):
-        return "Reload Hanami's configuration every 10 minutes"
+        return "[internal] Reload Hanami's configuration every 10 minutes"
 
     async def on_ready(self, scheduler, **kwargs):
-        self._logger.warning(self.wot_doing())
         scheduler.add_job(self.fetch_config_from_wiki, "cron", minute="3-59/10")
         # Instead of using next_run_time=datetime.now() in the scheduler, delay the startup
         # until the qv config has been read, so that qvbot has the comment templates

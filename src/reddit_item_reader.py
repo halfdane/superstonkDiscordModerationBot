@@ -16,12 +16,9 @@ class RedditItemReader:
         self.handlers = handlers
 
     def wot_doing(self):
-        return f"Reading {self.name} every few seconds"
+        return f"[internal] Reading {self.name} every few seconds"
 
     async def on_ready(self, scheduler, **kwargs):
-        for handler in self.handlers:
-            await handler.on_ready(**dict(kwargs, scheduler=scheduler))
-        self._logger.warning(self.wot_doing())
         scheduler.add_job(self._stream_until_timeout, 'interval', seconds=TEN_MINUTES + TEN_SECONDS, next_run_time=datetime.now())
 
     async def _stream_until_timeout(self):

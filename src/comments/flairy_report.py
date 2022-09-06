@@ -17,7 +17,6 @@ class FlairyReport:
         return "Create daily flair reports"
 
     async def on_ready(self, scheduler, **kwargs):
-        self._logger.warning(self.wot_doing())
         scheduler.add_job(self.report_flairs, "cron", day="*")
 
     async def report_flairs(self):

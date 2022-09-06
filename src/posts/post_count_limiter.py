@@ -45,7 +45,6 @@ class PostCountLimiter(Handler):
         return "Limit post count to 7 per 24 hours"
 
     async def on_ready(self, scheduler, **kwargs):
-        self._logger.warning(self.wot_doing())
         scheduler.add_job(self.fetch_config_from_wiki, "cron", minute="6-59/10", next_run_time=datetime.now())
 
     async def take(self, item):

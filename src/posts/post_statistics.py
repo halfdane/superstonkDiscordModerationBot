@@ -22,7 +22,6 @@ class CalculatePostStatistics:
         return "Calculate weekly and hourly subreddit statistics"
 
     async def on_ready(self, scheduler, **kwargs):
-        self._logger.warning(self.wot_doing())
         scheduler.add_job(self.calculate_statistics_for(relativedelta(days=7)), "cron", hour="12", day_of_week="6")
         scheduler.add_job(self.calculate_statistics_for(relativedelta(months=1)), "cron", hour="12", day="1")
 

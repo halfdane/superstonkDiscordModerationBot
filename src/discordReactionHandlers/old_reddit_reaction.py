@@ -36,6 +36,9 @@ class OldRedditReaction(Reaction):
 
         await message.edit(embeds=message.embeds)
 
+    def wot_doing(self):
+        return f"{self.emoji} on discord messages: {self.description()}"
+
     @staticmethod
     def description():
         return "Change all new.reddit URLs to old.reddit"
