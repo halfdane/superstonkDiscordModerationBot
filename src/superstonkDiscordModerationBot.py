@@ -1,18 +1,12 @@
-import asyncio
 import logging
-import re
 
 import asyncpraw
 import disnake
-import yaml
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from disnake import Embed, Colour
 from disnake import Message
 from disnake.ext import commands
 from disnake.ext.commands import Bot
-from disnake.ui.button import ButtonStyle, Button
-from disnake.ui.text_input import TextInputStyle
-from disnake.components import SelectOption
 
 from automod_configuration import AutomodConfiguration
 from cogs.modqueue_cog import ModQueueCog
@@ -25,29 +19,30 @@ from comments.flairy import Flairy
 from comments.flairy_comment_repository import FlairyComments
 from comments.flairy_report import FlairyReport
 from comments.front_desk_sticky import FrontDeskSticky
-from modmail.HighlightMailNotification import HighlightMailNotification
-from modmail.hanami_config import HanamiConfiguration
-from modmail.modmail_notification import ModmailNotification
-from modmail.modmailconversation_repository import ModmailConversationRepository
-from qv_bot.require_qv_response import RequireQvResponse
-from qv_bot.resticky_qv_bot import RestickyQualityVoteBot
 from discordReactionHandlers.delete_reaction import DeleteReaction
 from discordReactionHandlers.help_reaction import HelpReaction
 from discordReactionHandlers.modnote_reaction import ModNoteReaction
+from discordReactionHandlers.old_reddit_reaction import OldRedditReaction
 from discordReactionHandlers.user_history_reaction import UserHistoryReaction
 from helper.item_helper import permalink, user_page, author
 from helper.moderation_bot_configuration import ModerationBotConfiguration, CONFIG_HOME
 from helper.redditor_extractor import extract_redditor
+from modmail.HighlightMailNotification import HighlightMailNotification
+from modmail.hanami_config import HanamiConfiguration
+from modmail.modmail_notification import ModmailNotification
+from modmail.modmailconversation_repository import ModmailConversationRepository
 from posts.WeekendRestrictor import WeekendRestrictor
 from posts.post_count_limiter import PostCountLimiter
 from posts.post_repository import Posts
 from posts.post_repository_updater import PostRepositoryUpdater
 from posts.post_statistics import CalculatePostStatistics
 from posts.post_url_limiter import UrlPostLimiter
+from posts.url_post_repository import UrlPosts
 from qv_bot.qv_bot import QualityVoteBot
 from qv_bot.qv_bot_configuration import QualityVoteBotConfiguration
 from qv_bot.r_all_sticky_creator import RAllStickyCreator
-from posts.url_post_repository import UrlPosts
+from qv_bot.require_qv_response import RequireQvResponse
+from qv_bot.resticky_qv_bot import RestickyQualityVoteBot
 from reddit_item_reader import RedditItemReader
 from reports_logs.approve_old_modqueue_items import ApproveOldModqueueItems
 from reports_logs.important_reports_handler import ImportantReports
@@ -62,8 +57,6 @@ class SuperstonkModerationBot(Bot):
     logger = logging.getLogger(__name__)
     automod_rules = []
 
-    GENERIC_REACTIONS = None
-    USER_REACTIONS = None
     ALL_REACTIONS = None
 
     def __init__(self, moderation_bot_configuration, **options):
@@ -193,10 +186,10 @@ class SuperstonkModerationBot(Bot):
         super().add_cog(ModQueueCog(**self.COMPONENTS))
 
         # REACTIONS
-        self.GENERIC_REACTIONS = (
-            HelpReaction(get_discord_cogs=self.cogs), DeleteReaction(**self.COMPONENTS))
-        self.USER_REACTIONS = (ModNoteReaction(**self.COMPONENTS), UserHistoryReaction(**self.COMPONENTS))
-        self.ALL_REACTIONS = self.GENERIC_REACTIONS + self.USER_REACTIONS
+        self.ALL_REACTIONS = (
+            HelpReaction(get_discord_cogs=self.cogs), DeleteReaction(**self.COMPONENTS),
+            OldRedditReaction(**self.COMPONENTS),
+            ModNoteReaction(**self.COMPONENTS), UserHistoryReaction(**self.COMPONENTS))
 
         # STREAMING REDDIT ITEMS INTO HANDLERS
         await self.component(comments_reader=RedditItemReader(
@@ -340,7 +333,7 @@ class SuperstonkModerationBot(Bot):
 
     async def add_reactions(self, msg: disnake.Message, reactions=None):
         if reactions is None:
-            reactions = self.GENERIC_REACTIONS + self.USER_REACTIONS
+            reactions = self.ALL_REACTIONS
         for r in reactions:
             await msg.add_reaction(r.emoji)
 
@@ -367,5 +360,3 @@ if __name__ == "__main__":
         test_guilds=[configuration['discord_guild_id']]
     )
     bot.run(configuration['discord_bot_token'])
-
-
