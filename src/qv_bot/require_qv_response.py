@@ -67,11 +67,6 @@ class RequireQvResponse(Handler):
                 created_utc = datetime.utcfromtimestamp(post.created_utc)
 
                 if latest > created_utc:
-                    await self.send_discord_message(
-                        description_beginning="Removing post due to missing response",
-                        item=post,
-                        fields={'auto_clean': False}
-                    )
                     await post.mod.remove(
                         spam=False,
                         mod_note="Automatically removing after timeout without response",
