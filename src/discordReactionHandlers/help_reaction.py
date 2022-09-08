@@ -17,7 +17,7 @@ class HelpReaction(Reaction):
 
         explanations.append("")
         explanations.append("**Discord Commands:**")
-        for cog in self.get_discord_cogs().values():
+        for cog in self.get_discord_cogs.values():
             for command in cog.get_slash_commands():
                 explanations.append(f"/{command.name}: {command.description}")
 
