@@ -160,3 +160,10 @@ class Comments:
         async with aiosqlite.connect(self.database) as db:
             async with db.execute('select created_utc from COMMENTS ORDER by created_utc limit 1') as cursor:
                 return [row[0] async for row in cursor][0]
+
+    async def stats(self):
+        async with aiosqlite.connect(self.database) as db:
+            stat = namedtuple("Stat", "day comment_count")
+            async with db.execute("select strftime('%Y%m%d', created_utc, 'unixepoch') as day, count(*)  from comments GROUP BY day;") as cursor:
+                return [stat(row[0], row[1]) async for row in cursor]
+

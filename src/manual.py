@@ -19,6 +19,7 @@ from helper.moderation_bot_configuration import ModerationBotConfiguration
 from modmail.HighlightMailNotification import HighlightMailNotification
 from modmail.__init import modmail_state
 from modmail.modmail_notification import ModmailNotification
+from posts.post_repository import Posts
 from qv_bot.__init import get_qv_comment
 from modmail.hanami_config import HanamiConfiguration
 from qv_bot.qv_bot_configuration import QualityVoteBotConfiguration
@@ -29,6 +30,7 @@ from datetime import timedelta, datetime
 from dateutil.relativedelta import relativedelta
 from urllib.parse import urlparse
 
+from reports_logs.stats_repository import StatisticsRepository
 from reports_logs.unreport_handled_items import HandledItemsUnreporter
 
 configuration = ModerationBotConfiguration()
@@ -53,12 +55,18 @@ async def main():
         subreddit_name_ = COMPONENTS["subreddit_name"]
         superstonk_subreddit = await reddit.subreddit(subreddit_name_)
 
-        r = HandledItemsUnreporter(reddit, superstonk_subreddit, None, None)
-        url='https://mod.reddit.com/mail/all/16co9k'
+        posts = Posts()
+        comments = Comments()
+        statistics_repository = StatisticsRepository()
 
-        item = await r.was_removed(url)
-        print(f"Found a {type(item)}")
-        print(item)
+        await posts.on_ready()
+        await comments.on_ready()
+        await statistics_repository.on_ready()
+
+        await statistics_repository.store_comment_stats(await comments.stats())
+        print(await statistics_repository.fetch_comment_stats())
+
+        await statistics_repository.shutdown()
 
 
 logging.basicConfig(

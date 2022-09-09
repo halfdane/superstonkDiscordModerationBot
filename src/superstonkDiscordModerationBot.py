@@ -49,6 +49,7 @@ from reports_logs.approve_old_modqueue_items import ApproveOldModqueueItems
 from reports_logs.important_reports_handler import ImportantReports
 from reports_logs.report_repository import Reports
 from reports_logs.reported_comments_remover import ReportedCommentsRemover
+from reports_logs.stats_repository import StatisticsRepository
 from reports_logs.unreport_handled_items import HandledItemsUnreporter
 
 
@@ -167,6 +168,7 @@ class SuperstonkModerationBot(Bot):
         await self.component(flairy_comment_repo=FlairyComments())
         await self.component(report_repo=Reports())
         await self.component(modmailconversation_repo=ModmailConversationRepository())
+        await self.component(statistics_repository=StatisticsRepository())
 
         # SCHEDULED COMPONENTS
         await self.component(quality_vote_bot_configuration=QualityVoteBotConfiguration(**self.COMPONENTS))
@@ -364,6 +366,18 @@ class SuperstonkModerationBot(Bot):
         for reaction in self.ALL_REACTIONS:
             if reaction.emoji == emoji:
                 await reaction.unhandle_reaction(message, user)
+
+    async def close(self) -> None:
+        super_close_response = await super().close()
+
+        for name, component in self.COMPONENTS.items():
+            if hasattr(component, 'shutdown'):
+                try:
+                    await component.shutdown()
+                except Exception:
+                    self.logger.exception("Ignoring failure during shutdown")
+
+        return super_close_response
 
 
 if __name__ == "__main__":
