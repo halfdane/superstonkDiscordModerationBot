@@ -20,3 +20,5 @@ millify
 
 simhash
 
+numpy
+matplotlib

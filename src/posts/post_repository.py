@@ -121,6 +121,15 @@ class Posts:
                                   {'since': since.timestamp(), 'until': until.timestamp()}) as cursor:
                 return [(row[0], row[1]) async for row in cursor]
 
+    async def stats(self):
+        async with aiosqlite.connect(self.database) as db:
+            stat = namedtuple("Stat", "day flair post_count")
+            async with db.execute('''
+                select strftime('%Y%m%d', created_utc, 'unixepoch') as day, flair, count(*) as cnt From POSTS group by day, trim(flair) order by day, flair;
+            ''') as cursor:
+                return [stat(row[0], row[1], row[2]) async for row in cursor]
+
+
     async def do_not_count_to_limit(self, post):
         async with aiosqlite.connect(self.database) as db:
             await db.execute('UPDATE POSTS set count_to_limit=:count where id=:id',
