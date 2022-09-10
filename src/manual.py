@@ -65,23 +65,22 @@ async def main():
         await comments.on_ready()
         await statistics_repository.on_ready()
 
-        await statistics_repository.store_comment_stats(await comments.stats())
-        await statistics_repository.store_post_stats(await posts.stats())
-        stats = await statistics_repository.fetch_stats()
-        c = np.array(stats['comments'])
-        plt.plot(c[:, 0].astype(datetime), c[:, 1].astype(int), label="Comments")
+        await statistics_repository.store_stats(await comments.stats())
+        await statistics_repository.store_stats(await posts.stats())
 
-        c = np.array(stats['posts'])
-        for flair in np.unique(c[:, 0], equal_nan=True):
-            f = c[~(c[:, 0] == flair)]
-            plt.plot(f[:, 1].astype(datetime), f[:, 2].astype(int), label=flair)
+        stats = np.array(await statistics_repository.fetch_stats())
+        print(stats)
+        for flair in np.unique(stats[:, 1], equal_nan=True):
+            if flair == "COMMENT":
+                continue
+            f = stats[~(stats[:, 1] == flair)]
+            plt.plot(f[:, 0].astype(datetime), f[:, 2].astype(int), label=flair)
 
-
-        plt.xlabel('Day')
+        plt.xlabel('hour')
         plt.ylabel('Count')
         plt.title('Submissions over time')
         plt.xticks(rotation=45, ha="right")
-        plt.legend()
+        # plt.legend()
         plt.savefig("comments.png")
 
         await statistics_repository.shutdown()

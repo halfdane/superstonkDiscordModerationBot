@@ -368,8 +368,6 @@ class SuperstonkModerationBot(Bot):
                 await reaction.unhandle_reaction(message, user)
 
     async def close(self) -> None:
-        super_close_response = await super().close()
-
         for name, component in self.COMPONENTS.items():
             if hasattr(component, 'shutdown'):
                 try:
@@ -377,7 +375,7 @@ class SuperstonkModerationBot(Bot):
                 except Exception:
                     self.logger.exception("Ignoring failure during shutdown")
 
-        return super_close_response
+        await super().close()
 
 
 if __name__ == "__main__":

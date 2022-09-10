@@ -123,11 +123,11 @@ class Posts:
 
     async def stats(self):
         async with aiosqlite.connect(self.database) as db:
-            stat = namedtuple("Stat", "day flair post_count")
+            stat = namedtuple("Stat", "hour type count")
             async with db.execute('''
-                select strftime('%Y%m%d', created_utc, 'unixepoch') as day, flair, count(*) as cnt From POSTS group by day, trim(flair) order by day, flair;
+                select strftime('%Y-%m-%d %H', created_utc, 'unixepoch') as hour, coalesce(flair, 'UNKNOWN'), count(*) as cnt From POSTS group by hour, trim(flair) order by hour, flair;
             ''') as cursor:
-                return [stat(row[0], row[1], row[2]) async for row in cursor]
+                return [stat(datetime.strptime(row[0], "%Y-%m-%d %H"), row[1], row[2]) async for row in cursor]
 
 
     async def do_not_count_to_limit(self, post):

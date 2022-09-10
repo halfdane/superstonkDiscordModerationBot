@@ -163,7 +163,7 @@ class Comments:
 
     async def stats(self):
         async with aiosqlite.connect(self.database) as db:
-            stat = namedtuple("Stat", "day comment_count")
-            async with db.execute("select strftime('%Y%m%d', created_utc, 'unixepoch') as day, count(*)  from comments GROUP BY day;") as cursor:
-                return [stat(row[0], row[1]) async for row in cursor]
+            stat = namedtuple("Stat", "hour type count")
+            async with db.execute("select strftime('%Y-%m-%d %H', created_utc, 'unixepoch') as hour, count(*)  from comments GROUP BY hour;") as cursor:
+                return [stat(datetime.strptime(row[0], "%Y-%m-%d %H"), "COMMENT", row[1]) async for row in cursor]
 
