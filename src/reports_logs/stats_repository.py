@@ -1,6 +1,6 @@
 import logging
 import sqlite3
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import aiosqlite
 
@@ -37,6 +37,10 @@ class StatisticsRepository:
 
     async def fetch_stats(self):
         async with self.db.execute('''
-            select strftime('%Y-%m', hour, 'unixepoch') as day, type, sum(count) as cnt From SUBMISSION group by day, type order by day, type''') as cursor:
-            return [(datetime.strptime(row[0], "%Y-%m"), row[1], row[2]) async for row in cursor]
-
+                    select strftime('%Y-%m-%d', hour, 'unixepoch') as day, type, sum(count) as cnt 
+                    From SUBMISSION 
+                    group by day, type 
+                    having hour > 1646089200 and hour < :droplast 
+                    order by day, type
+                ''', {"droplast": (datetime.now() - timedelta(days=1)).timestamp()}) as cursor:
+            return [(datetime.strptime(row[0], "%Y-%m-%d"), row[1], row[2]) async for row in cursor]

@@ -20,5 +20,6 @@ millify
 
 simhash
 
-numpy
 matplotlib
+scipy
+pandas

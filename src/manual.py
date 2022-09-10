@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from pprint import pprint
 from unittest.mock import MagicMock
 
+import matplotlib.scale
 from simhash import Simhash, SimhashIndex
 
 import asyncpraw
@@ -33,7 +34,8 @@ from urllib.parse import urlparse
 from reports_logs.stats_repository import StatisticsRepository
 from reports_logs.unreport_handled_items import HandledItemsUnreporter
 import matplotlib.pyplot as plt
-import numpy as np
+import pandas as pd
+from scipy.interpolate import make_interp_spline
 
 configuration = ModerationBotConfiguration()
 
@@ -65,26 +67,36 @@ async def main():
         await comments.on_ready()
         await statistics_repository.on_ready()
 
-        await statistics_repository.store_stats(await comments.stats())
-        await statistics_repository.store_stats(await posts.stats())
+        # await statistics_repository.store_stats(await comments.stats())
+        # await statistics_repository.store_stats(await posts.stats())
 
-        stats = np.array(await statistics_repository.fetch_stats())
-        print(stats)
-        for flair in np.unique(stats[:, 1], equal_nan=True):
-            if flair == "COMMENT":
+        df = pd.DataFrame(await statistics_repository.fetch_stats(), columns=["date", "type", "count"])
+        df = df[:-5]
+
+        for flair in df.type.unique():
+            f = df[df.type == flair]
+            f = f[["date", "count"]]
+
+            amount_this_week, _ = f[(f.date > datetime.now() - timedelta(days=7))].shape
+            if amount_this_week == 0:
                 continue
-            f = stats[~(stats[:, 1] == flair)]
-            plt.plot(f[:, 0].astype(datetime), f[:, 2].astype(int), label=flair)
 
-        plt.xlabel('hour')
-        plt.ylabel('Count')
-        plt.title('Submissions over time')
-        plt.xticks(rotation=45, ha="right")
-        # plt.legend()
-        plt.savefig("comments.png")
+            print(f"flair {flair} {f.shape}")
+
+            plt.figure()
+            plt.plot(f['date'], f['count'], label=flair)
+            plt.plot(f['date'], f['count'].ewm(span=7, adjust=False).mean(), label="7-day EWM")
+            #
+            plt.xlabel('Date')
+            plt.ylabel('Count')
+            #
+            plt.title(f"{flair} per day")
+            plt.xticks(rotation=45, ha="right")
+            plt.legend()
+            filename = ''.join(e for e in flair if e.isalnum())
+            plt.savefig(f"stats/{filename}.png")
 
         await statistics_repository.shutdown()
-
 
 
 logging.basicConfig(
