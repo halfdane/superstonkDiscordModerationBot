@@ -37,6 +37,6 @@ class StatisticsRepository:
 
     async def fetch_stats(self):
         async with self.db.execute('''
-            select strftime('%Y-%m', hour, 'unixepoch') as day, type, count(*) as cnt From SUBMISSION group by day, type order by day, type''') as cursor:
+            select strftime('%Y-%m', hour, 'unixepoch') as day, type, sum(count) as cnt From SUBMISSION group by day, type order by day, type''') as cursor:
             return [(datetime.strptime(row[0], "%Y-%m"), row[1], row[2]) async for row in cursor]
 
