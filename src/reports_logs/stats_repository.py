@@ -37,10 +37,10 @@ class StatisticsRepository:
 
     async def fetch_stats(self):
         async with self.db.execute('''
-                    select strftime('%Y-%m-%d', hour, 'unixepoch') as day, type, sum(count) as cnt 
-                    From SUBMISSION 
-                    group by day, type 
-                    having hour > 1646089200 and hour < :droplast 
-                    order by day, type
+                    select hour as date, type, count 
+                    from SUBMISSION
+                    where date > 1646089200 
+                    order by date, type
                 ''', {"droplast": (datetime.now() - timedelta(days=1)).timestamp()}) as cursor:
-            return [(datetime.strptime(row[0], "%Y-%m-%d"), row[1], row[2]) async for row in cursor]
+
+            return [(datetime.utcfromtimestamp(row[0]), row[1], row[2]) async for row in cursor]

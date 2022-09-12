@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import re
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from pprint import pprint
 from unittest.mock import MagicMock
 
@@ -34,6 +34,7 @@ from urllib.parse import urlparse
 from reports_logs.stats_repository import StatisticsRepository
 from reports_logs.unreport_handled_items import HandledItemsUnreporter
 import matplotlib.pyplot as plt
+import seaborn as sns
 import pandas as pd
 from scipy.interpolate import make_interp_spline
 
@@ -71,30 +72,49 @@ async def main():
         # await statistics_repository.store_stats(await posts.stats())
 
         df = pd.DataFrame(await statistics_repository.fetch_stats(), columns=["date", "type", "count"])
-        df = df[:-5]
+
+        emoj = re.compile("["
+                      u"\U0001F600-\U0001F64F"  # emoticons
+                      u"\U0001F300-\U0001F5FF"  # symbols & pictographs
+                      u"\U0001F680-\U0001F6FF"  # transport & map symbols
+                      u"\U0001F1E0-\U0001F1FF"  # flags (iOS)
+                      u"\U00002500-\U00002BEF"  # chinese char
+                      u"\U00002702-\U000027B0"
+                      u"\U00002702-\U000027B0"
+                      u"\U000024C2-\U0001F251"
+                      u"\U0001f926-\U0001f937"
+                      u"\U00010000-\U0010ffff"
+                      u"\u2640-\u2642"
+                      u"\u2600-\u2B55"
+                      u"\u200d"
+                      u"\u23cf"
+                      u"\u23e9"
+                      u"\u231a"
+                      u"\ufe0f"  # dingbats
+                      u"\u3030"
+                      "]+", re.UNICODE)
 
         for flair in df.type.unique():
             f = df[df.type == flair]
             f = f[["date", "count"]]
+            f = f.set_index('date')
 
-            amount_this_week, _ = f[(f.date > datetime.now() - timedelta(days=7))].shape
-            if amount_this_week == 0:
-                continue
+            print(f"flair {flair} {f.shape} {f.dtypes}")
 
-            print(f"flair {flair} {f.shape}")
+            fig, ax = plt.subplots()
+            ax.plot(f.resample('D').sum(),  color="orange", label='daily')
+            ax2 = ax.twinx()
+            ax2.plot(f.resample('W').sum(), color='blue', label='weekly')
+            ax.set_ylim(bottom=0)
+            ax2.set_ylim(bottom=0)
 
-            plt.figure()
-            plt.plot(f['date'], f['count'], label=flair)
-            plt.plot(f['date'], f['count'].ewm(span=7, adjust=False).mean(), label="7-day EWM")
-            #
             plt.xlabel('Date')
-            plt.ylabel('Count')
-            #
-            plt.title(f"{flair} per day")
-            plt.xticks(rotation=45, ha="right")
-            plt.legend()
+            plt.title(f"{emoj.sub('', flair)} submissions")
+            fig.autofmt_xdate()
+            fig.legend()
             filename = ''.join(e for e in flair if e.isalnum())
             plt.savefig(f"stats/{filename}.png")
+            plt.close(fig)
 
         await statistics_repository.shutdown()
 
