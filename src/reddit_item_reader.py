@@ -24,7 +24,7 @@ class RedditItemReader:
     async def _stream_until_timeout(self):
         try:
             await asyncio.wait_for(self._stream(), timeout=TEN_MINUTES)
-        except asyncio.TimeoutError:
+        except (asyncio.TimeoutError, asyncio.exceptions.CancelledError):
             pass
 
     async def _stream(self):

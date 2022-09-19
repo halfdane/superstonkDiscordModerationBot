@@ -1,3 +1,4 @@
+import inspect
 import logging
 
 import asyncpraw
@@ -374,9 +375,12 @@ class SuperstonkModerationBot(Bot):
         for name, component in self.COMPONENTS.items():
             if hasattr(component, 'shutdown'):
                 try:
-                    await component.shutdown()
+                    if callable(component.shutdown):
+                        shutdown = component.shutdown()
+                        if inspect.isawaitable(shutdown):
+                            await shutdown
                 except Exception:
-                    self.logger.exception("Ignoring failure during shutdown")
+                    self.logger.exception(f"Ignoring failure during shutdown: {component}")
 
         await super().close()
 
