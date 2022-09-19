@@ -24,6 +24,7 @@ from discordReactionHandlers.delete_reaction import DeleteReaction
 from discordReactionHandlers.help_reaction import HelpReaction
 from discordReactionHandlers.modnote_reaction import ModNoteReaction
 from discordReactionHandlers.old_reddit_reaction import OldRedditReaction
+from discordReactionHandlers.textblock_reaction import TextblockReaction
 from discordReactionHandlers.user_history_reaction import UserHistoryReaction
 from helper.item_helper import permalink, user_page, author
 from helper.moderation_bot_configuration import ModerationBotConfiguration, CONFIG_HOME
@@ -205,7 +206,9 @@ class SuperstonkModerationBot(Bot):
             (
                 await self.component(discord_help_reaction=HelpReaction(get_discord_cogs=self.cogs)),
                 await self.component(discord_delete_reaction=DeleteReaction(**self.COMPONENTS)),
-                await self.component(discord_old_reddit_reaction=OldRedditReaction(**self.COMPONENTS)))
+                await self.component(discord_old_reddit_reaction=OldRedditReaction(**self.COMPONENTS)),
+                await self.component(discord_textblock_reaction=TextblockReaction(**self.COMPONENTS)),
+            )
 
         self.ALL_REACTIONS = self.GENERIC_REACTIONS + self.USER_REACTIONS
 

@@ -9,11 +9,10 @@ from reddit_item_handler import Handler
 
 class ModmailNotification(Handler):
 
-    def __init__(self, qvbot_reddit, superstonk_subreddit, send_discord_message, hanami_configuration, **kwargs):
+    def __init__(self, qvbot_reddit, superstonk_subreddit, send_discord_message, **kwargs):
         super().__init__()
         self.superstonk_subreddit = superstonk_subreddit
         self.send_discord_message = send_discord_message
-        self.hanami_configuration = hanami_configuration
         self.qvbot_reddit = qvbot_reddit
 
     def wot_doing(self):
