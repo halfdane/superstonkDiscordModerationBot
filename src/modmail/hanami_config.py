@@ -25,12 +25,8 @@ class HanamiConfiguration:
         # already available when the first items come streaming in
         await self.fetch_config_from_wiki()
 
-
     async def fetch_config_from_wiki(self):
         wiki_page = await self.superstonk_subreddit.wiki.get_page("hanami_config")
         wiki_config_text = wiki_page.content_md
-        wiki_config = yaml.safe_load(wiki_config_text)
-        self.config = {k: wiki_config[k] for k in wiki_config if k not in ['hey', 'bye']}
-        self.greeting = wiki_config['hey']
-        self.bye = wiki_config['bye']
+        self.config = yaml.safe_load(wiki_config_text)
         self._logger.info(f"reloaded config with {len(self.config)} entries")
