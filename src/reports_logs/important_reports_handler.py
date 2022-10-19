@@ -21,7 +21,7 @@ class ImportantReports(Handler):
 
     async def take(self, item):
         user_report_count = sum([r[1] for r in item.user_reports])
-        mod_report_count = len([r[1] for r in item.mod_reports if r[1] != "AutoModerator"])
+        mod_report_count = len([r[1] for r in item.mod_reports])
         mods_reporting_rule_1 = [r[1] for r in item.mod_reports if RULE_1.search(r[0])]
 
         lots_of_reports = 10
