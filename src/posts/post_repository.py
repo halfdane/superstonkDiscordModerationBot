@@ -118,13 +118,6 @@ class Posts:
                                    {'since': since.timestamp(), 'until': until.timestamp()}) as cursor:
             return [(row[0], row[1]) async for row in cursor]
 
-    async def stats(self):
-        stat = namedtuple("Stat", "hour type count")
-        async with self.db.execute('''
-            select strftime('%Y-%m-%d %H', created_utc, 'unixepoch') as hour, coalesce(flair, 'UNKNOWN'), count(*) as cnt From POSTS group by hour, trim(flair) order by hour, flair;
-        ''') as cursor:
-            return [stat(datetime.strptime(row[0], "%Y-%m-%d %H"), row[1], row[2]) async for row in cursor]
-
     async def do_not_count_to_limit(self, post):
         await self.db.execute('UPDATE POSTS set count_to_limit=:count where id=:id',
                               {'count': False, 'id': post.id})

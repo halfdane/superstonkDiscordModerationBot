@@ -24,3 +24,5 @@ matplotlib
 scipy
 pandas
 seaborn
+
+pyimgbox

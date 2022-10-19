@@ -38,7 +38,6 @@ from posts.WeekendRestrictor import WeekendRestrictor
 from posts.post_count_limiter import PostCountLimiter
 from posts.post_repository import Posts
 from posts.post_repository_updater import PostRepositoryUpdater
-from posts.post_statistics import CalculatePostStatistics
 from posts.post_url_limiter import UrlPostLimiter
 from posts.url_post_repository import UrlPosts
 from qv_bot.qv_bot import QualityVoteBot
@@ -51,7 +50,6 @@ from reports_logs.approve_old_modqueue_items import ApproveOldModqueueItems
 from reports_logs.important_reports_handler import ImportantReports
 from reports_logs.report_repository import Reports
 from reports_logs.reported_comments_remover import ReportedCommentsRemover
-from reports_logs.stats_repository import StatisticsRepository
 from reports_logs.unreport_handled_items import HandledItemsUnreporter
 
 
@@ -170,14 +168,12 @@ class SuperstonkModerationBot(Bot):
         await self.component(flairy_comment_repo=FlairyComments())
         await self.component(report_repo=Reports())
         await self.component(modmailconversation_repo=ModmailConversationRepository())
-        await self.component(statistics_repository=StatisticsRepository())
 
         # SCHEDULED COMPONENTS
         await self.component(quality_vote_bot_configuration=QualityVoteBotConfiguration(**self.COMPONENTS))
         await self.component(automod_configuration=AutomodConfiguration(**self.COMPONENTS))
         await self.component(hanami_configuration=HanamiConfiguration(**self.COMPONENTS))
 
-        await self.component(calculate_post_statistics=CalculatePostStatistics(**self.COMPONENTS))
         await self.component(comment_based_troll_identifier=CommentBasedTrollIdentifier(**self.COMPONENTS))
         await self.component(comment_repository_updater=CommentRepositoryUpdater(**self.COMPONENTS))
         await self.component(post_repository_updater=PostRepositoryUpdater(**self.COMPONENTS))
@@ -311,6 +307,8 @@ class SuperstonkModerationBot(Bot):
         if tag is not None:
             params['description'] += f"<@&{tag}>"
 
+        params['description'] = params['description'][:100]
+
         e = Embed(**params)
 
         if author_value is None:
@@ -320,13 +318,13 @@ class SuperstonkModerationBot(Bot):
 
         user_reports_attr = getattr(item, 'user_reports', None)
         if user_reports_attr:
-            user_reports = "\n".join(f"{r[1]} {r[0]}" for r in user_reports_attr)
+            user_reports = "\n".join(f"{r[1][:100]} {r[0][:100]}" for r in user_reports_attr)
             if user_reports:
                 e.add_field("User Reports", user_reports, inline=False)
 
         mod_reports_attr = getattr(item, 'mod_reports', None)
         if mod_reports_attr:
-            mod_reports = "\n".join(f"{r[1]} {r[0]}" for r in mod_reports_attr)
+            mod_reports = "\n".join(f"{r[1][:100]} {r[0][:100]}" for r in mod_reports_attr)
             if mod_reports:
                 e.add_field("Mod Reports", mod_reports, inline=False)
 
@@ -345,7 +343,7 @@ class SuperstonkModerationBot(Bot):
 
         if fields:
             for key, value in fields.items():
-                e.add_field(key, value)
+                e.add_field(key, value[:100])
 
         try:
             msg = await self.COMPONENTS[channel].send(embed=e, view=view)

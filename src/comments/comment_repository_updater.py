@@ -40,6 +40,9 @@ class CommentRepositoryUpdater:
         month_before_last = last_month - relativedelta(months=1)
 
         self._logger.debug(f"Fetching ids of comments from the month before the last")
-        comment_ids_of_before_last_week = await self.persist_comments.ids(since=month_before_last, before=last_month)
+        comment_ids_of_before_last_month = await self.persist_comments.ids(since=month_before_last, before=last_month)
         self._logger.debug(f"deleting comment bodies from the month before the last")
-        await self.comment_body_repo.remove(comment_ids_of_before_last_week)
+        await self.comment_body_repo.remove(comment_ids_of_before_last_month)
+        self._logger.debug(f"deleting comments from the month before the last")
+        await self.persist_comments.remove(comment_ids_of_before_last_month)
+

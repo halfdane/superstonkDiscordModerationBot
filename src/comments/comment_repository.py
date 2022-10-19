@@ -161,9 +161,9 @@ class Comments:
             async with db.execute('select created_utc from COMMENTS ORDER by created_utc limit 1') as cursor:
                 return [row[0] async for row in cursor][0]
 
-    async def stats(self):
+    async def remove(self, ids):
         async with aiosqlite.connect(self.database) as db:
-            stat = namedtuple("Stat", "hour type count")
-            async with db.execute("select strftime('%Y-%m-%d %H', created_utc, 'unixepoch') as hour, count(*)  from comments GROUP BY hour;") as cursor:
-                return [stat(datetime.strptime(row[0], "%Y-%m-%d %H"), "COMMENT", row[1]) async for row in cursor]
-
+            statement = 'delete from COMMENTS where id = :id'
+            for id in ids:
+                await db.execute(statement, {'id': id})
+            await db.commit()
