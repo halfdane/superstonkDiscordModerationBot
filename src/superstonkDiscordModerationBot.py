@@ -310,8 +310,6 @@ class SuperstonkModerationBot(Bot):
         if tag is not None:
             params['description'] += f"<@&{tag}>"
 
-        params['description'] = params['description'][:500]
-
         e = Embed(**params)
 
         if author_value is None:
@@ -321,13 +319,13 @@ class SuperstonkModerationBot(Bot):
 
         user_reports_attr = getattr(item, 'user_reports', None)
         if user_reports_attr:
-            user_reports = "\n".join(f"{r[1][:100]} {r[0][:100]}" for r in user_reports_attr)
+            user_reports = "\n".join(f"{r[1]} {r[0]}" for r in user_reports_attr)
             if user_reports:
                 e.add_field("User Reports", user_reports, inline=False)
 
         mod_reports_attr = getattr(item, 'mod_reports', None)
         if mod_reports_attr:
-            mod_reports = "\n".join(f"{r[1][:100]} {r[0][:100]}" for r in mod_reports_attr)
+            mod_reports = "\n".join(f"{r[1]} {r[0]}" for r in mod_reports_attr)
             if mod_reports:
                 e.add_field("Mod Reports", mod_reports, inline=False)
 
@@ -346,7 +344,7 @@ class SuperstonkModerationBot(Bot):
 
         if fields:
             for key, value in fields.items():
-                e.add_field(key, value[:100])
+                e.add_field(key, value)
 
         try:
             msg = await self.COMPONENTS[channel].send(embed=e, view=view)

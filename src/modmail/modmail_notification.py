@@ -32,5 +32,5 @@ class ModmailNotification(Handler):
         await self.send_discord_message(item=modmail,
                                         description_beginning="Received",
                                         fields={
-                                            'lastmessage': modmail.messages[len(modmail.messages) - 1].body_markdown},
+                                            'lastmessage': modmail.messages[len(modmail.messages) - 1].body_markdown[:500]},
                                         )
