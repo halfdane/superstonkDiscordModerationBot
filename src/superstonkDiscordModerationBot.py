@@ -22,6 +22,7 @@ from comments.flairy import Flairy
 from comments.flairy_comment_repository import FlairyComments
 from comments.flairy_report import FlairyReport
 from comments.front_desk_sticky import FrontDeskSticky
+from discord.user_info import DiscordUserInfo
 from discordReactionHandlers.delete_reaction import DeleteReaction
 from discordReactionHandlers.help_reaction import HelpReaction
 from discordReactionHandlers.modnote_reaction import ModNoteReaction
@@ -67,6 +68,7 @@ class SuperstonkModerationBot(Bot):
     def __init__(self, moderation_bot_configuration, **options):
         intents = disnake.Intents.default()
         intents.message_content = True
+        intents.members = True
         super().__init__(command_prefix='>',
                          description="Moderation bot for Superstonk.",
                          sync_commands_debug=True,
@@ -111,11 +113,13 @@ class SuperstonkModerationBot(Bot):
         await self.change_presence(
             activity=disnake.Activity(type=disnake.ActivityType.watching, name="👁👁"))
 
-        # CHANNELS
+        # DISCORD
         self.logger.warning(f"report into the discord channel: {self.COMPONENTS['report_channel_id']}")
         await self.component(report_channel=self.get_channel(self.COMPONENTS['report_channel_id']))
         self.logger.warning(
             f"listen for user mentions in this discord channel: {self.COMPONENTS['user_investigation_channel_id']}")
+
+        await self.component(discord_user_info=DiscordUserInfo(**self.COMPONENTS))
 
         self.logger.warning(f"Read configuration from {CONFIG_HOME}")
 
