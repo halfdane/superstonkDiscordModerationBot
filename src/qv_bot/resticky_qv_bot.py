@@ -1,6 +1,6 @@
 import logging
 
-from helper.item_helper import permalink
+from helper.item_helper import permalink, author
 from reddit_item_handler import Handler
 
 
@@ -16,8 +16,8 @@ class RestickyQualityVoteBot(Handler):
 
     async def take(self, comment):
         body = getattr(comment, 'body', "")
-        author = getattr(getattr(comment, "author", None), "name", None)
-        if (author in self.superstonk_moderators) and "sticky" in body.lower():
+        comment_author = getattr(getattr(comment, "author", None), "name", None)
+        if (comment_author in self.superstonk_moderators) and "sticky" in body.lower():
             parent = await comment.parent()
             await parent.load()
             myself = await self.qvbot_reddit.user.me()
