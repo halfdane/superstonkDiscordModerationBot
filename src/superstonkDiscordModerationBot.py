@@ -13,7 +13,6 @@ from automod_configuration import AutomodConfiguration
 from cogs.modbot_list import ModbotListCog
 from cogs.modqueue_cog import ModQueueCog
 from cogs.user_cog import UserCog
-from comments.apeprove_notifier import ApeproveNotifier
 from comments.comment_based_troll_identifier import CommentBasedTrollIdentifier
 from comments.comment_body_repository import CommentBodiesRepository
 from comments.comment_repository import Comments
@@ -222,8 +221,7 @@ class SuperstonkModerationBot(Bot):
             handlers=[
                 # CommentBasedSpamIdentifier(**self.COMPONENTS),
                 await self.component(flairy=Flairy(**self.COMPONENTS)),
-                await self.component(resticky_qv_comment=RestickyQualityVoteBot(**self.COMPONENTS)),
-                await self.component(apeprove_notifier=ApeproveNotifier(**self.COMPONENTS))
+                await self.component(resticky_qv_comment=RestickyQualityVoteBot(**self.COMPONENTS))
             ]))
 
         await self.component(reports_reader=RedditItemReader(
