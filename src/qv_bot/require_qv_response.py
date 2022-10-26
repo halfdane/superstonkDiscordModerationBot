@@ -56,7 +56,7 @@ class RequireQvResponse(Handler):
                 self._logger.debug(f"Got a response from Op: {user_provided_string}")
                 if self.automod_configuration.is_forbidden_user_message(user_provided_string):
                     await latest_op_response.report(
-                        f"Cowardly refusing to use prohibited user input: {user_provided_string}")
+                        f"Cowardly refusing to use prohibited user input: {user_provided_string[:50]}")
                 else:
                     # use body of response and put it into the qv_body
                     body = self.quality_vote_bot_configuration.render(op_required_comment,
