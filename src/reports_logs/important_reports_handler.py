@@ -24,7 +24,7 @@ class ImportantReports(Handler):
         if item.__class__.__name__ == "Submission":
             lots_of_reports = 2
         elif item.__class__.__name__ == "Comment":
-            lots_of_reports = 1
+            lots_of_reports = 2
 
         if user_report_count >= lots_of_reports or mod_report_count > 0:
             await item.load()
