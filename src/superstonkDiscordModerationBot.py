@@ -47,6 +47,7 @@ from qv_bot.r_all_sticky_creator import RAllStickyCreator
 from qv_bot.require_qv_response import RequireQvResponse
 from qv_bot.resticky_qv_bot import RestickyQualityVoteBot
 from reddit_item_reader import RedditItemReader
+from reports_logs.approve_daily_spam import ApproveDailySpam
 from reports_logs.approve_old_modqueue_items import ApproveOldModqueueItems
 from reports_logs.important_reports_handler import ImportantReports
 from reports_logs.report_repository import Reports
@@ -228,7 +229,10 @@ class SuperstonkModerationBot(Bot):
             name="Reports",
             item_fetch_function=superstonk_subreddit.mod.stream.reports,
             item_repository=self.COMPONENTS['report_repo'],
-            handlers=[await self.component(important_reports=ImportantReports(**self.COMPONENTS))]))
+            handlers=[
+                await self.component(approve_daily_spam=ApproveDailySpam(**self.COMPONENTS)),
+                await self.component(important_reports=ImportantReports(**self.COMPONENTS)),
+            ]))
 
         await self.component(posts_reader=RedditItemReader(
             name="Posts",
