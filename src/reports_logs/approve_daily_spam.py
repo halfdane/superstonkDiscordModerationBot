@@ -26,11 +26,6 @@ class ApproveDailySpam(Handler):
 
         if one_user_report and no_mod_report and is_spammy_report and is_in_daily:
             self._logger.debug(f"Sending reported item {permalink(item)}")
-            await self.send_discord_message(
-                item=item,
-                description_beginning="Approving shitty report",
-                fields={'auto_clean': False}
-            )
             if self.is_live_environment:
                 await item.mod.approve()
                 await self.qvbot_reddit.post(
