@@ -60,6 +60,7 @@ class Flairy(Handler):
             ClearCommand(self.flairy_reddit, flairy_command_detection, regex_flags, self.subreddit_name),
             SealmeCommand(self._templates[self._default_color], flairy_command_detection, regex_flags,
                           self.flair_user),
+            VGHCommand(regex_flags, self.flair_user),
             RandomFlairCommand(flairy_command_detection, regex_flags, self.flair_user, colors),
             WrongColorCommand(self.flairy_reddit, flair_command, regex_flags, colors),
             FlairTooLongCommand(self.flairy_detect_user_flair_change, self.flairy_reddit),
@@ -258,6 +259,25 @@ class SealmeCommand:
             return True
 
         self._logger.debug("comment isn't a sealme request")
+        return False
+
+
+class VGHCommand:
+    def __init__(self, flags, flair_user_function):
+        self._logger = logging.getLogger(self.__class__.__name__)
+        self._vgh_command = re.compile(rf"!\s*VGH\s*!", flags)
+        self.flair_user_function = flair_user_function
+
+    async def handled(self, body, comment, is_mod):
+        if is_mod:
+            self._logger.debug("Refusing vgh to mods")
+            return False
+
+        if self._vgh_command.match(body):
+            await self.flair_user_function(comment=comment, flair_text="🎅🎄 Have a very GMErry Holiday ❄🐧")
+            return True
+
+        self._logger.debug("comment isn't a vgh request")
         return False
 
 
