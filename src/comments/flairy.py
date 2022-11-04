@@ -274,7 +274,7 @@ class VGHCommand:
             return False
 
         if self._vgh_command.match(body):
-            await self.flair_user_function(comment=comment, flair_text="🎅🎄 Have a very GMErry Holiday ❄🐧")
+            await self.flair_user_function(comment=comment, flair_text="🎅🎄 Have a Very GMErry Holiday ❄🐧")
             return True
 
         self._logger.debug("comment isn't a vgh request")
