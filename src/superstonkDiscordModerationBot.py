@@ -102,6 +102,8 @@ class SuperstonkModerationBot(Bot):
             asyncpraw.Reddit(**self.moderation_bot_configuration.qvbot_reddit_settings(),
                              user_agent="com.halfdane.superstonk_qvbot:v0.1.1 (by u/half_dane)")
 
+        self.COMPONENTS["readonly_reddit"] = self.COMPONENTS["qvbot_reddit"]
+
         self.moderation_bot_configuration.remove_secrets()
 
         # CONFIGURATION VALUES
