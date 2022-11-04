@@ -59,8 +59,16 @@ async def main():
         subreddit_name_ = COMPONENTS["subreddit_name"]
         superstonk_subreddit = await reddit.subreddit(subreddit_name_)
 
-        posts = Posts()
-        comments = Comments()
+        c = await reddit.comment(url="https://www.reddit.com/r/testsubsuperstonk/comments/yac2zx/comment/iuv8mwh")
+        print(c.media_metadata)
+        print(len(c.media_metadata))
+        submission = c
+        while submission.parent_id.startswith("t1"):
+            submission = await reddit.comment(submission.parent_id[3:])
+        print(submission.parent_id[3:])
+        submission = await reddit.submission(submission.parent_id[3:])
+        print(submission.title)
+        print(submission.author)
 
 
 
