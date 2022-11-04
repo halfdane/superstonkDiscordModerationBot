@@ -10,7 +10,7 @@ class ReportCommentsWithImages(Handler):
         return "Remove images that aren't in the Meme Competition"
 
     async def take(self, item):
-        if item.media_metadata and len(item.media_metadata):
+        if getattr(item, "media_metadata", []) and len(item.media_metadata) > 0:
             await item.report("Comment with image")
 
 
