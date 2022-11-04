@@ -1,7 +1,6 @@
-import datetime
+from asyncpraw.const import API_PATH
 
-from helper.item_helper import permalink, author
-from helper.mod_notes import fetch_modnotes
+from helper.item_helper import permalink
 from reddit_item_handler import Handler
 
 SPAMMY_REPORT = ['This is spam', 'No FUD, Shills, Bots, Lies, Spam, Phishing']
@@ -29,7 +28,7 @@ class ApproveDailySpam(Handler):
             if self.is_live_environment:
                 await item.mod.approve()
                 await self.qvbot_reddit.post(
-                    self.qvbot_reddit.API_PATH["report"],
+                    API_PATH["report"],
                     data={"id": self.qvbot_reddit.fullname,
                           "reason": "site_reason_selected",
                           "site_reason": "It's abusing the report button",
