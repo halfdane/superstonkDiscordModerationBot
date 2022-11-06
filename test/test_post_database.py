@@ -32,14 +32,14 @@ async def add_test_data(posts):
 class TestPostDatabaseIntegration:
 
     @pytest_asyncio.fixture(autouse=True)
-    async def before_each(self):
+    async def testee(self):
         # given
         Path(test_db).unlink(missing_ok=True)
-        testee = Posts(test_db)
-        await testee.on_ready()
+        async with Posts(test_db) as testee:
+            await testee.on_ready()
 
-        # actual test
-        yield
+            # actual test
+            yield testee
 
         # cleanup
         Path(test_db).unlink(missing_ok=True)
@@ -60,7 +60,7 @@ class TestPostDatabaseIntegration:
                     'CREATE TABLE POSTS (id PRIMARY KEY, author, flair, created_utc, score, count_to_limit, available)']
 
     @pytest.mark.asyncio
-    async def test_store(self):
+    async def test_store(self, testee):
         # given
         Author = namedtuple("Author", "name")
         PostWithLimit = namedtuple("Post", "id author link_flair_text created_utc score count_to_limit available")
@@ -73,7 +73,6 @@ class TestPostDatabaseIntegration:
         ]
 
         # when
-        testee = Posts(test_db)
         await testee.store(store_posts)
 
         # then
@@ -86,12 +85,11 @@ class TestPostDatabaseIntegration:
                 assert a_post(3, available=0) in rows
 
     @pytest.mark.asyncio
-    async def test_read_all(self):
+    async def test_read_all(self, testee):
         # given
         await add_test_data([a_post(1), a_post(2), a_post(3)])
 
         # when
-        testee = Posts(test_db)
         posts = await testee.fetch()
 
         # then
@@ -106,14 +104,13 @@ class TestPostDatabaseIntegration:
             assert posts[i].available is True
 
     @pytest.mark.asyncio
-    async def test_read_from_user(self):
+    async def test_read_from_user(self, testee):
         # given
         await add_test_data([a_post(1, author='auth1'),
                              a_post(2),
                              a_post(3, author='auth1')])
 
         # when
-        testee = Posts(test_db)
         posts = await testee.fetch(author="auth1")
 
         # then
@@ -125,7 +122,7 @@ class TestPostDatabaseIntegration:
         assert posts[1].author.name == f"auth1"
 
     @pytest.mark.asyncio
-    async def test_read_after(self):
+    async def test_read_after(self, testee):
         # given
         now = datetime.utcnow()
         last_week = now - timedelta(weeks=1)
@@ -138,7 +135,6 @@ class TestPostDatabaseIntegration:
 
         # when
         four_days_ago = now - timedelta(days=4)
-        testee = Posts(test_db)
         posts = await testee.fetch(since=four_days_ago)
 
         # then
@@ -147,7 +143,7 @@ class TestPostDatabaseIntegration:
         assert posts[1].id == f"id3"
 
     @pytest.mark.asyncio
-    async def test_read_counting_only(self):
+    async def test_read_counting_only(self, testee):
         # given
         await add_test_data([a_post(1, counts=True),
                              a_post(2, counts=False),
@@ -155,7 +151,6 @@ class TestPostDatabaseIntegration:
                              a_post(4, counts=True)])
 
         # when
-        testee = Posts(test_db)
         posts = await testee.fetch(only_counting_to_limit=True)
 
         # then
@@ -164,7 +159,7 @@ class TestPostDatabaseIntegration:
         assert posts[1].id == f"id4"
 
     @pytest.mark.asyncio
-    async def test_read_author_after(self):
+    async def test_read_author_after(self, testee):
         # given
         now = datetime.utcnow()
         last_week = now - timedelta(weeks=1)
@@ -177,7 +172,6 @@ class TestPostDatabaseIntegration:
 
         # when
         four_days_ago = now - timedelta(days=4)
-        testee = Posts(test_db)
         posts = await testee.fetch(since=four_days_ago, author='auth3')
 
         # then
@@ -185,9 +179,8 @@ class TestPostDatabaseIntegration:
         assert posts[0].id == f"id3"
 
     @pytest.mark.asyncio
-    async def test_do_not_count(self):
+    async def test_do_not_count(self, testee):
         # given
-        testee = Posts(test_db)
         await add_test_data([a_post(1, counts=True),
                              a_post(2, counts=False),
                              a_post(3, counts=True),
@@ -211,9 +204,8 @@ class TestPostDatabaseIntegration:
         assert posts[1].id == f"id4"
 
     @pytest.mark.asyncio
-    async def test_database_contains(self):
+    async def test_database_contains(self, testee):
         # given
-        testee = Posts(test_db)
         await add_test_data([a_post(1, counts=True),
                              a_post(2, counts=False),
                              a_post(3, counts=True),
@@ -225,12 +217,11 @@ class TestPostDatabaseIntegration:
         assert await testee.contains(PostWithId('id7')) is False
 
     @pytest.mark.asyncio
-    async def test_read_by_id(self):
+    async def test_read_by_id(self, testee):
         # given
         await add_test_data([a_post(1), a_post(2), a_post(3)])
 
         # when
-        testee = Posts(test_db)
         posts = await testee.fetch(ids=["id1", "id3"])
 
         # then

@@ -40,7 +40,7 @@ from scipy.interpolate import make_interp_spline
 configuration = ModerationBotConfiguration()
 
 asyncreddit = asyncpraw.Reddit(
-    **configuration.readonly_reddit_settings(),
+    **configuration.qvbot_reddit_settings(),
     user_agent="com.halfdane.superstonk_moderation_bot:v0.xx (by u/half_dane)")
 
 COMPONENTS = {}
@@ -60,15 +60,7 @@ async def main():
         superstonk_subreddit = await reddit.subreddit(subreddit_name_)
 
         c = await reddit.comment(url="https://www.reddit.com/r/testsubsuperstonk/comments/yac2zx/comment/iuv8mwh")
-        print(c.media_metadata)
-        print(len(c.media_metadata))
-        submission = c
-        while submission.parent_id.startswith("t1"):
-            submission = await reddit.comment(submission.parent_id[3:])
-        print(submission.parent_id[3:])
-        submission = await reddit.submission(submission.parent_id[3:])
-        print(submission.title)
-        print(submission.author)
+        print(c.fullname)
 
 
 

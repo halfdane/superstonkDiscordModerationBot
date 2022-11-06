@@ -22,13 +22,13 @@ from comments.flairy_comment_repository import FlairyComments
 from comments.flairy_report import FlairyReport
 from comments.front_desk_sticky import FrontDeskSticky
 from comments.report_comments_with_images import ReportCommentsWithImages
-from discord.user_info import DiscordUserInfo
 from discordReactionHandlers.delete_reaction import DeleteReaction
 from discordReactionHandlers.help_reaction import HelpReaction
 from discordReactionHandlers.modnote_reaction import ModNoteReaction
 from discordReactionHandlers.old_reddit_reaction import OldRedditReaction
 from discordReactionHandlers.textblock_reaction import TextblockReaction
 from discordReactionHandlers.user_history_reaction import UserHistoryReaction
+from discord_user_config.user_info import DiscordUserInfo
 from helper.item_helper import permalink, user_page, author
 from helper.moderation_bot_configuration import ModerationBotConfiguration, CONFIG_HOME
 from helper.redditor_extractor import extract_redditor
