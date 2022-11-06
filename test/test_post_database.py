@@ -35,11 +35,13 @@ class TestPostDatabaseIntegration:
     async def testee(self):
         # given
         Path(test_db).unlink(missing_ok=True)
-        async with Posts(test_db) as testee:
-            await testee.on_ready()
+        testee = Posts(test_db)
+        await testee.on_ready()
 
-            # actual test
-            yield testee
+        # actual test
+        yield testee
+
+        await testee.shutdown()
 
         # cleanup
         Path(test_db).unlink(missing_ok=True)

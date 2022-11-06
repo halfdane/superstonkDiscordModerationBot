@@ -18,15 +18,13 @@ class Posts:
         self.db = None
 
     async def on_ready(self, **_):
+        self.db = await aiosqlite.connect(self.database, detect_types=sqlite3.PARSE_DECLTYPES)
+        self.db.row_factory = sqlite3.Row
+
         await self.db.execute('CREATE TABLE if not exists '
                               'POSTS (id PRIMARY KEY, author, flair, created_utc, score, count_to_limit, available);')
 
-    async def __aenter__(self):
-        self.db = await aiosqlite.connect(self.database, detect_types=sqlite3.PARSE_DECLTYPES)
-        self.db.row_factory = sqlite3.Row
-        return self
-
-    async def __aexit__(self, *args):
+    async def shutdown(self):
         await self.db.close()
 
     async def store(self, posts):
