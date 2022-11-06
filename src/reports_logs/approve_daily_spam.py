@@ -27,10 +27,14 @@ class ApproveDailySpam(Handler):
             self._logger.debug(f"Sending reported item {permalink(item)}")
             if self.is_live_environment:
                 await item.mod.approve()
+
                 await self.qvbot_reddit.post(
                     API_PATH["report"],
-                    data={"id": self.qvbot_reddit.fullname,
+                    data={"thing_id": item.fullname,
+                          "api_type": "json",
+                          "from_help_desk": "true",
                           "reason": "site_reason_selected",
                           "site_reason": "It's abusing the report button",
                           "custom_text": "The abuse of the report button was automatically performed "
-                                         "on behalf of the r/Superstonk moderation team."})
+                                         "on behalf of the r/Superstonk moderation team.\n  "
+                                         "Please don't hesitate to reach out for further information."})
