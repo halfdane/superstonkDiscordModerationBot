@@ -18,7 +18,7 @@ class IgnoreApprovedContent(Handler):
         self.qv_user = await self.qvbot_reddit.user.me()
 
     async def take(self, modlog):
-        if self.qv_user.fullname is not f"t2_{modlog.mod_id36}":
+        if self.qv_user.fullname is f"t2_{modlog.mod_id36}":
             return
 
         if modlog.action in ['approvelink', 'approvecomment']:
