@@ -61,6 +61,12 @@ async def main():
 
         c = await reddit.comment(url="https://www.reddit.com/r/testsubsuperstonk/comments/yac2zx/comment/iuv8mwh")
         print(c.fullname)
+        print(redditor.fullname)
+
+        #jpvod9xz
+
+        async for log in superstonk_subreddit.mod.stream.log():
+            print(vars(log))
 
 
 

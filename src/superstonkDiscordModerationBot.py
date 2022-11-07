@@ -50,7 +50,9 @@ from qv_bot.resticky_qv_bot import RestickyQualityVoteBot
 from reddit_item_reader import RedditItemReader
 from reports_logs.approve_daily_spam import ApproveDailySpam
 from reports_logs.approve_old_modqueue_items import ApproveOldModqueueItems
+from reports_logs.ignore_approved_content import IgnoreApprovedContent
 from reports_logs.important_reports_handler import ImportantReports
+from reports_logs.modlog_repository import ModlogRepository
 from reports_logs.report_repository import Reports
 from reports_logs.reported_comments_remover import ReportedCommentsRemover
 from reports_logs.unreport_handled_items import HandledItemsUnreporter
@@ -176,6 +178,7 @@ class SuperstonkModerationBot(Bot):
         await self.component(flairy_comment_repo=FlairyComments())
         await self.component(report_repo=Reports())
         await self.component(modmailconversation_repo=ModmailConversationRepository())
+        await self.component(modlog_repo=ModlogRepository())
 
         # SCHEDULED COMPONENTS
         await self.component(quality_vote_bot_configuration=QualityVoteBotConfiguration(**self.COMPONENTS))
@@ -263,6 +266,13 @@ class SuperstonkModerationBot(Bot):
             item_repository=self.COMPONENTS['modmailconversation_repo'],
             handlers=[
                 await self.component(modmail_notification=ModmailNotification(**self.COMPONENTS))]))
+
+        await self.component(modlog_reader=RedditItemReader(
+            name="modlog",
+            item_fetch_function=superstonk_subreddit.mod.stream.log,
+            item_repository=self.COMPONENTS['modlog_repo'],
+            handlers=[
+                await self.component(ignore_approved_content=IgnoreApprovedContent(**self.COMPONENTS))]))
 
         await self.send_discord_message(description_beginning="Moderation bot restarted")
 
