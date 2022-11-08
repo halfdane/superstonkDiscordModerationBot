@@ -25,7 +25,7 @@ class HandledItemsUnreporter:
 
     async def on_ready(self, scheduler, **kwargs):
         scheduler.add_job(self.unreport_items, "cron", minute="*")
-        scheduler.add_job(self.remove_handled_items, "cron", minute="*", next_run_time=datetime.now())
+        scheduler.add_job(self.remove_handled_items, "cron", minute="*/5", next_run_time=datetime.now())
 
     async def unreport_items(self):
         unreport_actions = ['spamlink', 'removelink', 'approvelink', 'spamcomment', 'removecomment', 'approvecomment']
