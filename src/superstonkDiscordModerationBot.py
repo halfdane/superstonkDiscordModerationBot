@@ -192,7 +192,6 @@ class SuperstonkModerationBot(Bot):
         await self.component(flairy_report=FlairyReport(**self.COMPONENTS))
         await self.component(require_qv_response=RequireQvResponse(**self.COMPONENTS))
 
-        # await self.component(trading_halts_reporter=TradingHaltsReporter(**self.COMPONENTS))
         await self.component(reported_comments_remover=ReportedCommentsRemover(**self.COMPONENTS))
         await self.component(approve_old_modqueue_items=ApproveOldModqueueItems(**self.COMPONENTS))
 
