@@ -225,7 +225,6 @@ class SuperstonkModerationBot(Bot):
             item_fetch_function=superstonk_subreddit.stream.comments,
             item_repository=self.COMPONENTS['comment_repo'],
             handlers=[
-                # CommentBasedSpamIdentifier(**self.COMPONENTS),
                 await self.component(report_comments_with_images=ReportCommentsWithImages(**self.COMPONENTS)),
                 await self.component(flairy=Flairy(**self.COMPONENTS)),
                 await self.component(resticky_qv_comment=RestickyQualityVoteBot(**self.COMPONENTS))
