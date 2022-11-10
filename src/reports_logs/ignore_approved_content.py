@@ -24,6 +24,6 @@ class IgnoreApprovedContent(Handler):
         if modlog.action in ['approvelink', 'approvecomment']:
             fullname = modlog.target_fullname
             async for item in self.qvbot_reddit.info([fullname]):
-                self._logger.info(f"ignoring reports on {permalink(item)} after approval by {modlog._mod}")
+                self._logger.debug(f"ignoring reports on {permalink(item)} after approval by {modlog._mod}")
                 if self.is_live_environment:
                     await item.mod.ignore_reports()

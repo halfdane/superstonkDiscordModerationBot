@@ -38,3 +38,7 @@ class ApproveDailySpam(Handler):
                           "custom_text": "The abuse of the report button was automatically performed "
                                          "on behalf of the r/Superstonk moderation team.\n  "
                                          "Please don't hesitate to reach out for further information."})
+
+                return True
+
+        return False
