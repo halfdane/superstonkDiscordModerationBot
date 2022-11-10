@@ -20,7 +20,7 @@ class QualityVoteBot(Handler):
         return "Add QV comments to every post and report when they are downvoted"
 
     async def on_ready(self, scheduler, **kwargs):
-        scheduler.add_job(self.check_recent_comments, "cron", minute="4-59/10",
+        scheduler.add_job(self.check_recent_comments, "cron", minute="4-59/15",
                           next_run_time=datetime.now() + timedelta(minutes=1))
 
     async def take(self, submission):
@@ -54,8 +54,12 @@ class QualityVoteBot(Handler):
         comments = await self.comment_repo.fetch(since=yesterday, author=qv_user.name)
         c_fids = [f"t1_{c.id}" for c in comments]
 
+        fetched_comments = await self.qvbot_reddit.info(c_fids)
+        parent_fids = [comment.parent_id for comment in fetched_comments]
+        fetched_parents = {parent.fullname: parent async for parent in self.qvbot_reddit.info(parent_fids)}
+
         async for comment in self.qvbot_reddit.info(c_fids):
-            comment_parent = await comment.parent()
+            comment_parent = fetched_parents.get(comment.parent_id)
             if (await self.post_is_available(comment_parent)) and \
                     comment.score <= self.quality_vote_bot_configuration.config['report_threshold']:
                 model: dict = self.quality_vote_bot_configuration.config.copy()
@@ -70,5 +74,4 @@ class QualityVoteBot(Handler):
         return len(submission.comments) > 0 and submission.comments[0].stickied
 
     async def post_is_available(self, post):
-        await post.load()
         return getattr(post, 'removed_by_category', None) is None

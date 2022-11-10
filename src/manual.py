@@ -12,7 +12,6 @@ import asyncpraw
 from psaw import PushshiftAPI
 
 from automod_configuration import AutomodConfiguration
-from comments.comment_based_spam_identifier import CommentBasedSpamIdentifier
 from comments.comment_body_repository import CommentBodiesRepository
 from comments.comment_repository import Comments
 from helper.item_helper import permalink, remove_emojis
@@ -60,13 +59,11 @@ async def main():
         superstonk_subreddit = await reddit.subreddit(subreddit_name_)
 
         c = await reddit.comment(url="https://www.reddit.com/r/testsubsuperstonk/comments/yac2zx/comment/iuv8mwh")
-        print(c.fullname)
-        print(redditor.fullname)
+        print(vars(c))
+        fetched_parents = {parent.fullname: parent async for parent in reddit.info([c.parent_id])}
 
-        #jpvod9xz
+        print(fetched_parents.get('t1_iuv6h61'))
 
-        async for log in superstonk_subreddit.mod.stream.log():
-            print(vars(log))
 
 
 
