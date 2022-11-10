@@ -54,7 +54,7 @@ class QualityVoteBot(Handler):
         comments = await self.comment_repo.fetch(since=yesterday, author=qv_user.name)
         c_fids = [f"t1_{c.id}" for c in comments]
 
-        fetched_comments = [comment for comment in self.qvbot_reddit.info(c_fids)]
+        fetched_comments = [comment async for comment in self.qvbot_reddit.info(c_fids)]
         parent_fids = [comment.parent_id for comment in fetched_comments]
         fetched_parents = {parent.fullname: parent async for parent in self.qvbot_reddit.info(parent_fids)}
 
