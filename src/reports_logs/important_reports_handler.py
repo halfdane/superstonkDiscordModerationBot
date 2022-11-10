@@ -22,7 +22,7 @@ class ImportantReports(Handler):
 
         lots_of_reports = 10
         if item.__class__.__name__ == "Submission":
-            lots_of_reports = 2
+            lots_of_reports = 3
         elif item.__class__.__name__ == "Comment":
             lots_of_reports = 2
 
