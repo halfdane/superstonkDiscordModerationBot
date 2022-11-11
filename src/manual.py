@@ -58,11 +58,10 @@ async def main():
         subreddit_name_ = COMPONENTS["subreddit_name"]
         superstonk_subreddit = await reddit.subreddit(subreddit_name_)
 
-        c = await reddit.comment(url="https://www.reddit.com/r/testsubsuperstonk/comments/yac2zx/comment/iuv8mwh")
-        print(vars(c))
-        fetched_parents = {parent.fullname: parent async for parent in reddit.info([c.parent_id])}
+        async for log in superstonk_subreddit.mod.stream.log():
+            print(vars(log))
+            break
 
-        print(fetched_parents.get('t1_iuv6h61'))
 
 
 

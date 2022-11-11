@@ -15,14 +15,14 @@ class ModlogRepository:
 
     async def on_ready(self, **_):
         async with aiosqlite.connect(self.database) as db:
-            await db.execute('CREATE TABLE if not exists '
-                             'modlog (id PRIMARY KEY, created_utc, action);')
+            await db.execute('CREATE TABLE if not exists modlog (id PRIMARY KEY, created_utc, action);')
+            await db.execute('ALTER TABLE modlog ADD COLUMN mod;')
 
     async def store(self, logs):
-        db_logs = [(log.id, log.created_utc, log.action) for log in logs]
+        db_logs = [(log.id, log.created_utc, log.action, log._mod) for log in logs]
         async with aiosqlite.connect(self.database) as db:
             await db.executemany('''
-                        INSERT INTO modlog(id, created_utc, action) VALUES (?, ?, ?) ON CONFLICT(id) DO NOTHING
+                        INSERT INTO modlog(id, created_utc, action, mod) VALUES (?, ?, ?, ?) ON CONFLICT(id) DO NOTHING
                         ''', db_logs)
             await db.commit()
 
