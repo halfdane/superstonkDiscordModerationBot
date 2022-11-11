@@ -25,12 +25,15 @@ class AutomodConfiguration:
         await self.fetch_config_from_wiki()
 
     async def fetch_config_from_wiki(self):
+        automod_rules = []
         automod_config = await self.superstonk_subreddit.wiki.get_page("config/automoderator")
         for rule in automod_config.content_md.split("---"):
             y = yaml.safe_load(rule)
             if y and y.get('action', "") == 'remove':
-                self.automod_rules += [re.compile(r) for k, v in y.items() if "regex" in k for r in v]
+                automod_rules += [re.compile(r) for k, v in y.items() if "regex" in k for r in v]
                 self.domain_filter += [r for k, v in y.items() if "domain" in k and not "regex" in k for r in v]
+
+        self.automod_rules = automod_rules
 
         self._logger.warning(
             f"Read {len(self.automod_rules)} removal rules and {len(self.domain_filter)} domain filters from automod rules")
