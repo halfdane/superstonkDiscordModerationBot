@@ -21,7 +21,6 @@ from comments.flairy import Flairy
 from comments.flairy_comment_repository import FlairyComments
 from comments.flairy_report import FlairyReport
 from comments.front_desk_sticky import FrontDeskSticky
-from comments.report_comments_with_images import ReportCommentsWithImages
 from discordReactionHandlers.delete_reaction import DeleteReaction
 from discordReactionHandlers.help_reaction import HelpReaction
 from discordReactionHandlers.modnote_reaction import ModNoteReaction
@@ -226,7 +225,6 @@ class SuperstonkModerationBot(Bot):
             item_fetch_function=superstonk_subreddit.stream.comments,
             item_repository=self.COMPONENTS['comment_repo'],
             handlers=[
-                await self.component(report_comments_with_images=ReportCommentsWithImages(**self.COMPONENTS)),
                 await self.component(flairy=Flairy(**self.COMPONENTS)),
                 await self.component(resticky_qv_comment=RestickyQualityVoteBot(**self.COMPONENTS))
             ]))
