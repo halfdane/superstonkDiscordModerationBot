@@ -20,7 +20,6 @@ from comments.comment_repository_updater import CommentRepositoryUpdater
 from comments.flairy import Flairy
 from comments.flairy_comment_repository import FlairyComments
 from comments.flairy_report import FlairyReport
-from comments.front_desk_sticky import FrontDeskSticky
 from discordReactionHandlers.delete_reaction import DeleteReaction
 from discordReactionHandlers.help_reaction import HelpReaction
 from discordReactionHandlers.modnote_reaction import ModNoteReaction
@@ -244,7 +243,6 @@ class SuperstonkModerationBot(Bot):
             item_fetch_function=superstonk_subreddit.stream.submissions,
             item_repository=self.COMPONENTS['post_repo'],
             handlers=[
-                await self.component(front_dest_sticky=FrontDeskSticky()),
                 await self.component(post_count_limiter=PostCountLimiter(**self.COMPONENTS)),
                 await self.component(url_post_limiter=UrlPostLimiter(**self.COMPONENTS)),
                 await self.component(weekend_restrictor=WeekendRestrictor(**self.COMPONENTS)),
