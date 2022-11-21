@@ -1,7 +1,4 @@
-import datetime
-
-from helper.item_helper import permalink, author
-from helper.mod_notes import fetch_modnotes
+from helper.item_helper import permalink
 from reddit_item_handler import Handler
 
 URGENT_REPORT = ['No Harassment, Bullying, Doxing, or Threats', 'Threatening, harassing, or inciting violence',

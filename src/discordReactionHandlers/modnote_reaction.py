@@ -20,21 +20,25 @@ class ModNoteReaction(Reaction):
         redditor = extract_redditor(message)
         try:
             count = 0
-            embed = disnake.Embed(colour=disnake.Colour(0).from_rgb(207, 206, 255))
-            embed.description = f"**ModNotes for {escape_markdown(redditor)}**\n"
-            if not self.is_live_environment:
-                embed.description += " [TEST]"
+            embed = await self.create_embed(redditor)
             async for k, v in fetch_modnotes(self.readonly_reddit, redditor, subreddit_name=self.subreddit_name):
                 count += 1
                 embed.add_field(k, v, inline=False)
 
                 if count % 20 == 0:
                     await user.send(embed=embed)
-                    embed = disnake.Embed(colour=disnake.Colour(0).from_rgb(207, 206, 255))
+                    embed = self.create_embed(redditor, "(continued)")
 
             await user.send(embed=embed)
         except disnake.errors.HTTPException as e:
             self._logger.exception(f"Something went wrong: {e.response}")
+
+    async def create_embed(self, redditor, append=""):
+        embed = disnake.Embed(colour=disnake.Colour(0).from_rgb(207, 206, 255))
+        embed.description = f"**ModNotes for {escape_markdown(redditor)} {append}**\n"
+        if not self.is_live_environment:
+            embed.description += " [TEST]"
+        return embed
 
     def wot_doing(self):
         return f"{self.emoji} on discord messages: {self.description()}"
