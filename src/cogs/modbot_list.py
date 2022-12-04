@@ -1,10 +1,7 @@
-import re
-
 import disnake
 from disnake.ext import commands
 
 from discord_reaction_handler import Reaction
-from helper.redditor_history import redditor_history
 
 
 class ModbotListCog(commands.Cog):

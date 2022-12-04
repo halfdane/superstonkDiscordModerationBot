@@ -1,3 +1,4 @@
+import logging
 from pprint import pformat
 
 from asyncpraw.models.reddit.redditor import Redditor
@@ -25,33 +26,35 @@ class Activities(BagOfStuff):
 
 
 async def redditor_history(redditor: Redditor):
-    try:
-        return await __unsafe_redditor_history(redditor)
-    except Exception as e:
-        return {
-            "Redditor": f"[{redditor.name}](https://www.reddit.com/u/{redditor.name})",
-            "ERROR": f"Couldn't fetch the history: {e}\n"
-                     f"You'll have to check it yourself."
-        }
+    _logger = logging.getLogger(__name__)
 
-
-async def __unsafe_redditor_history(redditor):
-    submissions = await history_of(redditor.submissions.new())
-    comments = await history_of(redditor.comments.new())
-    return {
+    result = {
         "Redditor": f"[{redditor.name}](https://www.reddit.com/u/{redditor.name})",
         f"Additional Links":
             f"[Camas for {redditor.name}](https://camas.unddit.com/#%7B%22author%22:%22{redditor.name}%22,%22subreddit%22:%22Superstonk%22,%22resultSize%22:4500%7D)\n"
             f"[Modmail for {redditor.name}](https://mod.reddit.com/mail/search?q={redditor.name})",
-        f"Submissions: {submissions.total_count} / {submissions.total_karma} karma":
+    }
+
+    try:
+        submissions = await history_of(redditor.submissions.new())
+        result[f"Submissions: {submissions.total_count} / {submissions.total_karma} karma"] = \
             "\n".join(
                 [f"**{a.subreddit}**: {a.count} ({a.count_percentage}%) / {a.karma} karma ({a.karma_percentage}%)"
-                 for a in submissions.activities]),
-        f"Comments: {comments.total_count} / {comments.total_karma} ":
+                 for a in submissions.activities])
+    except Exception as e:
+        _logger.exception(f"ERROR: Couldn't fetch the submission history")
+        result["submission history"] = f"Couldn't fetch submission history: {e}\nYou'll have to check it yourself."
+    try:
+        comments = await history_of(redditor.comments.new())
+        result[f"Comments: {comments.total_count} / {comments.total_karma} "] = \
             "\n".join(
                 [f"**{a.subreddit}**: {a.count} ({a.count_percentage}%) / {a.karma} karma ({a.karma_percentage}%)"
                  for a in comments.activities])
-    }
+    except Exception as e:
+        _logger.exception(f"ERROR: Couldn't fetch the comment history")
+        result["comment history"] = f"Couldn't fetch comment history: {e}\nYou'll have to check it yourself."
+
+    return result
 
 
 def add_percentages(total_count, total_karma):

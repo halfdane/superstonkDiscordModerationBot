@@ -9,6 +9,7 @@ from disnake.utils import escape_markdown
 from discord_reaction_handler import Reaction
 from helper.item_helper import permalink
 from helper.redditor_extractor import extract_redditor
+from helper.redditor_history import redditor_history
 
 
 class ModNoteReaction(Reaction):
@@ -37,6 +38,13 @@ class ModNoteReaction(Reaction):
             bans = [n for n in modnotes if n.action == 'BAN' or n.action == 'banuser']
             if len(bans) > 0:
                 await self.send_notes(bans, "BANS", redditor, user)
+
+            history = await redditor_history(await self.readonly_reddit.redditor(redditor))
+            embed = self.create_embed(redditor, "History")
+
+            for k, v in history.items():
+                embed.add_field(k, v, inline=False)
+            await user.send(embed=embed)
 
         except disnake.errors.HTTPException as e:
             self._logger.exception(f"Something went wrong: {e.response}")
