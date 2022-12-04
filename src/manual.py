@@ -14,6 +14,7 @@ from psaw import PushshiftAPI
 from automod_configuration import AutomodConfiguration
 from comments.comment_body_repository import CommentBodiesRepository
 from comments.comment_repository import Comments
+from discordReactionHandlers.modnote_reaction import ModNoteReaction
 from helper.item_helper import permalink, remove_emojis
 from helper.moderation_bot_configuration import ModerationBotConfiguration
 from modmail.HighlightMailNotification import HighlightMailNotification
@@ -58,12 +59,9 @@ async def main():
         subreddit_name_ = COMPONENTS["subreddit_name"]
         superstonk_subreddit = await reddit.subreddit(subreddit_name_)
 
-        async for log in superstonk_subreddit.mod.stream.log():
-            print(vars(log))
-            break
-
-
-
+        reaction = ModNoteReaction(reddit, False, superstonk_subreddit)
+        modnotes = [n async for n in reaction.fetch_modnotes("dudefromthevill")]
+        print(modnotes)
 
 
 logging.basicConfig(
