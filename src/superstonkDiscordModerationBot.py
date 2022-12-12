@@ -24,16 +24,11 @@ from discordReactionHandlers.delete_reaction import DeleteReaction
 from discordReactionHandlers.help_reaction import HelpReaction
 from discordReactionHandlers.modnote_reaction import ModNoteReaction
 from discordReactionHandlers.old_reddit_reaction import OldRedditReaction
-from discordReactionHandlers.textblock_reaction import TextblockReaction
 from discordReactionHandlers.user_history_reaction import UserHistoryReaction
 from discord_user_config.user_info import DiscordUserInfo
 from helper.item_helper import permalink, user_page, author
 from helper.moderation_bot_configuration import ModerationBotConfiguration, CONFIG_HOME
 from helper.redditor_extractor import extract_redditor
-from modmail.HighlightMailNotification import HighlightMailNotification
-from modmail.hanami_config import HanamiConfiguration
-from modmail.modmail_notification import ModmailNotification
-from modmail.modmailconversation_repository import ModmailConversationRepository
 from posts.WeekendRestrictor import WeekendRestrictor
 from posts.post_count_limiter import PostCountLimiter
 from posts.post_repository import Posts
@@ -178,14 +173,12 @@ class SuperstonkModerationBot(Bot):
         await self.component(comment_body_repo=CommentBodiesRepository())
         await self.component(flairy_comment_repo=FlairyComments())
         await self.component(report_repo=Reports())
-        await self.component(modmailconversation_repo=ModmailConversationRepository())
         await self.component(modlog_repo=ModlogRepository())
         await self.component(troll_repository=TrollRepository())
 
         # SCHEDULED COMPONENTS
         await self.component(quality_vote_bot_configuration=QualityVoteBotConfiguration(**self.COMPONENTS))
         await self.component(automod_configuration=AutomodConfiguration(**self.COMPONENTS))
-        await self.component(hanami_configuration=HanamiConfiguration(**self.COMPONENTS))
 
         await self.component(comment_based_troll_identifier=CommentBasedTrollIdentifier(**self.COMPONENTS))
         await self.component(comment_repository_updater=CommentRepositoryUpdater(**self.COMPONENTS))
@@ -196,8 +189,6 @@ class SuperstonkModerationBot(Bot):
 
         await self.component(reported_comments_remover=ReportedCommentsRemover(**self.COMPONENTS))
         await self.component(approve_old_modqueue_items=ApproveOldModqueueItems(**self.COMPONENTS))
-
-        await self.component(highlight_mail_notification=HighlightMailNotification(**self.COMPONENTS))
 
         # COGS
         super().add_cog(await self.component(user_cog=(
@@ -220,7 +211,6 @@ class SuperstonkModerationBot(Bot):
                 await self.component(discord_help_reaction=HelpReaction(get_discord_cogs=self.cogs)),
                 await self.component(discord_delete_reaction=DeleteReaction(**self.COMPONENTS)),
                 await self.component(discord_old_reddit_reaction=OldRedditReaction(**self.COMPONENTS)),
-                await self.component(discord_textblock_reaction=TextblockReaction(**self.COMPONENTS)),
             )
 
         self.ALL_REACTIONS = self.GENERIC_REACTIONS + self.USER_REACTIONS
@@ -262,13 +252,6 @@ class SuperstonkModerationBot(Bot):
             item_repository=None,
             handlers=[
                 await self.component(r_all_sticky_creator=RAllStickyCreator(**self.COMPONENTS))]))
-
-        await self.component(modmail_conversations_reader=RedditItemReader(
-            name="modmail_conversations",
-            item_fetch_function=superstonk_subreddit.mod.stream.modmail_conversations,
-            item_repository=self.COMPONENTS['modmailconversation_repo'],
-            handlers=[
-                await self.component(modmail_notification=ModmailNotification(**self.COMPONENTS))]))
 
         await self.component(modlog_reader=RedditItemReader(
             name="modlog",

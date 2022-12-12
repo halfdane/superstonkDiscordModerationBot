@@ -8,7 +8,6 @@ import disnake
 from disnake import Embed
 
 from helper.item_helper import permalink, removed
-from modmail.__init import modmail_state
 
 
 class HandledItemsUnreporter:
@@ -60,9 +59,6 @@ class HandledItemsUnreporter:
         item = await self.get_item(url)
         if isinstance(item, asyncpraw.models.Comment) or isinstance(item, asyncpraw.models.Submission):
             return removed(item)
-        if isinstance(item, asyncpraw.models.ModmailConversation):
-            state = modmail_state(item)
-            return state.archived is not None
 
         return False
 

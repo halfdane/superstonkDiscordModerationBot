@@ -19,12 +19,8 @@ from comments.comment_repository import Comments
 from discordReactionHandlers.modnote_reaction import ModNoteReaction
 from helper.item_helper import permalink, remove_emojis
 from helper.moderation_bot_configuration import ModerationBotConfiguration
-from modmail.HighlightMailNotification import HighlightMailNotification
-from modmail.__init import modmail_state
-from modmail.modmail_notification import ModmailNotification
 from posts.post_repository import Posts
 from qv_bot.__init import get_qv_comment
-from modmail.hanami_config import HanamiConfiguration
 from qv_bot.qv_bot_configuration import QualityVoteBotConfiguration
 from qv_bot.require_qv_response import RequireQvResponse
 from reports_logs.approve_old_modqueue_items import ApproveOldModqueueItems
