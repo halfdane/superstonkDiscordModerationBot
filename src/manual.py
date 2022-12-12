@@ -1,12 +1,14 @@
 import asyncio
 import logging
 import re
+import sqlite3
 from datetime import datetime, timedelta, date
 from pprint import pprint
 from unittest.mock import MagicMock
 
 import matplotlib.scale
 from simhash import Simhash, SimhashIndex
+import aiosqlite
 
 import asyncpraw
 from psaw import PushshiftAPI
@@ -51,17 +53,49 @@ async def deb(description_beginning, fields):
     print(f"{description_beginning}")
     print(fields)
 
+async def store(item, db):
+    if item.author is not None:
+        meltie = item.author.name
+        await db.execute('INSERT INTO trolls(USERNAME, SOURCE) VALUES (?, ?) ON CONFLICT(USERNAME, SOURCE) DO NOTHING', (meltie, item.subreddit.display_name))
+        await db.commit()
+        return meltie
+    else:
+        return None
+
+
 
 async def main():
     async with asyncreddit as reddit:
         redditor = await reddit.user.me()
         print(f"Logged in as {redditor.name}")
-        subreddit_name_ = COMPONENTS["subreddit_name"]
-        superstonk_subreddit = await reddit.subreddit(subreddit_name_)
 
-        reaction = ModNoteReaction(reddit, False, superstonk_subreddit)
-        modnotes = [n async for n in reaction.fetch_modnotes("dudefromthevill")]
-        print(modnotes)
+        for i in ['DRSyourGME']:
+            await handle_subreddit(await reddit.subreddit(i))
+
+
+async def handle_subreddit(subreddit):
+    async with aiosqlite.connect("trolls.db") as db:
+        await db.execute('create table if not exists trolls (USERNAME, SOURCE, PRIMARY KEY(USERNAME, SOURCE));')
+
+        async for submission in subreddit.hot(limit=1000):
+            await store(submission, db)
+            print(submission.title, submission.author, submission.subreddit.display_name)
+
+            while True:
+                try:
+                    await submission.comments.replace_more(limit=None)
+                    break
+                except TypeError as e:
+                    break
+                except Exception as e:
+                    print("Handling replace_more exception", type(e), e)
+                    await asyncio.sleep(1)
+
+            comments = await submission.comments()
+            await comments.replace_more(limit=None)
+            all_comments = await comments.list()
+            for comment in all_comments:
+                await store(comment, db)
 
 
 logging.basicConfig(
