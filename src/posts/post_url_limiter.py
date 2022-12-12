@@ -62,10 +62,6 @@ class UrlPostLimiter(Handler):
                 await sticky.mod.ignore_reports()
                 await item_from_qvbot_view.mod.remove(spam=False, mod_note="url count limit reached")
 
-            await self.send_discord_message(
-                item=item,
-                description_beginning=f"Prevented {url} from being posted again",
-                fields={'auto_clean': False})
             return True
         else:
             await self.url_post_repo.store(item)

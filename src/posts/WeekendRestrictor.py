@@ -42,13 +42,7 @@ class WeekendRestrictor(Handler):
                 await sticky.mod.distinguish(how="yes", sticky=True)
                 await sticky.mod.ignore_reports()
                 await item_from_qvbot_view.mod.remove(spam=False, mod_note="Flair is restricted to weekend")
-            else:
-                self._logger.info("Feature isn't active, so I'm not removing anything.")
 
-            await self.send_discord_message(
-                item=item,
-                description_beginning=f"Prevented {item.link_flair_text} from posted on a outside the weekend  \n",
-                fields={'auto_clean': False})
             return True
 
     def it_is_not_weekend(self):
