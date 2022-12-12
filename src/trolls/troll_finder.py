@@ -14,7 +14,7 @@ class TrollFinder(Handler):
         return "store potential trolls in db when they interact in their troll subs"
 
     async def take(self, item):
-        self.troll_repository.push(item)
+        await self.troll_repository.push(item)
 
     async def register_streams(self, registration_function, subreddit_name):
         troll_subreddit = await self.readonly_reddit.subreddit(subreddit_name)
@@ -35,6 +35,6 @@ class TrollFinder(Handler):
             f"{subreddit_name}_comment_reader": comment_reader
         }
 
-        await registration_function(registration_args)
+        await registration_function(**registration_args)
 
 

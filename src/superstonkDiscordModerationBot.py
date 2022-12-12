@@ -180,7 +180,7 @@ class SuperstonkModerationBot(Bot):
         await self.component(report_repo=Reports())
         await self.component(modmailconversation_repo=ModmailConversationRepository())
         await self.component(modlog_repo=ModlogRepository())
-        await self.component(troll_repo=TrollRepository())
+        await self.component(troll_repository=TrollRepository())
 
         # SCHEDULED COMPONENTS
         await self.component(quality_vote_bot_configuration=QualityVoteBotConfiguration(**self.COMPONENTS))
