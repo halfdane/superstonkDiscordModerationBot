@@ -16,7 +16,7 @@ class ModTagger(Handler):
         body = getattr(item, 'body', "")
 
         for mod in self.superstonk_moderators_strict:
-            if mod.name in body:
+            if mod.name.lower() in body.lower():
                 await self.send_discord_message(item=item, description_beginning=f"Moderator Tag")
                 break
 
