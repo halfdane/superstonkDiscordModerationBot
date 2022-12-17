@@ -1,7 +1,7 @@
 from reddit_item_handler import Handler
 
 IGNORE_BOTS = [
-    "Automod",
+    "Automoderator",
     "Superstonk_QV",
     "Superstonk-Flairy"
 ]
