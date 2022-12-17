@@ -32,9 +32,10 @@ class TrollRepository:
 
         meltie = reddit_item.author.name
         source = reddit_item.subreddit.display_name
-        async with self.db.execute('select SOURCE from trolls where USERNAME=:username and SOURCE=:source',
-                                   {'username': meltie, 'source': source}) as cursor:
-            rows = [row async for row in cursor]
-            return rows[0][0]
+        async with aiosqlite.connect(self.database) as db:
+            async with db.execute('select SOURCE from trolls where USERNAME=:username and SOURCE=:source',
+                                       {'username': meltie, 'source': source}) as cursor:
+                rows = [row async for row in cursor]
+                return rows[0][0]
 
 
