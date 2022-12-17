@@ -20,6 +20,7 @@ from comments.comment_repository_updater import CommentRepositoryUpdater
 from comments.flairy import Flairy
 from comments.flairy_comment_repository import FlairyComments
 from comments.flairy_report import FlairyReport
+from comments.mod_tagger import ModTagger
 from discordReactionHandlers.delete_reaction import DeleteReaction
 from discordReactionHandlers.help_reaction import HelpReaction
 from discordReactionHandlers.modnote_reaction import ModNoteReaction
@@ -51,6 +52,7 @@ from reports_logs.report_repository import Reports
 from reports_logs.reported_comments_remover import ReportedCommentsRemover
 from reports_logs.unreport_handled_items import HandledItemsUnreporter
 from trolls.troll_finder import TrollFinder
+from trolls.troll_reporter import TrollReporter
 from trolls.troll_repository import TrollRepository
 
 
@@ -222,6 +224,8 @@ class SuperstonkModerationBot(Bot):
             item_repository=self.COMPONENTS['comment_repo'],
             handlers=[
                 await self.component(flairy=Flairy(**self.COMPONENTS)),
+                await self.component(troll_reporter=TrollReporter(**self.COMPONENTS)),
+                await self.component(mod_tagger=ModTagger(**self.COMPONENTS)),
                 await self.component(resticky_qv_comment=RestickyQualityVoteBot(**self.COMPONENTS))
             ]))
 
