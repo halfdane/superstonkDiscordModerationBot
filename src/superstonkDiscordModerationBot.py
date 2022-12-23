@@ -234,7 +234,7 @@ class SuperstonkModerationBot(Bot):
             item_fetch_function=superstonk_subreddit.mod.stream.reports,
             item_repository=self.COMPONENTS['report_repo'],
             handlers=[
-                await self.component(approve_daily_spam=ApproveDailySpam(**self.COMPONENTS)),
+                # await self.component(approve_daily_spam=ApproveDailySpam(**self.COMPONENTS)),
                 await self.component(approve_report_abuse=ApproveReportAbuse(**self.COMPONENTS)),
                 await self.component(important_reports=ImportantReports(**self.COMPONENTS)),
             ]))
