@@ -31,7 +31,7 @@ async def redditor_history(redditor: Redditor):
     result = {
         "Redditor": f"[{redditor.name}](https://www.reddit.com/u/{redditor.name})",
         f"Additional Links":
-            f"[Camas for {redditor.name}](https://camas.unddit.com/#%7B%22author%22:%22{redditor.name}%22,%22subreddit%22:%22Superstonk%22,%22resultSize%22:4500%7D)\n"
+            f"[Camas for {redditor.name}](https://camas.unddit.com/#%7B%22author%22:%22{redditor.name}%22,%22subreddit%22:%22Superstonk%22,%22resultSize%22:1000%7D)\n"
             f"[Modmail for {redditor.name}](https://mod.reddit.com/mail/search?q={redditor.name})",
     }
 
