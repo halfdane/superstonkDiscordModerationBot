@@ -37,7 +37,8 @@ class ModTagger(Handler):
 
         for mod in self.mods:
             if mod in body.lower():
-                await self.send_discord_message(channel='mod_tag_channel', item=item, description_beginning=f"Moderator Tag")
+                await self.send_discord_message(channel='mod_tag_channel', item=item, 
+                description_beginning=f"Moderator Tag ({mod})")
                 break
 
 
