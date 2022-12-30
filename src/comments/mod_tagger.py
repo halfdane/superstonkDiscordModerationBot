@@ -20,6 +20,10 @@ class ModTagger(Handler):
         self.mods = [mod.name.lower() for mod in superstonk_moderators_strict if mod not in IGNORE_BOTS]
         underscored = [mod.replace("_", "\_") for mod in self.mods if "_" in mod]
         self.mods.extend(underscored)
+        self.mods.append("!mods!")
+        self.mods.append("!mods !")
+        self.mods.append("! mods!")
+        self.mods.append("! mods !")
 
     def wot_doing(self):
         return f"report content where people try to tag mods {self.mods}"
