@@ -10,7 +10,7 @@ IGNORE_BOTS = [
 class ModTagger(Handler):
 
     def __init__(self, readonly_reddit, superstonk_subreddit, 
-    send_discord_message, superstonk_moderators_strict, **_):
+    send_discord_message, superstonk_moderators, superstonk_moderators_strict, **_):
         super().__init__()
         self.readonly_reddit = readonly_reddit
         self.superstonk_subreddit = superstonk_subreddit
@@ -29,6 +29,10 @@ class ModTagger(Handler):
         return f"report content where people try to tag mods {self.mods}"
 
     async def take(self, item):
+        author = getattr(item, 'author', "")
+        if author.name == "Roid_Rage_Smurf":
+            return
+
         body = getattr(item, 'body', "")
 
         for mod in self.mods:
