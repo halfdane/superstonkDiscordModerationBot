@@ -119,6 +119,9 @@ class SuperstonkModerationBot(Bot):
         # DISCORD
         self.logger.warning(f"report into the discord channel: {self.COMPONENTS['report_channel_id']}")
         await self.component(report_channel=self.get_channel(self.COMPONENTS['report_channel_id']))
+        self.logger.warning(f"report mod tags into discord channel: {self.COMPONENTS['mod_tag_channel_id']}")
+        await self.component(mod_tag_channel=self.get_channel(self.COMPONENTS['mod_tag_channel_id']))
+
         self.logger.warning(
             f"listen for user mentions in this discord channel: {self.COMPONENTS['user_investigation_channel_id']}")
 

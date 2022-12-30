@@ -19,6 +19,7 @@ class ModerationBotConfiguration(dict):
         self.__as_int('discord_guild_id')
         self.__as_int('report_channel_id')
         self.__as_int('user_investigation_channel_id')
+        self.__as_int('mod_tag_channel_id')
 
         self.readonly_reddit_settings = self.__reddit_settings('reddit')
         self.qvbot_reddit_settings = self.__reddit_settings('qvbot')
