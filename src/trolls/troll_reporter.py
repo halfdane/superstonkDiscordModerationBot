@@ -17,7 +17,7 @@ class TrollReporter(Handler):
         troll_source = await self.troll_repository.get_troll_source(item)
         if troll_source is not None:
             await item.report(f"Potential Troll: user has posted or commented in {troll_source}")
-            await self.send_discord_message(item=item, description_beginning=f"Potential Troll from {troll_source}")
+            # await self.send_discord_message(item=item, description_beginning=f"Potential Troll from {troll_source}")
 
 
 
