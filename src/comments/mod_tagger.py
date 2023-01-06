@@ -34,7 +34,7 @@ class ModTagger(Handler):
 
     async def take(self, item):
         author = getattr(item, 'author', "")
-        if author.name == "Roid_Rage_Smurf":
+        if author.name in IGNORE_BOTS:
             return
 
         if hasattr(item, 'title'):

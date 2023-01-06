@@ -204,6 +204,7 @@ class SuperstonkModerationBot(Bot):
         # HANDLERS
         troll_finder = TrollFinder(**self.COMPONENTS)
         await self.component(troll_finder=troll_finder)
+        await self.component(mod_tagger=ModTagger(**self.COMPONENTS))
 
         # REACTIONS
         self.USER_REACTIONS = \
@@ -228,7 +229,7 @@ class SuperstonkModerationBot(Bot):
             handlers=[
                 await self.component(flairy=Flairy(**self.COMPONENTS)),
                 await self.component(troll_reporter=TrollReporter(**self.COMPONENTS)),
-                await self.component(mod_tagger=ModTagger(**self.COMPONENTS)),
+                self.COMPONENTS["mod_tagger"],
                 await self.component(resticky_qv_comment=RestickyQualityVoteBot(**self.COMPONENTS))
             ]))
 
@@ -250,6 +251,7 @@ class SuperstonkModerationBot(Bot):
                 await self.component(post_count_limiter=PostCountLimiter(**self.COMPONENTS)),
                 await self.component(url_post_limiter=UrlPostLimiter(**self.COMPONENTS)),
                 await self.component(weekend_restrictor=WeekendRestrictor(**self.COMPONENTS)),
+                self.COMPONENTS["mod_tagger"],
                 await self.component(quality_vote_bot=QualityVoteBot(**self.COMPONENTS)),
             ]))
 
