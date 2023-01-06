@@ -17,14 +17,13 @@ class TrollRepository:
             await db.execute('create table if not exists trolls (USERNAME, SOURCE, PRIMARY KEY(USERNAME, SOURCE));')
 
     async def push(self, reddit_item):
-        if reddit_item.author is not None:
-            async with aiosqlite.connect(self.database) as db:
-                meltie = reddit_item.author.name
-                source = reddit_item.subreddit.display_name
-                await db.execute('''
-                    INSERT INTO trolls(USERNAME, SOURCE) VALUES (?, ?) 
-                    ON CONFLICT(USERNAME, SOURCE) DO NOTHING''', (meltie, source))
-                await db.commit()
+        async with aiosqlite.connect(self.database) as db:
+            meltie = reddit_item.author.name
+            source = reddit_item.subreddit.display_name
+            await db.execute('''
+                INSERT INTO trolls(USERNAME, SOURCE) VALUES (?, ?) 
+                ON CONFLICT(USERNAME, SOURCE) DO NOTHING''', (meltie, source))
+            await db.commit()
 
     async def get_troll_source(self, reddit_item):
         if reddit_item.author is None:
