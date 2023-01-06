@@ -32,12 +32,10 @@ class TrollRepository:
 
         meltie = reddit_item.author.name
         async with aiosqlite.connect(self.database) as db:
-            async with db.execute('select SOURCE from trolls where USERNAME=:username',
-                                       {'username': meltie}) as cursor:
+            async with db.execute("select SOURCE from trolls where USERNAME=:username and SOURCE='gme_meltdown'",
+                                  {'username': meltie, 'source': source}) as cursor:
                 rows = [row async for row in cursor]
                 if len(rows) > 0 and len(rows[0]) > 0:
                     return rows[0][0]
                 else:
                     return None
-
-
