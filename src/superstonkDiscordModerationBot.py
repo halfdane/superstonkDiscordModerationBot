@@ -20,6 +20,7 @@ from comments.comment_repository_updater import CommentRepositoryUpdater
 from comments.flairy import Flairy
 from comments.flairy_comment_repository import FlairyComments
 from comments.flairy_report import FlairyReport
+from comments.front_desk_sticky import FrontDeskSticky
 from comments.mod_tagger import ModTagger
 from discordReactionHandlers.delete_reaction import DeleteReaction
 from discordReactionHandlers.help_reaction import HelpReaction
@@ -137,7 +138,7 @@ class SuperstonkModerationBot(Bot):
         self.COMPONENTS["readonly_reddit_username"] = await self.COMPONENTS['readonly_reddit'].user.me()
         self.logger.warning(f"use generic reddit user readonly: {self.COMPONENTS['readonly_reddit_username']}")
 
-        self.COMPONENTS["flairy_reddit_username"] = await self.COMPONENTS['flairy_reddit'].user.me()
+        self.COMPONENTS["flairy_reddit_username"] = await self.COMPONENTS['flairy_reddit'].user.me().name
         self.logger.warning(f"use this reddit user for flair requests: {self.COMPONENTS['flairy_reddit_username']}")
 
         self.COMPONENTS["qvbot_reddit_username"] = await self.COMPONENTS['qvbot_reddit'].user.me()
@@ -253,6 +254,7 @@ class SuperstonkModerationBot(Bot):
                 await self.component(weekend_restrictor=WeekendRestrictor(**self.COMPONENTS)),
                 self.COMPONENTS["mod_tagger"],
                 await self.component(quality_vote_bot=QualityVoteBot(**self.COMPONENTS)),
+                await self.component(front_desk_sticky=FrontDeskSticky(**self.COMPONENTS)),
             ]))
 
         await self.component(r_all_reader=RedditItemReader(

@@ -4,17 +4,43 @@ import re
 
 from helper.item_helper import permalink, make_safe, author
 from reddit_item_handler import Handler
+from asyncpraw import Reddit
 
+
+_templates = {"red": "0446bc04-91c0-11ec-8118-ce042afdde96",
+              "blue": "6e40ab4c-f3cd-11eb-889e-ae4cdf00ff3b",
+              "pink": "6de5f58e-f3ce-11eb-af43-eae78a59944d",
+              "yellow": "5f91a294-f3ce-11eb-948b-d26e0741292d",
+              "green": "7dfd44fe-f3ce-11eb-a228-aaac7809dc68",
+              "black": "8abdf72e-f3ce-11eb-b3e3-22147bc43b70",
+              "white": "a39da5fa-f46d-11ec-b46b-42cab4344c7a"}
+
+colors = list(_templates.keys())
+
+blacklisted_string = '[lock]'
+
+def flairy_explanation_text(flairy_username):
+    return f"""Are you talking about me? 😍   
+        
+This is how it works: you can request a flair with the magic incantation
+
+    !FLAIRY!🚀 some flair text 🚀
+
+The default color is black, but you can change that by writing one of these words at the very end : {', '.join(colors)} 
+
+Other available commands:   
+- `!FLAIRY!` : if you can't think of a flair, I'll give you one of my own choice 🤭   
+- `!FLAIRY:CLEARME!` : remove all flairs and pretend you're a new ape   
+- `!FLAIRY:SEALME!` : Justin seduced me to get this 🥵    
+- `{flairy_username}`  : If you mention me, I'll come around and explain how to get flairs
+
+Please note that the flairy will refuse to change your flair if it contains the string `{blacklisted_string}`.
+
+Some custom emojis are supported, like `:triforce:` - 
+[please check this post for details](https://new.reddit.com/r/Superstonk/comments/v89p0h/new_superstonk_user_flair_emojis_how_to_edit_your/id8hj7r/)
+"""
 
 class Flairy(Handler):
-    _templates = {"red": "0446bc04-91c0-11ec-8118-ce042afdde96",
-                  "blue": "6e40ab4c-f3cd-11eb-889e-ae4cdf00ff3b",
-                  "pink": "6de5f58e-f3ce-11eb-af43-eae78a59944d",
-                  "yellow": "5f91a294-f3ce-11eb-948b-d26e0741292d",
-                  "green": "7dfd44fe-f3ce-11eb-a228-aaac7809dc68",
-                  "black": "8abdf72e-f3ce-11eb-b3e3-22147bc43b70",
-                  "white": "a39da5fa-f46d-11ec-b46b-42cab4344c7a"}
-
     _default_color = "black"
 
     def __init__(self, superstonk_moderators=[], flairy_reddit=None,
@@ -41,28 +67,27 @@ class Flairy(Handler):
         flair_command = rf"{flairy_command_detection}\s*!"
 
         flairy_text = r"\s*(.*?)"
-        _valid_colors = fr"(?:\s*\b({'|'.join(self._templates.keys())}))?\s*"
+        _valid_colors = fr"(?:\s*\b({'|'.join(colors)}))?\s*"
 
         regex_flags = re.IGNORECASE | re.MULTILINE | re.DOTALL
 
         self.detect_flairy_command = \
-            re.compile(rf"{flairy_command_detection}|u/{self.flairy_reddit_username}", regex_flags)
+            re.compile(rf"{flairy_command_detection}|{self.flairy_reddit_username}", regex_flags)
 
         self.flairy_detect_user_flair_change = \
             re.compile(rf"{flair_command}{flairy_text}{_valid_colors}$", regex_flags)
 
-        colors = list(self._templates.keys())
         self._commands = [
             CommentAlreadyHasAResponse(flairy_command_detection, regex_flags, self.flairy_reddit_username),
             RememberComment(self.flairy_comment_repo),
-            FlairyExplainerCommand(self.flairy_reddit, self._templates.keys(), self.flairy_reddit_username),
+            FlairyExplainerCommand(self.flairy_reddit, self.flairy_reddit_username),
             IsBlackListed(self.flairy_reddit),
             ClearCommand(self.flairy_reddit, flairy_command_detection, regex_flags, self.subreddit_name),
-            SealmeCommand(self._templates[self._default_color], flairy_command_detection, regex_flags,
+            SealmeCommand(_templates[self._default_color], flairy_command_detection, regex_flags,
                           self.flair_user),
             VGHCommand(flairy_command_detection, regex_flags, self.flair_user),
-            RandomFlairCommand(flairy_command_detection, regex_flags, self.flair_user, colors),
-            WrongColorCommand(self.flairy_reddit, flair_command, regex_flags, colors),
+            RandomFlairCommand(flairy_command_detection, regex_flags, self.flair_user),
+            WrongColorCommand(self.flairy_reddit, flair_command, regex_flags),
             FlairTooLongCommand(self.flairy_detect_user_flair_change, self.flairy_reddit),
             FlairContainsForbiddenPhraseCommand(self.automod_configuration,
                                                 self.flairy_detect_user_flair_change),
@@ -96,7 +121,7 @@ class Flairy(Handler):
         self._logger.debug("attempting to flair user")
         flair_text = flair_text.strip()
         color = (flair_color or self._default_color).lower().strip()
-        template = (template or self._templates[color])
+        template = (template or _templates[color])
         previous_flair = getattr(comment, 'author_flair_text', "")
         log_message = f"[{make_safe(author(comment))}] [{make_safe(previous_flair)}] => [{make_safe(flair_text)}] in {color}"
         subreddit_from_flairies_view = await self.flairy_reddit.subreddit(self.subreddit_name)
@@ -142,15 +167,13 @@ class RememberComment:
 
 
 class IsBlackListed:
-    blacklisted_string = '[lock]'
-
     def __init__(self, flairy_reddit):
         self._logger = logging.getLogger(self.__class__.__name__)
         self.flairy_reddit = flairy_reddit
 
     async def handled(self, body, comment, is_mod):
         current_flair = getattr(comment, 'author_flair_text', "") or ""
-        blacklisted = ('%s' % self.blacklisted_string) in current_flair.lower()
+        blacklisted = ('%s' % blacklisted_string) in current_flair.lower()
         if blacklisted:
             self._logger.info(f"Refusing to interact with blacklisted user.   \n"
                               f"Flair: {current_flair}   \n text: {body}   \n comment {permalink(comment)} ")
@@ -166,12 +189,11 @@ class IsBlackListed:
 
 class RandomFlairCommand:
 
-    def __init__(self, flairy_command_detection, flags, flair_user_function, colors):
+    def __init__(self, flairy_command_detection, flags, flair_user_function):
         self._logger = logging.getLogger(self.__class__.__name__)
         self._random_flair_command = \
             re.compile(rf"{flairy_command_detection}\s*!$", flags)
         self.flair_user_function = flair_user_function
-        self.colors = colors
 
     async def handled(self, body, comment, is_mod):
         if is_mod:
@@ -222,7 +244,7 @@ class RandomFlairCommand:
 
         emojis = random.sample(_emojis, 2)
         flair_text = f"🧚🧚{emojis[0]} {random.sample(_flairs, 1)[0]} {emojis[1]}🧚🧚"
-        color = random.sample(self.colors, 1)[0]
+        color = random.sample(colors, 1)[0]
         message = f"""(✿☉｡☉) You didn't ask for a flair?! Lemme get one for you...   \n"""
         self._logger.info(f"Randomly assigning: {permalink(comment)}")
 
@@ -309,11 +331,10 @@ class ClearCommand:
 
 
 class WrongColorCommand:
-    def __init__(self, flairy_reddit, flair_command, flags, colors):
+    def __init__(self, flairy_reddit, flair_command, flags):
         self._logger = logging.getLogger(self.__class__.__name__)
         self._last_word = r"(\w*)"
         self._detect_last_word = re.compile(rf"{flair_command}.*?{self._last_word}$", flags)
-        self.colors = colors
         self.flairy_reddit = flairy_reddit
 
     async def handled(self, body, comment, is_mod):
@@ -326,7 +347,7 @@ class WrongColorCommand:
             if last_word.lower() in ["orange", "grey", "gray", "purple"]:
                 comment_from_flairies_view = await self.flairy_reddit.comment(comment.id, fetch=False)
                 message = f"(ノಠ益ಠ)ノ彡┻━┻ {last_word.upper()} IS NOT A VALID COLOR!   \n" \
-                          f"Valid colors are {', '.join(self.colors)}.   \n" \
+                          f"Valid colors are {', '.join(colors)}.   \n" \
                           f"I'm making the change, so if that's not what you want " \
                           f"you have to summon me again."
                 self._logger.info(f"Wrong color: {permalink(comment)}")
@@ -382,35 +403,17 @@ class FlairContainsForbiddenPhraseCommand:
 
 
 class FlairyExplainerCommand:
-    def __init__(self, flairy_reddit, available_colors, flairy_reddit_username):
+    def __init__(self, flairy_reddit, flairy_reddit_username):
         self._logger = logging.getLogger(self.__class__.__name__)
         self._flairy_reddit = flairy_reddit
         self.flairy_reddit_username = flairy_reddit_username
-        self._flairy_explanation_text = f"""Are you talking about me? 😍   
-        
-This is how it works: you can request a flair with the magic incantation
-
-    !FLAIRY!🚀 some flair text 🚀
-
-The default color is black, but you can change that by writing one of these words at the very end : {', '.join(available_colors)} 
-
-Other available commands:   
-- `!FLAIRY!` : if you can't think of a flair, I'll give you one of my own choice 🤭   
-- `!FLAIRY:CLEARME!` : remove all flairs and pretend you're a new ape   
-- `!FLAIRY:SEALME!` : Justin seduced me to get this 🥵    
-- `u/{self.flairy_reddit_username}`  : If you tag me, I'll come around and explain how to get flairs
-
-Please note that the flairy will refuse to change your flair if it contains the string `{IsBlackListed.blacklisted_string}`.
-
-Some custom emojis are supported, like `:triforce:` - 
-[please check this post for details](https://new.reddit.com/r/Superstonk/comments/v89p0h/new_superstonk_user_flair_emojis_how_to_edit_your/id8hj7r/)
-"""
 
     async def handled(self, body, comment, is_mod):
-        if f"u/{self.flairy_reddit_username}".lower() in body.lower():
+        if f"{self.flairy_reddit_username}".lower() in body.lower():
             comment_from_flairies_view = await self._flairy_reddit.comment(comment.id, fetch=False)
             self._logger.info(f"Explaining flairs: {permalink(comment)}")
-            await comment_from_flairies_view.reply(self._flairy_explanation_text)
+            reply = flairy_explanation_text(self.flairy_reddit_username)
+            await comment_from_flairies_view.reply(reply)
             return True
 
         self._logger.debug("comment isn't a flairy explanation request")
