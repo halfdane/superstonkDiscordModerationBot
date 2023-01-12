@@ -138,7 +138,8 @@ class SuperstonkModerationBot(Bot):
         self.COMPONENTS["readonly_reddit_username"] = await self.COMPONENTS['readonly_reddit'].user.me()
         self.logger.warning(f"use generic reddit user readonly: {self.COMPONENTS['readonly_reddit_username']}")
 
-        self.COMPONENTS["flairy_reddit_username"] = await self.COMPONENTS['flairy_reddit'].user.me().name
+        flairy = await self.COMPONENTS['flairy_reddit'].user.me()
+        self.COMPONENTS["flairy_reddit_username"] = flairy.name
         self.logger.warning(f"use this reddit user for flair requests: {self.COMPONENTS['flairy_reddit_username']}")
 
         self.COMPONENTS["qvbot_reddit_username"] = await self.COMPONENTS['qvbot_reddit'].user.me()
