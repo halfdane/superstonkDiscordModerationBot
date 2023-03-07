@@ -131,7 +131,7 @@ class Flairy(Handler):
                 redditor=comment.author,
                 text=flair_text,
                 flair_template_id=template)
-            message += rf'(✿\^‿\^)━☆ﾟ.*･｡ﾟ {flair_text}'
+            message += rf'(✿\^‿\^)━☆ﾟ.*･｡ﾟ your flair has been granted'
             self._logger.info(log_message)
             comment_from_flairies_view = await self.flairy_reddit.comment(comment.id, fetch=False)
             await comment_from_flairies_view.upvote()
