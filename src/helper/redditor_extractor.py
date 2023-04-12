@@ -24,6 +24,8 @@ def __find_redditor_in_embeds(msg):
 
 
 def __find_redditor(string):
+    if string is None:
+        return None
     if m := USER_REFERENCE_MATCHER.search(string):
         return m.group(1)
 
