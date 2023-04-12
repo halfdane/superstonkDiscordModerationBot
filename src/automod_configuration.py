@@ -29,7 +29,7 @@ class AutomodConfiguration:
         automod_config = await self.superstonk_subreddit.wiki.get_page("config/automoderator")
         for rule in automod_config.content_md.split("---"):
             y = yaml.safe_load(rule)
-            if y and y.get('action', "") == 'remove':
+            if y and isinstance(y, dict) and y.get('action', "") == 'remove':
                 automod_rules += [re.compile(r) for k, v in y.items() if "regex" in k for r in v]
                 self.domain_filter += [r for k, v in y.items() if "domain" in k and not "regex" in k for r in v]
 
