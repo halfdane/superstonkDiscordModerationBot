@@ -19,7 +19,7 @@ class TestFlairyExplainer:
         reddit_username = "flairy's_reddit_username"
         mock_reddit = MagicMock()
         mock_reddit.comment = AsyncMock()
-        testee = FlairyExplainerCommand(mock_reddit, ['some', 'weird', 'color'], reddit_username)
+        testee = FlairyExplainerCommand(mock_reddit, reddit_username)
 
         # given
         mock_comment = self.default_comment()
@@ -37,8 +37,8 @@ class TestFlairyExplainer:
         args, _ = flairy_comment.reply.call_args
         assert len(args) == 1
         assert "!FLAIRY!🚀" in args[0]
-        assert "some, weird, color" in args[0]
-        assert f"u/{reddit_username}" in args[0]
+        assert "red, blue, pink, yellow, green, black, white" in args[0]
+        assert f"{reddit_username}" in args[0]
         assert "`!FLAIRY!`" in args[0]
         assert "`!FLAIRY:CLEARME!`" in args[0]
         assert "`!FLAIRY:SEALME!`" in args[0]
