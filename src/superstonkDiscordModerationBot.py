@@ -43,6 +43,7 @@ from qv_bot.r_all_sticky_creator import RAllStickyCreator
 from qv_bot.require_qv_response import RequireQvResponse
 from qv_bot.resticky_qv_bot import RestickyQualityVoteBot
 from reddit_item_reader import RedditItemReader
+from reports_logs.add_ban_msg_to_modnotes import AddBanMessageToModnotes
 from reports_logs.approve_daily_spam import ApproveDailySpam
 from reports_logs.approve_old_modqueue_items import ApproveOldModqueueItems
 from reports_logs.approve_report_abuse_content import ApproveReportAbuse
@@ -274,7 +275,9 @@ class SuperstonkModerationBot(Bot):
             item_fetch_function=superstonk_subreddit.mod.stream.log,
             item_repository=self.COMPONENTS['modlog_repo'],
             handlers=[
-                await self.component(ignore_approved_content=IgnoreApprovedContent(**self.COMPONENTS))]))
+                await self.component(ignore_approved_content=IgnoreApprovedContent(**self.COMPONENTS)),
+                await self.component(add_ban_msg_to_modnotes=AddBanMessageToModnotes(**self.COMPONENTS))
+            ]))
 
         await troll_finder.register_streams(self.component, 'gme_meltdown')
         await troll_finder.register_streams(self.component, 'FWFBThinkTank')
