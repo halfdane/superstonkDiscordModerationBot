@@ -17,8 +17,7 @@ class AddBanMessageToModnotes(Handler):
             created_utc = datetime.utcfromtimestamp(modlog.created_utc).strftime("%Y/%m/%d %H:%M:%S")
             modnote = f"{created_utc}: {modlog.details} ban"
             if self.is_live_environment:
-                self.superstonk_subreddit.mod.notes.create(
-                    label="BAN", note=modnote, redditor=modlog.target_author
-                )
+                await self.superstonk_subreddit.mod.notes.create(
+                    label="BAN", note=modnote, redditor=modlog.target_author)
             else:
                 print("Cowardly refusing to add ban message in test environment")
