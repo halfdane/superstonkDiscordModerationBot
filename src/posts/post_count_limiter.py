@@ -1,27 +1,9 @@
 from datetime import datetime, timedelta
 
 import chevron
-import disnake
-import yaml
-from disnake import Embed
 
 from helper.item_helper import permalink, author
 from reddit_item_handler import Handler
-
-REMOVAL_COMMENT = """
-Your post was removed by a moderator because you have reached the limit of posts per user in 24 hours.
-
-Every ape may submit up to 7 posts in a 24 hour window, and you already had your fill. 
-Please take a little break before attempting to post again.  
-
-🦍🦍🦍🦍🦍🦍
-
-If you are repeatedly having posts/comments removed for rules violation, you will be banned either permanently or temporarily.
-
-If you feel this removal was unwarranted, please contact us via Mod Mail: https://www.reddit.com/message/compose?to=/r/Superstonk
-
-Thanks for being a member of r/Superstonk 💎🙌🚀
-"""
 
 
 async def _post_to_string(post):
@@ -32,20 +14,16 @@ async def _post_to_string(post):
 class PostCountLimiter(Handler):
     _interval = timedelta(hours=24)
 
-    def __init__(self, post_repo, qvbot_reddit,
-                 is_live_environment, superstonk_subreddit, **kwargs):
+    def __init__(self, post_repo, qvbot_reddit, is_live_environment, quality_vote_bot_configuration, **_):
         super().__init__()
         self.post_repo = post_repo
         self.qvbot_reddit = qvbot_reddit
         self.is_live_environment = is_live_environment
-        self.superstonk_subreddit = superstonk_subreddit
-        self.post_limit_reached_comment = REMOVAL_COMMENT
+        self.quality_vote_bot_configuration = quality_vote_bot_configuration
 
     def wot_doing(self):
-        return "Limit post count to 7 per 24 hours"
-
-    async def on_ready(self, scheduler, **kwargs):
-        scheduler.add_job(self.fetch_config_from_wiki, "cron", minute="6-59/10", next_run_time=datetime.now())
+        limit = self.quality_vote_bot_configuration.config.get('post_limit_reached_threshold', 10)
+        return f"Limit post count to {limit} per 24 hours"
 
     async def take(self, item):
         author_name = author(item)
@@ -55,13 +33,17 @@ class PostCountLimiter(Handler):
         posts_that_dont_count = list(filter(lambda p: not p.count_to_limit, posts))
         posts_that_dont_count.append(item)
 
-        if len(posts_that_count) >= 7:
+        limit = self.quality_vote_bot_configuration.config.get('post_limit_reached_threshold', 10)
+        if len(posts_that_count) >= limit:
             sorted_posts = sorted(posts_that_count, key=lambda v: v.created_utc)
             model = {
                 'list_of_posts': "    \n".join([await _post_to_string(post) for post in sorted_posts]),
                 'ignored_posts': "    \n".join([await _post_to_string(post) for post in posts_that_dont_count]),
+                'post_limit_reached_threshold': limit
             }
-            removal_comment = chevron.render(self.post_limit_reached_comment, model)
+
+            post_limit_reached_comment = self.quality_vote_bot_configuration.config.get('post_limit_reached_comment', None)
+            removal_comment = chevron.render(post_limit_reached_comment, model)
 
             self._logger.info(f"Oops, looks like {author_name} is posting a lot: {removal_comment}")
 
@@ -75,9 +57,3 @@ class PostCountLimiter(Handler):
             await self.post_repo.do_not_count_to_limit(item)
 
             return True
-
-    async def fetch_config_from_wiki(self):
-        wiki_page = await self.superstonk_subreddit.wiki.get_page("qualityvote")
-        wiki_config_text = wiki_page.content_md
-        wiki_config = yaml.safe_load(wiki_config_text)
-        self.post_limit_reached_comment = wiki_config['post_limit_reached_comment']
