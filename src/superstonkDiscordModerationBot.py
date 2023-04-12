@@ -71,9 +71,13 @@ class SuperstonkModerationBot(Bot):
         intents = disnake.Intents.default()
         intents.message_content = True
         intents.members = True
+
+        command_sync_flags = commands.CommandSyncFlags.default()
+        command_sync_flags.sync_commands_debug = True
+
         super().__init__(command_prefix='>',
                          description="Moderation bot for Superstonk.",
-                         sync_commands_debug=True,
+                         command_sync_flags=command_sync_flags,
                          intents=intents,
                          **options)
         self.moderation_bot_configuration = moderation_bot_configuration
