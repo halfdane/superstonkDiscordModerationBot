@@ -290,6 +290,7 @@ class SuperstonkModerationBot(Bot):
             return
         if extract_redditor(msg):
             await self.add_reactions(msg, self.USER_REACTIONS)
+            await self.COMPONENTS['discord_modnote_reaction'].handle_reaction(msg, msg.author)
 
     async def on_command_error(self, ctx: commands.Context, error):
         self.logger.exception(error)

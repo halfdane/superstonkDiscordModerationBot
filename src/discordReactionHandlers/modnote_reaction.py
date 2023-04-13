@@ -32,13 +32,16 @@ class ModNoteReaction(Reaction):
     async def handle_reaction(self, message: Message, user):
         redditor = extract_redditor(message)
         try:
+            await user.send(content=f"... fetching modnotes for {redditor} - please hang on, this may take a moment")
             modnotes = await self.fetch_modnotes(redditor)
             await self.send_notes(modnotes, "ModNotes", redditor, user)
 
+            await user.send(content=f"... fetching bans for {redditor}")
             bans = [n for n in modnotes if n.action == 'BAN' or n.action == 'banuser']
             if len(bans) > 0:
                 await self.send_notes(bans, "BANS", redditor, user)
 
+            await user.send(content=f"... fetching redditor history for {redditor}")
             history = await redditor_history(await self.readonly_reddit.redditor(redditor))
             embed = self.create_embed(redditor, "History")
 
