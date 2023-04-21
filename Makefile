@@ -2,7 +2,7 @@ SHELL := /bin/bash
 
 .PHONY: run
 run: venv
-	venv/bin/python src/superstonkDiscordModerationBot.py
+	$(VENV)/python src/superstonkDiscordModerationBot.py
 
 .PHONY: force_pull
 force_pull:
@@ -15,7 +15,7 @@ bot: force_pull run
 
 .PHONY: test
 test: venv
-	venv/bin/pytest -vv
+	$(VENV)/pytest -vv
 
 install:
 	mkdir -p ~/.config/systemd/user/
@@ -26,15 +26,9 @@ install:
 	sudo loginctl enable-linger $USER
 
 
-venv: venv/bin/activate
-
-venv/bin/activate: src/requirements.txt
-	python3 -m pip install virtualenv
-	python3 -m virtualenv -p python3 venv
-	./venv/bin/pip install --upgrade pip
-	./venv/bin/pip install -r "src/requirements.txt"
-
-clean:
-	rm -rf venv __pycache__
+clean: clean-venv
 	find -iname "*.pyc" -delete
 	find -iname "__pycache__" -delete
+	rm -rf .pytest_cache
+
+include Makefile.venv
