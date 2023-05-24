@@ -4,7 +4,7 @@ import sys
 
 CONFIG_HOME = os.path.dirname(os.path.realpath(sys.path[0]))
 CONFIG_DB = f"{CONFIG_HOME}/config.db"
-
+CONFIG_CLONE_DB = f"{CONFIG_HOME}/config_clone.db"
 
 class ModerationBotConfiguration(dict):
 
@@ -41,3 +41,6 @@ class ModerationBotConfiguration(dict):
 
     def __as_int(self, key):
         self[key] = int(self[key])
+class CloneBotConfiguration(ModerationBotConfiguration):
+    def __init__(self):
+        super().__init__(database=CONFIG_CLONE_DB)
