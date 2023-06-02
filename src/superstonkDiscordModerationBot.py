@@ -3,6 +3,7 @@ import logging
 
 import asyncpraw
 import disnake
+import asyncio
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from disnake import Embed, Colour
 from disnake import Message
@@ -159,7 +160,7 @@ class SuperstonkModerationBot(Bot):
         logging.getLogger('apscheduler').setLevel(logging.WARN)
 
         scheduler_timezone = {}
-        scheduler = AsyncIOScheduler(**scheduler_timezone)
+        scheduler = AsyncIOScheduler(**scheduler_timezone,)
         scheduler.start()
         await self.component(scheduler=scheduler)
 
@@ -413,7 +414,7 @@ class SuperstonkModerationBot(Bot):
 
         await super().close()
 
-class CLoneSuperstonkModerationBot(SuperstonkModerationBot):
+class CloneSuperstonkModerationBot(SuperstonkModerationBot):
     # Define the emojis for reactions that the simplified bot will handle
     REACTIONS_TO_KEEP = ['\U0001F474', '\U00002753']  # Old man emoji and question mark emoji
 
@@ -424,6 +425,9 @@ class CLoneSuperstonkModerationBot(SuperstonkModerationBot):
     async def unhandle_reaction(self, message, emoji, user):
         if emoji in self.REACTIONS_TO_KEEP:
             await super().unhandle_reaction(message, emoji, user)
+
+async def run_bot(bot, token):
+    await bot.start(token)
 
 if __name__ == "__main__":
     logging.basicConfig(
@@ -438,10 +442,15 @@ if __name__ == "__main__":
         moderation_bot_configuration=configuration,
         test_guilds=[configuration['discord_guild_id']]
     )
-    clone_bot = CLoneSuperstonkModerationBot(
+    clone_bot = CloneSuperstonkModerationBot(
         moderation_bot_configuration=clone_configuration,
         test_guilds=[clone_configuration['discord_guild_id']]
     )
 
-    bot.run(configuration['discord_bot_token'])
-    clone_bot.run(clone_configuration['discord_bot_token'])
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(
+        asyncio.gather(
+            run_bot(bot, configuration['discord_bot_token']),
+            run_bot(clone_bot, clone_configuration['discord_bot_token'])
+        )
+    )
