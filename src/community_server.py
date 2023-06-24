@@ -4,6 +4,7 @@ from disnake import Embed, Colour
 from disnake.ext import commands
 import sqlite3
 import asyncio
+import random
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -75,9 +76,11 @@ async def check_new_entry(reddit_client_id, reddit_client_secret, reddit_usernam
             params['url'] = 'https://new.reddit.com' + last_entry.permalink
 
             description = f"{last_entry.__class__.__name__}: {getattr(last_entry, 'subject', getattr(last_entry, 'title', getattr(last_entry, 'body', '')))[:75]}"
-            description = f"**{params['description']}** {description}"
+            description = f"** {params['description']} ** {description}"
             params['description'] = f"[{description}]({params['url']})"
             e = Embed(**params)
+
+
 
             if redditor:
                 e.add_field("Redditor", f"{redditor}", inline=False)
@@ -89,6 +92,21 @@ async def check_new_entry(reddit_client_id, reddit_client_secret, reddit_usernam
                 e.add_field('Score', score, inline=False)
             if upvote_ratio:
                 e.add_field("Upvote Ratio:", str(upvote_ratio))
+
+            if random.randint(1, 20) == 9:
+                luma_facts = ['Luma still wets the bed',
+                              'Luma is the human equivalent of a participation trophy.',
+                              'If Luma were a spice, he’d be flour.'
+                              'Luma is about as useless as the “ueue” in “queue.”',
+                              'Never try to explain anything to Luma. You do not have the time nor the crayons for it.'
+                              'Luma always comes out on top (of the bell curve).'
+                              "Luma's pH level is 14."
+                              'Luma is a really great conversation starter. It gets underway as soon as he leaves',
+                              'Luma is the reason the gene pool needs a lifeguard.']
+                fact = random.choice(luma_facts)
+                e.add_field("Fun Fact", fact)
+
+
 
 
             # Log the message
