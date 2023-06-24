@@ -8,11 +8,11 @@ import asyncio
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-BASE_PATH = '/home/live/superstonkDiscordModerationBot'
+BASE_PATH = ''
 
 def get_creds():
     # create connection to database
-    conn = sqlite3.connect(f'{BASE_PATH}/config.db')
+    conn = sqlite3.connect(f'{BASE_PATH}config.db')
     discord_bot_token, reddit_client_id, reddit_client_secret, reddit_password, reddit_username, channel_id, subreddit_name \
         = conn.execute("select value from settings where key in "
                        "('discord_bot_token', 'report_channel_id_community', 'reddit_client_id',"
@@ -42,49 +42,48 @@ async def check_new_entry(reddit_client_id, reddit_client_secret, reddit_usernam
 
     subreddit = await reddit.subreddit(subreddit_name)
 
-    while True:
-        try:
-            modqueue_generator = subreddit.mod.modqueue(limit=1)
-            modqueue = []
+    try:
+        modqueue_generator = subreddit.mod.modqueue(limit=1000)
+        modqueue = []
 
-            async for entry in modqueue_generator:
-                modqueue.append(entry)
+        async for entry in modqueue_generator:
+            modqueue.append(entry)
 
-            last_entry = modqueue[0] if modqueue else None
-            # Check if new entry is detected
-            if last_entry and (check_new_entry.last_entry is None or last_entry != check_new_entry.last_entry):
+        last_entry = modqueue[0] if modqueue else None
+        # Check if new entry is detected
+        if last_entry and (check_new_entry.last_entry is None or last_entry != check_new_entry.last_entry):
 
-                # Get the details
-                title = 'www.reddit.com' + last_entry.permalink
-                redditor = last_entry.author
-                mod_reports = last_entry.mod_reports
-                user_reports = last_entry.user_reports
+            # Get the details
+            title = 'www.reddit.com' + last_entry.permalink
+            redditor = last_entry.author
+            mod_reports = last_entry.mod_reports
+            user_reports = last_entry.user_reports
 
-                # Format the message
-                msg = f'title: {title}\n' \
-                      f'Redditor: {redditor} \n' \
-                      f'Mod Reports: {mod_reports} \n' \
-                      f'User Reports: {user_reports}'
+            # Format the message
+            msg = f'title: {title}\n' \
+                  f'Redditor: {redditor} \n' \
+                  f'Mod Reports: {mod_reports} \n' \
+                  f'User Reports: {user_reports}'
 
-                # Log the message
-                logger.info(f'Sending message: {msg}')
+            # Log the message
+            logger.info(f'Sending message: {msg}')
 
-                # Send the message to discord channel
-                try:
-                    channel = bot.get_channel(int(channel_id))
-                    await channel.send(msg)
-                    logger.info('Message sent successfully')
-                except Exception as e:
-                    logger.error(f'Failed to send message: {e}')
+            # Send the message to discord channel
+            try:
+                channel = bot.get_channel(int(channel_id))
+                await channel.send(msg)
+                logger.info('Message sent successfully')
+            except Exception as e:
+                logger.error(f'Failed to send message: {e}')
 
-                # Update the last entry
-                check_new_entry.last_entry = last_entry
+            # Update the last entry
+            check_new_entry.last_entry = last_entry
 
-            # Wait for a while before checking again
-            await asyncio.sleep(10)
+        # Wait for a while before checking again
+        await asyncio.sleep(10)
 
-        except Exception as e:
-            logger.exception('An error occurred in check_new_entry', exc_info=e)
+    except Exception as e:
+        logger.exception('An error occurred in check_new_entry', exc_info=e)
 
 
 @bot.event
