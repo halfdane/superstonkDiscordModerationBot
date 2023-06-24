@@ -1,5 +1,6 @@
 import logging
 import asyncpraw
+from disnake import Embed
 from disnake.ext import commands
 import sqlite3
 import asyncio
@@ -9,6 +10,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 BASE_PATH = ''
+
 
 def get_creds():
     # create connection to database
@@ -36,12 +38,12 @@ def get_reddit(reddit_client_id, reddit_client_secret, reddit_username, reddit_p
 bot = commands.Bot(command_prefix="!")
 
 
-async def check_new_entry(reddit_client_id, reddit_client_secret, reddit_username, reddit_password, subreddit_name, channel_id):
+async def check_new_entry(reddit_client_id, reddit_client_secret, reddit_username, reddit_password, subreddit_name,
+                          channel_id):
     check_new_entry.last_entry = None
     reddit = get_reddit(reddit_client_id, reddit_client_secret, reddit_username, reddit_password)
 
     subreddit = await reddit.subreddit(subreddit_name)
-
     try:
         modqueue_generator = subreddit.mod.modqueue(limit=1000)
         modqueue = []
@@ -54,24 +56,48 @@ async def check_new_entry(reddit_client_id, reddit_client_secret, reddit_usernam
         if last_entry and (check_new_entry.last_entry is None or last_entry != check_new_entry.last_entry):
 
             # Get the details
-            title = 'www.reddit.com' + last_entry.permalink
+            url = 'www.reddit.com' + last_entry.permalink
+            title = f'[{last_entry.title}]({url})'
             redditor = last_entry.author
-            mod_reports = last_entry.mod_reports
-            user_reports = last_entry.user_reports
+            mod_reports_attr = last_entry.mod_reports
+            mod_reports = "\n".join(f"{r[1]} {r[0]}" for r in mod_reports_attr)
 
-            # Format the message
-            msg = f'title: {title}\n' \
-                  f'Redditor: {redditor} \n' \
-                  f'Mod Reports: {mod_reports} \n' \
-                  f'User Reports: {user_reports}'
+            user_reports_attr = last_entry.user_reports
+            user_reports = "\n".join(f"{r[1]} {r[0]}" for r in user_reports_attr)
+
+            score = getattr(last_entry, 'score', None)
+
+            upvote_ratio = getattr(last_entry, 'upvote_ratio', None)
+
+            e = Embed()
+
+
+            if redditor:
+                e.add_field("Redditor", f"{redditor}", inline=False)
+            if user_reports:
+                e.add_field("User Reports", user_reports, inline=False)
+            if mod_reports:
+                e.add_field("Mod Reports", f"{mod_reports}", inline=False)
+            if score:
+                e.add_field('Score', score, inline=False)
+            if upvote_ratio:
+                e.add_field("Upvote Ratio:", str(upvote_ratio))
 
             # Log the message
-            logger.info(f'Sending message: {msg}')
+            logger.info(f'Sending message')
 
             # Send the message to discord channel
             try:
                 channel = bot.get_channel(int(channel_id))
-                await channel.send(msg)
+
+                up_emoji = "👍"
+                down_emoji = "👎"
+
+                message = await channel.send(embed=e)
+
+                await message.add_reaction(up_emoji)
+                await message.add_reaction(down_emoji)
+
                 logger.info('Message sent successfully')
             except Exception as e:
                 logger.error(f'Failed to send message: {e}')
@@ -91,6 +117,7 @@ async def on_ready():
     bot.loop.create_task(
         check_new_entry(reddit_client_id, reddit_client_secret, reddit_username, reddit_password, subreddit_name,
                         channel_id))
+
 
 if __name__ == '__main__':
     reddit_client_id, reddit_client_secret, reddit_username, \
