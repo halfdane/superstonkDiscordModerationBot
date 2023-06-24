@@ -1,6 +1,6 @@
 import logging
 import asyncpraw
-from disnake import Embed
+from disnake import Embed, Colour
 from disnake.ext import commands
 import sqlite3
 import asyncio
@@ -55,9 +55,7 @@ async def check_new_entry(reddit_client_id, reddit_client_secret, reddit_usernam
         # Check if new entry is detected
         if last_entry and (check_new_entry.last_entry is None or last_entry != check_new_entry.last_entry):
 
-            # Get the details
-            url = 'www.reddit.com' + last_entry.permalink
-            title = f'[{last_entry.title}]({url})'
+
             redditor = last_entry.author
             mod_reports_attr = last_entry.mod_reports
             mod_reports = "\n".join(f"{r[1]} {r[0]}" for r in mod_reports_attr)
@@ -69,8 +67,17 @@ async def check_new_entry(reddit_client_id, reddit_client_secret, reddit_usernam
 
             upvote_ratio = getattr(last_entry, 'upvote_ratio', None)
 
-            e = Embed()
+            params = {
+                'colour': Colour(0).from_rgb(207, 206, 255),
+                'description': ''
+            }
 
+            params['url'] = 'https://new.reddit.com' + last_entry.permalink
+
+            description = f"{last_entry.__class__.__name__}: {getattr(last_entry, 'subject', getattr(last_entry, 'title', getattr(last_entry, 'body', '')))[:75]}"
+            description = f"**{params['description']}** {description}"
+            params['description'] = f"[{description}]({params['url']})"
+            e = Embed(**params)
 
             if redditor:
                 e.add_field("Redditor", f"{redditor}", inline=False)
@@ -82,6 +89,7 @@ async def check_new_entry(reddit_client_id, reddit_client_secret, reddit_usernam
                 e.add_field('Score', score, inline=False)
             if upvote_ratio:
                 e.add_field("Upvote Ratio:", str(upvote_ratio))
+
 
             # Log the message
             logger.info(f'Sending message')
