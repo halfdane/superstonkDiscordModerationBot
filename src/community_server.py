@@ -8,10 +8,11 @@ import asyncio
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+BASE_PATH = '/home/live/superstonkDiscordModerationBot'
 
 def get_creds():
     # create connection to database
-    conn = sqlite3.connect('config.db')
+    conn = sqlite3.connect(f'{BASE_PATH}/config.db')
     discord_bot_token, reddit_client_id, reddit_client_secret, reddit_password, reddit_username, channel_id, subreddit_name \
         = conn.execute("select value from settings where key in "
                        "('discord_bot_token', 'report_channel_id_community', 'reddit_client_id',"
