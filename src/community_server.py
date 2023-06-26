@@ -10,7 +10,7 @@ import random
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-BASE_PATH = ''
+BASE_PATH = '/home/live/superstonkDiscordModerationBot/'
 
 # Create a connection to SQLite database
 conn = sqlite3.connect(f'{BASE_PATH}config.db')
