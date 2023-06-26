@@ -109,11 +109,11 @@ async def check_new_entry(reddit_client_id, reddit_client_secret, reddit_usernam
                     if random.randint(1, 20) == 9:
                         luma_facts = ['Luma still wets the bed',
                                       'Luma is the human equivalent of a participation trophy.',
-                                      'If Luma were a spice, he’d be flour.'
+                                      'If Luma were a spice, he’d be flour.',
                                       'Luma is about as useless as the “ueue” in “queue.”',
-                                      'Never try to explain anything to Luma. You do not have the time nor the crayons for it.'
-                                      'Luma always comes out on top (of the bell curve).'
-                                      "Luma's pH level is 14."
+                                      'Never try to explain anything to Luma. You do not have the time nor the crayons for it.',
+                                      'Luma always comes out on top (of the bell curve).',
+                                      "Luma's pH level is 14.",
                                       'Luma is a really great conversation starter. It gets underway as soon as he leaves',
                                       'Luma is the reason the gene pool needs a lifeguard.']
                         fact = random.choice(luma_facts)
