@@ -10,12 +10,19 @@ import random
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-BASE_PATH = '/home/live/superstonkDiscordModerationBot/'
+BASE_PATH = ''
 
+# Create a connection to SQLite database
+conn = sqlite3.connect(f'{BASE_PATH}config.db')
+cursor = conn.cursor()
+
+# Create a table if it doesn't already exist
+cursor.execute("CREATE TABLE IF NOT EXISTS modqueue (entry_id TEXT PRIMARY KEY)")
+
+# Save changes and close the connection
+conn.commit()
 
 def get_creds():
-    # create connection to database
-    conn = sqlite3.connect(f'{BASE_PATH}config.db')
     discord_bot_token, reddit_client_id, reddit_client_secret, reddit_password, reddit_username, channel_id, subreddit_name \
         = conn.execute("select value from settings where key in "
                        "('discord_bot_token', 'report_channel_id_community', 'reddit_client_id',"
@@ -51,86 +58,93 @@ async def check_new_entry(reddit_client_id, reddit_client_secret, reddit_usernam
             modqueue = []
 
             async for entry in modqueue_generator:
+                # Check if the entry has already been processed
+                cursor.execute("SELECT entry_id FROM modqueue WHERE entry_id = ?", (entry.id,))
+                if cursor.fetchone() is not None:
+                    continue  # This entry has already been processed, so skip it
                 modqueue.append(entry)
 
-            last_entry = modqueue[0] if modqueue else None
-            # Check if new entry is detected
-            if last_entry and (check_new_entry.last_entry is None or last_entry != check_new_entry.last_entry):
+                last_entry = modqueue[0] if modqueue else None
+
+                # Check if new entry is detected
+                if last_entry and (check_new_entry.last_entry is None or last_entry != check_new_entry.last_entry):
 
 
-                redditor = last_entry.author
-                mod_reports_attr = last_entry.mod_reports
-                mod_reports = "\n".join(f"{r[1]} {r[0]}" for r in mod_reports_attr)
+                    redditor = last_entry.author
+                    mod_reports_attr = last_entry.mod_reports
+                    mod_reports = "\n".join(f"{r[1]} {r[0]}" for r in mod_reports_attr)
 
-                user_reports_attr = last_entry.user_reports
-                user_reports = "\n".join(f"{r[1]} {r[0]}" for r in user_reports_attr)
+                    user_reports_attr = last_entry.user_reports
+                    user_reports = "\n".join(f"{r[1]} {r[0]}" for r in user_reports_attr)
 
-                score = getattr(last_entry, 'score', None)
+                    score = getattr(last_entry, 'score', None)
 
-                upvote_ratio = getattr(last_entry, 'upvote_ratio', None)
+                    upvote_ratio = getattr(last_entry, 'upvote_ratio', None)
 
-                params = {
-                    'colour': Colour(0).from_rgb(207, 206, 255),
-                    'description': ''
-                }
+                    params = {
+                        'colour': Colour(0).from_rgb(207, 206, 255),
+                        'description': ''
+                    }
 
-                params['url'] = 'https://new.reddit.com' + last_entry.permalink
+                    params['url'] = 'https://new.reddit.com' + last_entry.permalink
 
-                description = f"{last_entry.__class__.__name__}: {getattr(last_entry, 'subject', getattr(last_entry, 'title', getattr(last_entry, 'body', '')))[:75]}"
-                description = f"** {params['description']} ** {description}"
-                params['description'] = f"[{description}]({params['url']})"
-                e = Embed(**params)
-
-
-
-                if redditor:
-                    e.add_field("Redditor", f"{redditor}", inline=False)
-                if user_reports:
-                    e.add_field("User Reports", user_reports, inline=False)
-                if mod_reports:
-                    e.add_field("Mod Reports", f"{mod_reports}", inline=False)
-                if score:
-                    e.add_field('Score', score, inline=False)
-                if upvote_ratio:
-                    e.add_field("Upvote Ratio:", str(upvote_ratio))
-
-                if random.randint(1, 20) == 9:
-                    luma_facts = ['Luma still wets the bed',
-                                  'Luma is the human equivalent of a participation trophy.',
-                                  'If Luma were a spice, he’d be flour.'
-                                  'Luma is about as useless as the “ueue” in “queue.”',
-                                  'Never try to explain anything to Luma. You do not have the time nor the crayons for it.'
-                                  'Luma always comes out on top (of the bell curve).'
-                                  "Luma's pH level is 14."
-                                  'Luma is a really great conversation starter. It gets underway as soon as he leaves',
-                                  'Luma is the reason the gene pool needs a lifeguard.']
-                    fact = random.choice(luma_facts)
-                    e.add_field("Fun Fact", fact)
+                    description = f"{last_entry.__class__.__name__}: {getattr(last_entry, 'subject', getattr(last_entry, 'title', getattr(last_entry, 'body', '')))[:75]}"
+                    description = f"{params['description']} {description}"
+                    params['description'] = f"[{description}]({params['url']})"
+                    e = Embed(**params)
 
 
 
+                    if redditor:
+                        e.add_field("Redditor", f"{redditor}", inline=False)
+                    if user_reports:
+                        e.add_field("User Reports", user_reports, inline=False)
+                    if mod_reports:
+                        e.add_field("Mod Reports", f"{mod_reports}", inline=False)
+                    if score:
+                        e.add_field('Score', score, inline=False)
+                    if upvote_ratio:
+                        e.add_field("Upvote Ratio:", str(upvote_ratio))
 
-                # Log the message
-                logger.info(f'Sending message')
+                    if random.randint(1, 20) == 9:
+                        luma_facts = ['Luma still wets the bed',
+                                      'Luma is the human equivalent of a participation trophy.',
+                                      'If Luma were a spice, he’d be flour.'
+                                      'Luma is about as useless as the “ueue” in “queue.”',
+                                      'Never try to explain anything to Luma. You do not have the time nor the crayons for it.'
+                                      'Luma always comes out on top (of the bell curve).'
+                                      "Luma's pH level is 14."
+                                      'Luma is a really great conversation starter. It gets underway as soon as he leaves',
+                                      'Luma is the reason the gene pool needs a lifeguard.']
+                        fact = random.choice(luma_facts)
+                        e.add_field("Fun Fact", fact)
 
-                # Send the message to discord channel
-                try:
-                    channel = bot.get_channel(int(channel_id))
+                        # Add the entry to the modqueue table
+                    cursor.execute("INSERT INTO modqueue (entry_id) VALUES (?)", (entry.id,))
+                    conn.commit()
 
-                    up_emoji = "👍"
-                    down_emoji = "👎"
 
-                    message = await channel.send(embed=e)
+                    # Log the message
+                    logger.info(f'Sending message')
 
-                    await message.add_reaction(up_emoji)
-                    await message.add_reaction(down_emoji)
+                    # Send the message to discord channel
+                    try:
+                        channel = bot.get_channel(int(channel_id))
 
-                    logger.info('Message sent successfully')
-                except Exception as e:
-                    logger.error(f'Failed to send message: {e}')
+                        up_emoji = "👍"
+                        down_emoji = "👎"
 
-                # Update the last entry
-                check_new_entry.last_entry = last_entry
+                        message = await channel.send(embed=e)
+
+                        await message.add_reaction(up_emoji)
+                        await message.add_reaction(down_emoji)
+
+                        logger.info('Message sent successfully')
+                    except Exception as e:
+                        logger.error(f'Failed to send message: {e}')
+
+                    # Update the last entry
+                    check_new_entry.last_entry = last_entry
 
             # Wait for a while before checking again
             await asyncio.sleep(10)
