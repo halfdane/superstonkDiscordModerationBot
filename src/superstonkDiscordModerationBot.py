@@ -1,5 +1,6 @@
 import inspect
 import logging
+import datetime
 
 import asyncpraw
 import disnake
@@ -117,6 +118,7 @@ class SuperstonkModerationBot(Bot):
 
         # name
         for guild in self.guilds:
+            self.logger.info(f'Guilds are {guild}')
             if guild:
                 await guild.me.edit(nick="modbot")
         await self.change_presence(
@@ -125,12 +127,15 @@ class SuperstonkModerationBot(Bot):
         # DISCORD
         self.logger.warning(f"report into the discord channel: {self.COMPONENTS['report_channel_id']}")
         await self.component(report_channel=self.get_channel(self.COMPONENTS['report_channel_id']))
+
+        self.logger.warning(f"report into the discord community channel: {self.COMPONENTS['report_channel_id_community']}")
+        await self.component(report_channel=self.get_channel(self.COMPONENTS['report_channel_id_community']))
+
         self.logger.warning(f"report mod tags into discord channel: {self.COMPONENTS['mod_tag_channel_id']}")
         await self.component(mod_tag_channel=self.get_channel(self.COMPONENTS['mod_tag_channel_id']))
 
         self.logger.warning(
             f"listen for user mentions in this discord channel: {self.COMPONENTS['user_investigation_channel_id']}")
-
         await self.component(discord_user_info=DiscordUserInfo(**self.COMPONENTS))
 
         self.logger.warning(f"Read configuration from {CONFIG_HOME}")
@@ -164,8 +169,10 @@ class SuperstonkModerationBot(Bot):
         await self.component(scheduler=scheduler)
 
         subreddit_name_ = self.COMPONENTS["subreddit_name"]
+
         superstonk_subreddit = await self.COMPONENTS["readonly_reddit"].subreddit(subreddit_name_)
         await self.component(superstonk_subreddit=superstonk_subreddit)
+
         superstonk_moderators = [m async for m in superstonk_subreddit.moderator]
         await self.component(superstonk_moderators_strict=superstonk_moderators)
         await self.component(superstonk_moderators=superstonk_moderators + ["Roid_Rage_Smurf"])
@@ -283,7 +290,7 @@ class SuperstonkModerationBot(Bot):
         await troll_finder.register_streams(self.component, 'FWFBThinkTank')
         await troll_finder.register_streams(self.component, 'DRSyourGME')
 
-        await self.send_discord_message(description_beginning="Moderation bot restarted")
+        await self.send_discord_message(description_beginning=f"Moderation bot restarted {datetime.datetime.now()}")
 
     async def on_message(self, msg: Message):
         if msg.author.bot or msg.channel.id != self.COMPONENTS['user_investigation_channel_id']:
@@ -392,7 +399,8 @@ class SuperstonkModerationBot(Bot):
 
     async def handle_reaction(self, message, emoji, user):
         for reaction in self.ALL_REACTIONS:
-            if reaction.emoji == emoji:
+            if (reaction.emoji == emoji):
+                self.logger.info(f"Handling reaction {emoji}")
                 await reaction.handle_reaction(message, user)
 
     async def unhandle_reaction(self, message, emoji, user):
@@ -432,16 +440,11 @@ if __name__ == "__main__":
     )
 
     configuration = ModerationBotConfiguration()
-    clone_configuration = CloneBotConfiguration()
 
     bot = SuperstonkModerationBot(
         moderation_bot_configuration=configuration,
-        test_guilds=[configuration['discord_guild_id']]
-    )
-    clone_bot = CLoneSuperstonkModerationBot(
-        moderation_bot_configuration=clone_configuration,
-        test_guilds=[clone_configuration['discord_guild_id']]
+        test_guilds=[configuration['discord_guild_id']
+                     ]
     )
 
     bot.run(configuration['discord_bot_token'])
-    clone_bot.run(clone_configuration['discord_bot_token'])

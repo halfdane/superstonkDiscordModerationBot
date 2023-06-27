@@ -37,7 +37,7 @@ class RedditItemReader:
                         finished_handling = await handler.take(item)
                         if finished_handling:
                             break
-                    except Exception:
+                    except Exception as e:
                         self._logger.exception(f"Caught an exception in {handler}:")
 
             if self.item_repository is not None:
