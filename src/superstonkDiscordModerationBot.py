@@ -288,7 +288,8 @@ class SuperstonkModerationBot(Bot):
 
         await troll_finder.register_streams(self.component, 'gme_meltdown')
         await troll_finder.register_streams(self.component, 'FWFBThinkTank')
-        await troll_finder.register_streams(self.component, 'DRSyourGME')
+
+        # await troll_finder.register_streams(self.component, 'DRSyourGME')
 
         await self.send_discord_message(description_beginning=f"Moderation bot restarted {datetime.datetime.now()}")
 
