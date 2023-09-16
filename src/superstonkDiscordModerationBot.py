@@ -439,9 +439,9 @@ if __name__ == "__main__":
         format='[%(name)s]: %(message)s'
     )
 
-    configuration = CloneBotConfiguration()
+    configuration = ModerationBotConfiguration()
 
-    bot = CLoneSuperstonkModerationBot(
+    bot = SuperstonkModerationBot(
         moderation_bot_configuration=configuration,
         test_guilds=[configuration['discord_guild_id']
                      ]
