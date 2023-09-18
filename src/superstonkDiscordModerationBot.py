@@ -46,7 +46,6 @@ from qv_bot.resticky_qv_bot import RestickyQualityVoteBot
 from reddit_item_reader import RedditItemReader
 from reports_logs.add_ban_msg_to_modnotes import AddBanMessageToModnotes
 from reports_logs.approve_old_modqueue_items import ApproveOldModqueueItems
-from reports_logs.approve_report_abuse_content import ApproveReportAbuse
 from reports_logs.ignore_approved_content import IgnoreApprovedContent
 from reports_logs.important_reports_handler import ImportantReports
 from reports_logs.modlog_repository import ModlogRepository
