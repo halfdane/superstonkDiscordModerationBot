@@ -45,7 +45,6 @@ from qv_bot.require_qv_response import RequireQvResponse
 from qv_bot.resticky_qv_bot import RestickyQualityVoteBot
 from reddit_item_reader import RedditItemReader
 from reports_logs.add_ban_msg_to_modnotes import AddBanMessageToModnotes
-from reports_logs.approve_daily_spam import ApproveDailySpam
 from reports_logs.approve_old_modqueue_items import ApproveOldModqueueItems
 from reports_logs.approve_report_abuse_content import ApproveReportAbuse
 from reports_logs.ignore_approved_content import IgnoreApprovedContent
@@ -252,8 +251,6 @@ class SuperstonkModerationBot(Bot):
             item_fetch_function=superstonk_subreddit.mod.stream.reports,
             item_repository=self.COMPONENTS['report_repo'],
             handlers=[
-                # await self.component(approve_daily_spam=ApproveDailySpam(**self.COMPONENTS)),
-                await self.component(approve_report_abuse=ApproveReportAbuse(**self.COMPONENTS)),
                 await self.component(important_reports=ImportantReports(**self.COMPONENTS)),
             ]))
 
