@@ -30,7 +30,7 @@ class ModerationBotConfiguration(dict):
 
     def remove_secrets(self):
         del self['discord_bot_token']
-        for prefix in ['reddit', 'qvbot', 'flairy']:
+        for prefix in ['qvbot', 'flairy']:
             for key in ['username', 'password', 'client_id', 'client_secret']:
                 del self[f"{prefix}_{key}"],
 
