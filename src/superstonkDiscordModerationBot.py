@@ -97,9 +97,6 @@ class SuperstonkModerationBot(Bot):
     async def on_ready(self):
         self.COMPONENTS['superstonk_discord_moderation_bot'] = self
 
-        self.COMPONENTS["readonly_reddit"] = \
-            asyncpraw.Reddit(**self.moderation_bot_configuration.readonly_reddit_settings(),
-                             user_agent="com.halfdane.superstonk_moderation_bot:v0.2.0 (by u/half_dane)")
         self.COMPONENTS["flairy_reddit"] = \
             asyncpraw.Reddit(**self.moderation_bot_configuration.flairy_reddit_settings(),
                              user_agent="com.halfdane.superstonk_flairy:v0.2.1 (by u/half_dane)")
