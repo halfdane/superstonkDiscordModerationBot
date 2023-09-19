@@ -25,23 +25,20 @@ class RedditItemReader:
         try:
             await asyncio.wait_for(self._stream(), timeout=TEN_MINUTES)
         except (asyncio.TimeoutError, asyncio.exceptions.CancelledError, asyncio.exceptions.TimeoutError):
-            self._logger.exception(f"ignoring exception for: {self.name}:")
+            pass
 
     async def _stream(self):
-        try:
-            async for item in self.item_fetch_function():
+        async for item in self.item_fetch_function():
 
-                needs_handling = (self.item_repository is None) or (not (await self.item_repository.contains(item)))
-                if needs_handling:
-                    for handler in self.handlers:
-                        try:
-                            finished_handling = await handler.take(item)
-                            if finished_handling:
-                                break
-                        except Exception as e:
-                            self._logger.exception(f"Caught an exception in {handler}:")
+            needs_handling = (self.item_repository is None) or (not (await self.item_repository.contains(item)))
+            if needs_handling:
+                for handler in self.handlers:
+                    try:
+                        finished_handling = await handler.take(item)
+                        if finished_handling:
+                            break
+                    except Exception as e:
+                        self._logger.exception(f"Caught an exception in {handler}:")
 
-                if self.item_repository is not None:
-                    await self.item_repository.store([item])
-        except Exception as e:
-            self._logger.exception(f"could not fetch items: {self.name}:")
+            if self.item_repository is not None:
+                await self.item_repository.store([item])
