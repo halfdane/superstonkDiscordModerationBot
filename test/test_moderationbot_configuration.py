@@ -39,7 +39,7 @@ class TestAutomodConfiguration:
         config = ModerationBotConfiguration(test_config)
 
         # then
-        expected_keys = ['discord_bot_token', 'discord_guild_id', 'environment',
+        expected_keys = ['discord_bot_token', 'discord_guild_id',
                          'flairy_channel_id', 'flairy_client_id', 'flairy_client_secret', 'flairy_password',
                          'flairy_username', 'is_live_environment', 'logging_output_channel_id', 'mod_tag_channel_id',
                          'qvbot_client_id', 'qvbot_client_secret', 'qvbot_password', 'qvbot_username',
