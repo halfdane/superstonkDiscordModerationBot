@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime, timedelta, UTC
+from datetime import datetime, timedelta
 
 from helper.item_helper import permalink, removed
 
@@ -33,8 +33,8 @@ class ApproveOldModqueueItems:
 
     async def handle_obsolete_modqueue_items(self):
         subreddit = await self.qvbot_reddit.subreddit(self.subreddit_name)
-        three_days_ago = datetime.now(UTC) - timedelta(days=3)
-        six_days_ago = datetime.now(UTC) - timedelta(days=6)
+        three_days_ago = datetime.utcnow() - timedelta(days=3)
+        six_days_ago = datetime.utcnow() - timedelta(days=6)
 
         async for item in subreddit.mod.modqueue(limit=None):
             if getattr(item, 'approved', True) or removed(item):

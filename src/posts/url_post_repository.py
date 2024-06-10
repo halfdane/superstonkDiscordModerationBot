@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime, timedelta, UTC
+from datetime import datetime, timedelta
 
 import aiosqlite
 
@@ -20,8 +20,8 @@ class UrlPosts:
         scheduler.add_job(self.cleanup_database, "cron", hour="*", next_run_time=datetime.now())
 
     async def cleanup_database(self):
-        yesterday = datetime.now(UTC) - timedelta(hours=24)
-        day_before_yesterday = datetime.now(UTC) - timedelta(hours=48)
+        yesterday = datetime.utcnow() - timedelta(hours=24)
+        day_before_yesterday = datetime.utcnow() - timedelta(hours=48)
         posts = await self.post_repo.fetch(before=yesterday, since=day_before_yesterday)
         ids = [post.id for post in posts]
         await self.remove(ids)

@@ -1,5 +1,5 @@
 import logging
-from datetime import timedelta, datetime, UTC
+from datetime import timedelta, datetime
 
 from comments.comment_repository import Comments
 
@@ -22,7 +22,7 @@ class CommentBasedTrollIdentifier:
 
     async def identify_comment_removers(self):
         self._logger.info(f"checking database for people who have lots of downvoted comments that are then removed")
-        now = datetime.now(UTC)
+        now = datetime.utcnow()
 
         authors = dict()
         future_from_db = self.persist_comments.find_authors_with_removed_negative_comments(

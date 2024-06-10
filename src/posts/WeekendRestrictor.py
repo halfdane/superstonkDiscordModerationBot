@@ -1,4 +1,4 @@
-from datetime import datetime, time, UTC
+from datetime import datetime, time
 
 import pytz
 
@@ -46,7 +46,7 @@ class WeekendRestrictor(Handler):
             return True
 
     def it_is_not_weekend(self):
-        now = datetime.now(UTC)
+        now = datetime.utcnow()
         weekday = now.weekday()
 
         # Monday is 0, Friday is 4 and Sunday is 6

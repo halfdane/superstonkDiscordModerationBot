@@ -1,6 +1,6 @@
 import logging
 from collections import namedtuple
-from datetime import datetime, UTC
+from datetime import datetime
 from typing import List
 
 import aiosqlite
@@ -23,7 +23,7 @@ class Comments:
                              'COMMENTS (id PRIMARY KEY, author, created_utc, deleted, mod_removed, updated_utc, score);')
 
     async def store(self, comments: List[Comment]):
-        now = datetime.now(UTC).timestamp()
+        now = datetime.utcnow().timestamp()
 
         def __comment_to_db(comment):
             mod_removed = comment.removed or (getattr(comment, "ban_note", None) is not None)

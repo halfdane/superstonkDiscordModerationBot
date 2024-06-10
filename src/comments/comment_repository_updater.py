@@ -1,5 +1,5 @@
 import logging
-from datetime import timedelta, datetime, UTC
+from datetime import timedelta, datetime
 from dateutil.relativedelta import relativedelta
 
 from comments.comment_body_repository import CommentBodiesRepository
@@ -24,7 +24,7 @@ class CommentRepositoryUpdater:
         scheduler.add_job(self.cleanup_comment_bodies, "cron", day="1", hour="07")
 
     async def update_comments(self):
-        now = datetime.now(UTC)
+        now = datetime.utcnow()
         last_hour = now - timedelta(hours=1)
         self._logger.debug(f"Fetching ids of comments from the last hour")
         comment_ids_of_last_hour = [f"t1_{c}" for c in await self.persist_comments.ids(last_hour)]
