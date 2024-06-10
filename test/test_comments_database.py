@@ -1,5 +1,5 @@
 from collections import namedtuple
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone, UTC
 from pathlib import Path
 
 import aiosqlite
@@ -132,7 +132,7 @@ class TestCommentDatabaseIntegration:
     @pytest.mark.asyncio
     async def test_read_after(self):
         # given
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
         last_week = now - timedelta(weeks=1)
         three_days_ago = now - timedelta(days=3)
         two_days_ago = now - timedelta(days=2)
@@ -195,7 +195,7 @@ class TestCommentDatabaseIntegration:
     @pytest.mark.asyncio
     async def test_fetch_ids(self):
         # given
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
         last_week = now - timedelta(weeks=1)
         three_days_ago = now - timedelta(days=3)
         two_days_ago = now - timedelta(days=2)
@@ -217,7 +217,7 @@ class TestCommentDatabaseIntegration:
     @pytest.mark.asyncio
     async def test_fetch_ids_between(self):
         # given
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
         last_week = now - timedelta(weeks=1)
         three_days_ago = now - timedelta(days=3)
         two_days_ago = now - timedelta(days=2)

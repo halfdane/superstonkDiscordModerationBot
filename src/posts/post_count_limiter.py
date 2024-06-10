@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 
 import chevron
 
@@ -7,7 +7,7 @@ from reddit_item_handler import Handler
 
 
 async def _post_to_string(post):
-    created_utc = datetime.utcfromtimestamp(post.created_utc).strftime("%m/%d/%Y, %H:%M:%S")
+    created_utc = datetime.fromtimestamp(post.created_utc, UTC).strftime("%m/%d/%Y, %H:%M:%S")
     return f"- **{created_utc}**: {permalink(post.id)}"
 
 
@@ -27,7 +27,7 @@ class PostCountLimiter(Handler):
 
     async def take(self, item):
         author_name = author(item)
-        yesterday = datetime.utcnow() - timedelta(hours=24)
+        yesterday = datetime.now(UTC) - timedelta(hours=24)
         posts = await self.post_repo.fetch(author=author_name, since=yesterday)
         posts_that_count = list(filter(lambda p: p.count_to_limit, posts))
         posts_that_dont_count = list(filter(lambda p: not p.count_to_limit, posts))

@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 
 import chevron
 
@@ -47,7 +47,7 @@ class QualityVoteBot(Handler):
 
     async def check_recent_comments(self, ):
         self._logger.info("checking comments")
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
         yesterday = now - timedelta(hours=24)
 
         qv_user = await self.qvbot_reddit.user.me()

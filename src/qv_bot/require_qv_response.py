@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 
 from helper.item_helper import author, removed, permalink
 from qv_bot.__init import get_qv_comment
@@ -24,7 +24,7 @@ class RequireQvResponse(Handler):
         scheduler.add_job(self.check_recent_comments, "cron", minute="*")
 
     async def check_recent_comments(self, ):
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
         interval = now - timedelta(minutes=20)
         latest = now - timedelta(minutes=10)
 
