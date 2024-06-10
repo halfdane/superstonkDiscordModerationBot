@@ -1,9 +1,14 @@
 # Superstonk moderation bot for discord
 
+Contains the flairy, the qvBot and several other moderation tools for the Superstonk discord server.
+
 # Preconditions
-- The bot is written in `python3`
-- The user service config (used for automatic restarts and automated deployment) is only tested on `Ubuntu`
-- Automated deployment uses `git` and `ssh`
+- Ubuntu for the user service (used for automatic restarts and automated deployment)
+- `git` for initial checkout and automated deployment
+- `ssh` server for automated deployment and remote administration
+- `python3` for the bot itself
+- `build-essential` to get the `make` command
+- `nano` or another text editor to adjust the configuration
 
 # Installation
 - Check out the repository
@@ -16,8 +21,9 @@
     `nano config.json`
 - Run the bot once more and check if it works
     `make`
-- If everything works, you can now install and start the bot as a user service
+- If everything works, you can now install and start the bot as a user service (tested only on Ubuntu)
     `make install`
+    (Needs sudo rights to allow the bot to keep running after you log out)
 - Watch the logs
     `journalctl -u superstonkDiscordModerationBot -f`
 
