@@ -39,6 +39,21 @@ class ModlogRepository:
                 await db.execute(statement, {'id': id})
             await db.commit()
 
+    async def remove_before(self, before: datetime = None):
+        async with aiosqlite.connect(self.database) as db:
+            statement = 'delete from modlog'
+            condition_statements = []
+            condition_parameters = {}
+            if before is not None:
+                condition_statements.append('created_utc <:before')
+                condition_parameters['before'] = before.timestamp()
+
+            if len(condition_statements) > 0:
+                statement = f'{statement} where {" and ".join(condition_statements)};'
+
+            await db.execute(statement, condition_parameters)
+            await db.commit()
+
     async def contains(self, log):
         async with aiosqlite.connect(self.database) as db:
             async with db.execute('select count(*) from modlog where id=:id',

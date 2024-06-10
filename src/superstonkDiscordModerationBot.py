@@ -49,6 +49,7 @@ from reports_logs.approve_old_modqueue_items import ApproveOldModqueueItems
 from reports_logs.ignore_approved_content import IgnoreApprovedContent
 from reports_logs.important_reports_handler import ImportantReports
 from reports_logs.modlog_repository import ModlogRepository
+from reports_logs.modlog_repository_updater import ModlogRepositoryUpdater
 from reports_logs.report_repository import Reports
 from reports_logs.reported_comments_remover import ReportedCommentsRemover
 from reports_logs.unreport_handled_items import HandledItemsUnreporter
@@ -186,6 +187,7 @@ class SuperstonkModerationBot(Bot):
 
         await self.component(comment_based_troll_identifier=CommentBasedTrollIdentifier(**self.COMPONENTS))
         await self.component(comment_repository_updater=CommentRepositoryUpdater(**self.COMPONENTS))
+        await self.component(modlog_repository_updater=ModlogRepositoryUpdater(**self.COMPONENTS))
         await self.component(post_repository_updater=PostRepositoryUpdater(**self.COMPONENTS))
         await self.component(handled_items_unreporter=HandledItemsUnreporter(**self.COMPONENTS))
         await self.component(flairy_report=FlairyReport(**self.COMPONENTS))
