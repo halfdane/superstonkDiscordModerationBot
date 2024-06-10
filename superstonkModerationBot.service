@@ -11,6 +11,8 @@ WorkingDirectory=%h/superstonkDiscordModerationBot
 ExecStart=/usr/bin/make bot
 Restart=always
 RestartSec=1
+# restart after 7 days
+RuntimeMaxSec=604800
 
 [Install]
 WantedBy=default.target
