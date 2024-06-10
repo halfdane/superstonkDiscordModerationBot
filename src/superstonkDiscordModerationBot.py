@@ -52,10 +52,6 @@ from reports_logs.modlog_repository import ModlogRepository
 from reports_logs.report_repository import Reports
 from reports_logs.reported_comments_remover import ReportedCommentsRemover
 from reports_logs.unreport_handled_items import HandledItemsUnreporter
-from trolls.troll_finder import TrollFinder
-from trolls.troll_reporter import TrollReporter
-from trolls.troll_repository import TrollRepository
-
 
 class SuperstonkModerationBot(Bot):
     COMPONENTS = dict()
@@ -188,7 +184,6 @@ class SuperstonkModerationBot(Bot):
         await self.component(flairy_comment_repo=FlairyComments())
         await self.component(report_repo=Reports())
         await self.component(modlog_repo=ModlogRepository())
-        await self.component(troll_repository=TrollRepository())
 
         # SCHEDULED COMPONENTS
         await self.component(quality_vote_bot_configuration=QualityVoteBotConfiguration(**self.COMPONENTS))
@@ -211,8 +206,6 @@ class SuperstonkModerationBot(Bot):
         super().add_cog(await self.component(modbot_list_cog=(ModbotListCog(self.COMPONENTS))))
 
         # HANDLERS
-        troll_finder = TrollFinder(**self.COMPONENTS)
-        await self.component(troll_finder=troll_finder)
         await self.component(mod_tagger=ModTagger(**self.COMPONENTS))
 
         # REACTIONS
@@ -237,7 +230,6 @@ class SuperstonkModerationBot(Bot):
             item_repository=self.COMPONENTS['comment_repo'],
             handlers=[
                 await self.component(flairy=Flairy(**self.COMPONENTS)),
-                await self.component(troll_reporter=TrollReporter(**self.COMPONENTS)),
                 self.COMPONENTS["mod_tagger"],
                 await self.component(resticky_qv_comment=RestickyQualityVoteBot(**self.COMPONENTS))
             ]))
@@ -278,11 +270,6 @@ class SuperstonkModerationBot(Bot):
                 await self.component(ignore_approved_content=IgnoreApprovedContent(**self.COMPONENTS)),
                 await self.component(add_ban_msg_to_modnotes=AddBanMessageToModnotes(**self.COMPONENTS))
             ]))
-
-        await troll_finder.register_streams(self.component, 'gme_meltdown')
-        await troll_finder.register_streams(self.component, 'FWFBThinkTank')
-
-        # await troll_finder.register_streams(self.component, 'DRSyourGME')
 
         await self.send_discord_message(description_beginning=f"Moderation bot restarted {datetime.datetime.now()}")
 
