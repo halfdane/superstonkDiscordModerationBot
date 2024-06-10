@@ -1,0 +1,36 @@
+~discord_bot_token: get it from the developer settings in discord
+discord_bot_token: some token
+~discord_guild_id: it is the id of the discord server where the bot reports stuff
+discord_guild_id: 1234567890
+~is_live_environment: True or False
+is_live_environment: false
+~flairy_username: The username of the superstonk flairy bot
+flairy_username: Superstonk-Flairy
+~flairy_channel_id: the channel id where flairy bot should report stuff
+flairy_channel_id: 1234567890
+~flairy_client_id: get it from the reddit developer settings
+flairy_client_id: some client id
+~flairy_client_secret: get it from the reddit developer settings
+flairy_client_secret: some client secret
+~flairy_password: it is the password of the reddit account that should be used by
+  flairy bot
+flairy_password: some password
+~qvbot_username: The username of the superstonk qvbot
+qvbot_username: Superstonk_QV
+~qvbot_client_id: the client id of the reddit app that should be used by qvbot
+qvbot_client_id: some client id
+~qvbot_client_secret: the client secret of the reddit app that should be used by qvbot
+qvbot_client_secret: some client secret
+~qvbot_password: the password of the reddit account that should be used by qvbot
+qvbot_password: some password
+~logging_output_channel_id: the channel id where the bot should log debugging messages
+logging_output_channel_id: 1234567890
+~mod_tag_channel_id: the channel id where the bot should report mod tags
+mod_tag_channel_id: 1234567890
+~report_channel_id: the channel id where the bot should report stuff
+report_channel_id: 1234567890
+~subreddit_name: the name of the subreddit where the bot should operate
+subreddit_name: superstonk
+~user_investigation_channel_id: the channel id where the bot listens for user investigation
+  requests
+user_investigation_channel_id: 1234567890

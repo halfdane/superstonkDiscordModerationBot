@@ -13,8 +13,6 @@ DEFAULT_CONFIG = {
     '~discord_guild_id': 'it is the id of the discord server where the bot reports stuff',
     'discord_guild_id': 1234567890,
 
-    '~environment': 'can be live or test',
-    'environment': 'live',
     '~is_live_environment': 'True or False',
     'is_live_environment': False,
 
