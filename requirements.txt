@@ -14,14 +14,3 @@ python-dateutil
 pytest
 pytest-asyncio
 freezegun
-
-millify
-
-simhash
-
-matplotlib
-scipy
-pandas
-seaborn
-
-pyimgbox

@@ -30,7 +30,7 @@ from discordReactionHandlers.old_reddit_reaction import OldRedditReaction
 from discordReactionHandlers.user_history_reaction import UserHistoryReaction
 from discord_user_config.user_info import DiscordUserInfo
 from helper.item_helper import permalink, user_page, author
-from helper.moderation_bot_configuration import ModerationBotConfiguration, CONFIG_HOME, CloneBotConfiguration
+from helper.moderation_bot_configuration import ModerationBotConfiguration, CONFIG_HOME
 from helper.redditor_extractor import extract_redditor
 from posts.WeekendRestrictor import WeekendRestrictor
 from posts.post_count_limiter import PostCountLimiter
@@ -102,8 +102,6 @@ class SuperstonkModerationBot(Bot):
 
         self.COMPONENTS["readonly_reddit"] = self.COMPONENTS["qvbot_reddit"]
 
-        self.moderation_bot_configuration.remove_secrets()
-
         # CONFIGURATION VALUES
         await self.component(**self.moderation_bot_configuration)
 
@@ -118,9 +116,6 @@ class SuperstonkModerationBot(Bot):
         # DISCORD
         self.logger.warning(f"report into the discord channel: {self.COMPONENTS['report_channel_id']}")
         await self.component(report_channel=self.get_channel(self.COMPONENTS['report_channel_id']))
-
-        self.logger.warning(f"report into the discord community channel: {self.COMPONENTS['report_channel_id_community']}")
-        await self.component(report_channel=self.get_channel(self.COMPONENTS['report_channel_id_community']))
 
         self.logger.warning(f"report mod tags into discord channel: {self.COMPONENTS['mod_tag_channel_id']}")
         await self.component(mod_tag_channel=self.get_channel(self.COMPONENTS['mod_tag_channel_id']))
@@ -402,17 +397,6 @@ class SuperstonkModerationBot(Bot):
 
         await super().close()
 
-class CLoneSuperstonkModerationBot(SuperstonkModerationBot):
-    # Define the emojis for reactions that the simplified bot will handle
-    REACTIONS_TO_KEEP = ['\U0001F474', '\U00002753']  # Old man emoji and question mark emoji
-
-    async def handle_reaction(self, message, emoji, user):
-        if emoji in self.REACTIONS_TO_KEEP:
-            await super().handle_reaction(message, emoji, user)
-
-    async def unhandle_reaction(self, message, emoji, user):
-        if emoji in self.REACTIONS_TO_KEEP:
-            await super().unhandle_reaction(message, emoji, user)
 
 if __name__ == "__main__":
     logging.basicConfig(
