@@ -25,7 +25,8 @@ Contains the flairy, the qvBot and several other moderation tools for the Supers
     `make install`
     (Needs sudo rights to allow the bot to keep running after you log out)
 - Watch the logs
-    `journalctl -u superstonkDiscordModerationBot -f`
+    `journalctl --user-unit superstonkModerationBot.service -f`
+- 
 
 # Automated deployment
 The bot is deployed using github actions. The workflow is triggered on every push to the main branch.

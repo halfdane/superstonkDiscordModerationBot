@@ -23,7 +23,7 @@ install:
 	systemctl --user daemon-reload
 	systemctl --user enable superstonkModerationBot.service
 	systemctl --user start superstonkModerationBot.service
-	sudo loginctl enable-linger $USER
+	echo "Please perform `sudo loginctl enable-linger $USER` to allow the bot to run when the user isn't logged in"
 
 
 clean: clean-venv
