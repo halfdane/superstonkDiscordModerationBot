@@ -268,7 +268,7 @@ class SuperstonkModerationBot(Bot):
                 await self.component(add_ban_msg_to_modnotes=AddBanMessageToModnotes(**self.COMPONENTS))
             ]))
 
-        await self.send_discord_message(description_beginning=f"Moderation bot restarted {datetime.datetime.now()}")
+        await self.send_discord_message(description_beginning=f"Moderation bot on luma's server restarted {datetime.datetime.now()}")
 
     async def on_message(self, msg: Message):
         if msg.author.bot or msg.channel.id != self.COMPONENTS['user_investigation_channel_id']:
